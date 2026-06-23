@@ -56,6 +56,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .admin-table tr:hover td{background:#f8fafc;}
 .hidden{display:none!important;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g1{display:grid;grid-template-columns:1fr;gap:12px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 @media(max-width:640px){.g2,.g3,.g4{grid-template-columns:1fr!important;}}
@@ -69,6 +70,24 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;padding:18px;}
 .dash-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px;transition:box-shadow .2s,transform .15s;}
 .dash-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.08);transform:translateY(-1px);}
+.card-blue{border-color:#bfdbfe;background:#f0f7ff;}.card-red{border-color:#fecdd3;background:#fff1f2;}.card-green{border-color:#a7f3d0;background:#f0fdf4;}.card-yellow{border-color:#fde68a;background:#fffbeb;}.card-purple{border-color:#ddd6fe;background:#faf5ff;}.card-gray{border-color:#e2e8f0;background:#f8fafc;}.card-teal{border-color:#99f6e4;background:#f0fdfa;}.card-cyan{border-color:#a5f3fc;background:#ecfeff;}
+.grp{border:1.5px solid var(--card-border);border-radius:13px;padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.03);}
+.grp-head{font-weight:800;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:14px;letter-spacing:-.01em;}
+.grp-head .gi{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.12);}
+.sidebar{background:linear-gradient(180deg,#f8fafc,#eef2f7);border-right:1.5px solid #e2e8f0;border-radius:14px 0 0 14px;}
+.progress-bar{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue-primary),#60a5fa);border-radius:3px;transition:width .45s cubic-bezier(.22,1,.36,1);}
+.vstep{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;cursor:pointer;transition:background .15s;}
+.vstep:hover{background:rgba(37,99,235,.06);}
+.vstep.active{background:rgba(37,99,235,.1);}
+.vstep .vdot{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #cbd5e1;background:#fff;color:#94a3b8;flex-shrink:0;transition:all .25s;}
+.vstep.active .vdot{background:var(--blue-primary);border-color:var(--blue-primary);color:#fff;box-shadow:0 0 0 4px rgba(37,99,235,.18);}
+.vstep.done .vdot{background:#ecfdf5;border-color:#10b981;color:#10b981;}
+.vstep .vlabel{font-size:12.5px;font-weight:600;color:#64748b;line-height:1.25;}
+.vstep.active .vlabel{color:#1e3a8a;font-weight:800;}
+.vsteps{display:flex;flex-direction:column;gap:3px;}
+@media (min-width:900px){.entry-grid{display:grid;grid-template-columns:230px 1fr;}.sidebar-sticky{position:sticky;top:64px;align-self:start;}}
+@media (max-width:899px){.entry-grid{display:block;}.sidebar{border-radius:14px 14px 0 0;border-right:0;border-bottom:1.5px solid #e2e8f0;}.vsteps{flex-direction:row;overflow-x:auto;gap:6px;}.vstep{flex-direction:column;min-width:74px;text-align:center;}.vstep .vlabel{font-size:9px;}}
 .req-star{color:#e11d48;font-weight:800;margin-left:2px;}
 </style>
 </head>
@@ -162,14 +181,21 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
           <button class="btn btn-gray" style="padding:7px 12px;font-size:12px;" onclick="newRecord()"><i class="fas fa-plus"></i> New</button>
         </div>
       </div>
-      <!-- stepper -->
-      <ul id="stepperList" style="list-style:none;display:flex;align-items:flex-start;padding:18px 24px;margin:0;overflow-x:auto;gap:2px;border-bottom:1.5px solid #f1f5f9;"></ul>
-      <!-- form -->
-      <form id="cadForm" onsubmit="return false;" style="padding:24px;">
-        <input type="hidden" id="editRecordId" value="">
-        <div id="formStepsContainer"></div>
-      </form>
-      <div class="step-footer">
+      <div class="entry-grid">
+        <!-- sidebar stepper -->
+        <aside class="sidebar sidebar-sticky" style="padding:18px 14px;">
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:8px;">Completion</div>
+          <div class="progress-bar" style="margin-bottom:16px;"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+          <ul id="stepperList" class="vsteps" style="list-style:none;padding:0;margin:0;"></ul>
+        </aside>
+        <!-- form -->
+        <div style="display:flex;flex-direction:column;">
+          <form id="cadForm" onsubmit="return false;" style="padding:22px 24px;flex:1;">
+            <input type="hidden" id="editRecordId" value="">
+            <div id="formStepsContainer"></div>
+          </form>
+          <div class="step-footer">
+
         <button type="button" class="btn btn-gray" id="btnPrev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
         <div style="display:flex;gap:10px;">
           <button type="button" class="btn btn-yellow" id="btnSaveDraft" onclick="saveRecord('draft',false)"><i class="fas fa-save"></i> Save Draft</button>
@@ -177,6 +203,8 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
           <button type="button" class="btn btn-primary" id="btnNext" onclick="nextStep()">Next <i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
+        </div><!-- /form column -->
+      </div><!-- /entry-grid -->
     </div>
   </section>
 
@@ -303,87 +331,128 @@ const RHYTHM = ['Sinus','Atrial Fibrillation','Atrial Flutter','Paced','Other'];
 const COUNTRIES = ['Kuwaiti','Bedoon','Saudi Arabian','Bahraini','Qatari','Emirati','Omani','Egyptian','Syrian','Lebanese','Jordanian','Palestinian','Iraqi','Iranian','Yemeni','Sudanese','Somali','Indian','Pakistani','Bangladeshi','Sri Lankan','Nepalese','Filipino','Indonesian','Afghan','Turkish','Moroccan','Tunisian','Algerian','Libyan','Ethiopian','Eritrean','Kenyan','Nigerian','Ghanaian','American','British','Canadian','Australian','French','German','Italian','Spanish','Dutch','Russian','Ukrainian','Chinese','Japanese','Korean','Thai','Vietnamese','Other'];
 
 const SECTIONS = [
- {id:'master', sheet:'Patient_Master', title:'Patient & Risk Factors', icon:'fa-id-card', color:'#2563eb', fields:[
-   {k:'Civil_ID_Optional',type:'text',digits:12},{k:'Enrollment_Date',type:'date'},{k:'Index_Admission_Date',type:'date',req:true},
-   {k:'Discharge_Date',type:'date'},{k:'Age',type:'num'},{k:'Sex',type:'select',opts:['Male','Female'],req:true},
-   {k:'Nationality',type:'select',opts:COUNTRIES},{k:'Height_cm',type:'num'},{k:'Weight_kg',type:'num'},
-   {k:'BMI',type:'num',hint:'auto'},{k:'Smoking_Status',type:'select',opts:['Never','Former','Current']},
-   {k:'Diabetes',type:'ynbtn'},{k:'Hypertension',type:'ynbtn'},{k:'Dyslipidemia',type:'ynbtn'},{k:'Family_History_CAD',type:'ynbtn'},
-   {k:'Chronic_Kidney_Disease',type:'ynbtn'},{k:'Prior_MI',type:'ynbtn'},{k:'Prior_PCI',type:'ynbtn'},{k:'Prior_CABG',type:'ynbtn'},
-   {k:'Prior_Stroke_TIA',type:'ynbtn'},{k:'Peripheral_Artery_Disease',type:'ynbtn'},{k:'Heart_Failure',type:'ynbtn'},
-   {k:'Atrial_Fibrillation',type:'ynbtn'},{k:'Baseline_Medications',type:'textarea'}
+ {id:'master', sheet:'Patient_Master', title:'Patient & Risk Factors', icon:'fa-id-card', color:'#2563eb', groups:[
+   {title:'Identifiers & Dates', tint:'gray', c:'#64748b', icon:'fa-calendar', cols:2, fields:[
+     {k:'Civil_ID_Optional',type:'text',digits:12},{k:'Enrollment_Date',type:'date'},{k:'Index_Admission_Date',type:'date',req:true},{k:'Discharge_Date',type:'date'}]},
+   {title:'Demographics', tint:'blue', c:'#2563eb', icon:'fa-user', cols:3, fields:[
+     {k:'Age',type:'num'},{k:'Sex',type:'select',opts:['Male','Female'],req:true},{k:'Nationality',type:'select',opts:COUNTRIES},
+     {k:'Height_cm',type:'num'},{k:'Weight_kg',type:'num'},{k:'BMI',type:'num',hint:'auto'}]},
+   {title:'Risk Factors', tint:'yellow', c:'#d97706', icon:'fa-triangle-exclamation', cols:3, fields:[
+     {k:'Smoking_Status',type:'select',opts:['Never','Former','Current']},{k:'Diabetes',type:'ynbtn'},{k:'Hypertension',type:'ynbtn'},
+     {k:'Dyslipidemia',type:'ynbtn'},{k:'Family_History_CAD',type:'ynbtn'},{k:'Chronic_Kidney_Disease',type:'ynbtn'}]},
+   {title:'Cardiac & Vascular History', tint:'red', c:'#e11d48', icon:'fa-heart-crack', cols:3, fields:[
+     {k:'Prior_MI',type:'ynbtn'},{k:'Prior_PCI',type:'ynbtn'},{k:'Prior_CABG',type:'ynbtn'},{k:'Prior_Stroke_TIA',type:'ynbtn'},
+     {k:'Peripheral_Artery_Disease',type:'ynbtn'},{k:'Heart_Failure',type:'ynbtn'},{k:'Atrial_Fibrillation',type:'ynbtn'}]},
+   {title:'Baseline Medications', tint:'gray', c:'#64748b', icon:'fa-pills', cols:1, fields:[
+     {k:'Baseline_Medications',type:'textarea'}]}
  ]},
- {id:'present', sheet:'Presentation_ECG_Timing', title:'Presentation, ECG & Timing', icon:'fa-heart-pulse', color:'#e11d48', fields:[
-   {k:'Presentation_Type',type:'select',opts:['STEMI','NSTEMI','Unstable Angina','Stable Angina','Silent Ischemia','Other']},
-   {k:'Presenting_Symptom_Chest_Pain',type:'ynbtn'},{k:'Presenting_Symptom_Dyspnea',type:'ynbtn'},{k:'Presenting_Symptom_Syncope',type:'ynbtn'},
-   {k:'Symptom_Onset_Time',type:'datetime'},{k:'Hospital_Arrival_Time',type:'datetime'},{k:'Balloon_Time_First_Device',type:'datetime'},
-   {k:'Door_to_Balloon_Min',type:'num'},{k:'Symptom_to_Balloon_Min',type:'num'},{k:'Killip_Class',type:'select',opts:['I','II','III','IV']},
-   {k:'Cardiogenic_Shock',type:'ynbtn'},{k:'Cardiac_Arrest',type:'ynbtn'},{k:'ECG_Rhythm',type:'select',opts:RHYTHM},
-   {k:'ST_Elevation',type:'ynbtn'},{k:'ST_Elevation_Leads',type:'text'},{k:'ST_Depression',type:'ynbtn'},{k:'T_Wave_Inversion',type:'ynbtn'},
-   {k:'Pathologic_Q_Waves',type:'ynbtn'},{k:'New_LBBB',type:'ynbtn'},{k:'Posterior_MI_Suspected',type:'ynbtn'},{k:'ECG_Notes',type:'textarea'}
+ {id:'present', sheet:'Presentation_ECG_Timing', title:'Presentation, ECG & Timing', icon:'fa-heart-pulse', color:'#e11d48', groups:[
+   {title:'Clinical Presentation', tint:'red', c:'#e11d48', icon:'fa-notes-medical', cols:2, fields:[
+     {k:'Presentation_Type',type:'select',opts:['STEMI','NSTEMI','Unstable Angina','Stable Angina','Silent Ischemia','Other']},
+     {k:'Killip_Class',type:'select',opts:['I','II','III','IV']},{k:'Presenting_Symptom_Chest_Pain',type:'ynbtn'},
+     {k:'Presenting_Symptom_Dyspnea',type:'ynbtn'},{k:'Presenting_Symptom_Syncope',type:'ynbtn'},
+     {k:'Cardiogenic_Shock',type:'ynbtn'},{k:'Cardiac_Arrest',type:'ynbtn'}]},
+   {title:'Reperfusion Timing', tint:'yellow', c:'#d97706', icon:'fa-clock', cols:2, fields:[
+     {k:'Symptom_Onset_Time',type:'datetime'},{k:'Hospital_Arrival_Time',type:'datetime'},{k:'Balloon_Time_First_Device',type:'datetime'},
+     {k:'Door_to_Balloon_Min',type:'num',hint:'auto'},{k:'Symptom_to_Balloon_Min',type:'num',hint:'auto'}]},
+   {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
+     {k:'ECG_Rhythm',type:'select',opts:RHYTHM},{k:'ST_Elevation',type:'ynbtn'},{k:'ST_Elevation_Leads',type:'text'},
+     {k:'ST_Depression',type:'ynbtn'},{k:'T_Wave_Inversion',type:'ynbtn'},{k:'Pathologic_Q_Waves',type:'ynbtn'},
+     {k:'New_LBBB',type:'ynbtn'},{k:'Posterior_MI_Suspected',type:'ynbtn'},{k:'ECG_Notes',type:'textarea'}]}
  ]},
- {id:'echo', sheet:'Echocardiography', title:'Echocardiography', icon:'fa-wave-square', color:'#0d9488', fields:[
-   {k:'Echo_Date',type:'date'},{k:'LVEF',type:'num'},{k:'Regional_Wall_Motion_Abnormality',type:'ynbtn'},
-   {k:'Diastolic_Dysfunction',type:'select',opts:['None','Grade I','Grade II','Grade III']},{k:'LVH',type:'ynbtn'},
-   {k:'LA_Size',type:'select',opts:['Normal','Mildly dilated','Moderately dilated','Severely dilated']},
-   {k:'RV_Function',type:'select',opts:RV},{k:'Pulmonary_Pressure',type:'num'},{k:'Valvular_Disease',type:'select',opts:VALVE},
-   {k:'Pericardial_Effusion',type:'ynbtn'},{k:'Echo_Notes',type:'textarea'}
+ {id:'echo', sheet:'Echocardiography', title:'Echocardiography', icon:'fa-wave-square', color:'#0d9488', groups:[
+   {title:'LV Systolic & Diastolic Function', tint:'teal', c:'#0d9488', icon:'fa-heart', cols:3, fields:[
+     {k:'Echo_Date',type:'date'},{k:'LVEF',type:'num'},{k:'Regional_Wall_Motion_Abnormality',type:'ynbtn'},
+     {k:'Diastolic_Dysfunction',type:'select',opts:['None','Grade I','Grade II','Grade III']},{k:'LVH',type:'ynbtn'}]},
+   {title:'Chambers, Valves & Pericardium', tint:'gray', c:'#475569', icon:'fa-diagram-project', cols:3, fields:[
+     {k:'LA_Size',type:'select',opts:['Normal','Mildly dilated','Moderately dilated','Severely dilated']},
+     {k:'RV_Function',type:'select',opts:RV},{k:'Pulmonary_Pressure',type:'num'},{k:'Valvular_Disease',type:'select',opts:VALVE},
+     {k:'Pericardial_Effusion',type:'ynbtn'},{k:'Echo_Notes',type:'textarea'}]}
  ]},
- {id:'blood', sheet:'Blood_Work', title:'Blood Work', icon:'fa-vial', color:'#d97706', fields:[
-   {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'num'},{k:'WBC',type:'num'},{k:'Platelets',type:'num'},{k:'Creatinine',type:'num'},
-   {k:'Creatinine_Unit',type:'select',opts:['mg/dL','µmol/L']},{k:'eGFR',type:'num',hint:'auto CKD-EPI'},{k:'Sodium',type:'num'},{k:'Potassium',type:'num'},{k:'Glucose',type:'num'},{k:'HbA1c',type:'num'},
-   {k:'Total_Cholesterol',type:'num'},{k:'LDL',type:'num'},{k:'HDL',type:'num'},{k:'Triglycerides',type:'num'},
-   {k:'Troponin',type:'num'},{k:'BNP',type:'num'},{k:'CRP',type:'num'}
+ {id:'blood', sheet:'Blood_Work', title:'Blood Work', icon:'fa-vial', color:'#d97706', groups:[
+   {title:'Hematology', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
+     {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'num'},{k:'WBC',type:'num'},{k:'Platelets',type:'num'}]},
+   {title:'Renal Function & Electrolytes', tint:'blue', c:'#2563eb', icon:'fa-flask', cols:3, fields:[
+     {k:'Creatinine',type:'num'},{k:'Creatinine_Unit',type:'select',opts:['µmol/L','mg/dL'],def:'µmol/L'},{k:'eGFR',type:'num',hint:'auto CKD-EPI'},
+     {k:'Sodium',type:'num'},{k:'Potassium',type:'num'}]},
+   {title:'Metabolic', tint:'yellow', c:'#d97706', icon:'fa-cubes', cols:2, fields:[
+     {k:'Glucose',type:'num'},{k:'HbA1c',type:'num'}]},
+   {title:'Lipid Profile', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:4, fields:[
+     {k:'Total_Cholesterol',type:'num'},{k:'LDL',type:'num'},{k:'HDL',type:'num'},{k:'Triglycerides',type:'num'}]},
+   {title:'Cardiac & Inflammatory Markers', tint:'gray', c:'#475569', icon:'fa-heart-pulse', cols:3, fields:[
+     {k:'Troponin',type:'num'},{k:'BNP',type:'num'},{k:'CRP',type:'num'}]}
  ]},
- {id:'coronary', sheet:'Coronary_Anatomy', title:'Coronary Anatomy', icon:'fa-diagram-project', color:'#7c3aed', fields:[
-   {k:'Angio_Date',type:'date'},{k:'Left_Main_Disease',type:'ynbtn'},{k:'LAD_Disease',type:'ynbtn'},{k:'LCX_Disease',type:'ynbtn'},
-   {k:'RCA_Disease',type:'ynbtn'},{k:'Number_Diseased_Vessels',type:'select',opts:['0','1','2','3']},
-   {k:'Culprit_Vessel',type:'select',opts:['Left Main','LAD','LCX','RCA','Ramus','Graft','None']},
-   {k:'CTO',type:'ynbtn'},{k:'Thrombus',type:'ynbtn'},{k:'Notes',type:'textarea'}
+ {id:'coronary', sheet:'Coronary_Anatomy', title:'Coronary Anatomy', icon:'fa-diagram-project', color:'#7c3aed', groups:[
+   {title:'Vessel Disease', tint:'purple', c:'#7c3aed', icon:'fa-x-ray', cols:3, fields:[
+     {k:'Angio_Date',type:'date'},{k:'Left_Main_Disease',type:'ynbtn'},{k:'LAD_Disease',type:'ynbtn'},
+     {k:'LCX_Disease',type:'ynbtn'},{k:'RCA_Disease',type:'ynbtn'},{k:'Number_Diseased_Vessels',type:'select',opts:['0','1','2','3']}]},
+   {title:'Culprit & Lesion Morphology', tint:'red', c:'#e11d48', icon:'fa-bullseye', cols:3, fields:[
+     {k:'Culprit_Vessel',type:'select',opts:['Left Main','LAD','LCX','RCA','Ramus','Graft','None']},
+     {k:'CTO',type:'ynbtn'},{k:'Thrombus',type:'ynbtn'},{k:'Notes',type:'textarea'}]}
  ]},
- {id:'pci', sheet:'PCI_Details', title:'PCI Details', icon:'fa-syringe', color:'#0891b2', fields:[
-   {k:'PCI_Date',type:'date'},{k:'Primary_PCI',type:'ynbtn'},{k:'Vessel_Treated',type:'text'},{k:'Number_Stents',type:'num'},
-   {k:'Stent_Type',type:'select',opts:['DES','BMS','DCB','None']},{k:'Total_Stent_Length',type:'num'},
-   {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']},{k:'Procedural_Complications',type:'textarea'}
+ {id:'pci', sheet:'PCI_Details', title:'PCI Details', icon:'fa-syringe', color:'#0891b2', groups:[
+   {title:'Procedure', tint:'cyan', c:'#0891b2', icon:'fa-syringe', cols:2, fields:[
+     {k:'PCI_Date',type:'date'},{k:'Primary_PCI',type:'ynbtn'},{k:'Vessel_Treated',type:'text'},{k:'Number_Stents',type:'num'}]},
+   {title:'Stent & Intracoronary Imaging', tint:'gray', c:'#475569', icon:'fa-layer-group', cols:2, fields:[
+     {k:'Stent_Type',type:'select',opts:['DES','BMS','DCB','None']},{k:'Total_Stent_Length',type:'num'},
+     {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']},{k:'Procedural_Complications',type:'textarea'}]}
  ]},
- {id:'dc_meds', sheet:'Discharge_Medications', title:'Discharge Medications', icon:'fa-pills', color:'#059669', fields:[
-   {k:'Discharge_Date',type:'date'},{k:'Aspirin',type:'ynbtn'},
-   {k:'P2Y12_Inhibitor',type:'select',opts:['Clopidogrel','Prasugrel','Ticagrelor','None']},
-   {k:'Dual_Antiplatelet_Therapy',type:'ynbtn'},{k:'Planned_DAPT_Duration_Months',type:'num'},
-   {k:'Oral_Anticoagulant',type:'select',opts:['Warfarin','DOAC','None']},
-   {k:'Indication_for_Anticoagulation',type:'select',opts:['AF','LV thrombus','VTE','Other','None']},
-   {k:'Statin',type:'select',opts:['Atorvastatin','Rosuvastatin','Other','None']},{k:'Statin_Dose',type:'text'},
-   {k:'Ezetimibe',type:'ynbtn'},{k:'PCSK9_Inhibitor',type:'ynbtn'},{k:'Beta_Blocker',type:'ynbtn'},
-   {k:'ACEi_or_ARB_or_ARNI',type:'select',opts:['ACEi','ARB','ARNI','None']},{k:'MRA',type:'ynbtn'},
-   {k:'SGLT2_Inhibitor',type:'ynbtn'},{k:'Diuretics',type:'ynbtn'},{k:'Nitrates',type:'ynbtn'},
-   {k:'Calcium_Channel_Blocker',type:'ynbtn'},{k:'Ranolazine',type:'ynbtn'},{k:'PPI',type:'ynbtn'},{k:'Other_Medications_Notes',type:'textarea'}
+ {id:'dc_meds', sheet:'Discharge_Medications', title:'Discharge Medications', icon:'fa-pills', color:'#059669', groups:[
+   {title:'Antiplatelet & Anticoagulation', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:2, fields:[
+     {k:'Discharge_Date',type:'date'},{k:'Aspirin',type:'ynbtn'},
+     {k:'P2Y12_Inhibitor',type:'select',opts:['Clopidogrel','Prasugrel','Ticagrelor','None']},{k:'Dual_Antiplatelet_Therapy',type:'ynbtn'},
+     {k:'Planned_DAPT_Duration_Months',type:'num'},{k:'Oral_Anticoagulant',type:'select',opts:['Warfarin','DOAC','None']},
+     {k:'Indication_for_Anticoagulation',type:'select',opts:['AF','LV thrombus','VTE','Other','None']}]},
+   {title:'Lipid-Lowering Therapy', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:2, fields:[
+     {k:'Statin',type:'select',opts:['Atorvastatin','Rosuvastatin','Other','None']},{k:'Statin_Dose',type:'text'},
+     {k:'Ezetimibe',type:'ynbtn'},{k:'PCSK9_Inhibitor',type:'ynbtn'}]},
+   {title:'Neurohormonal / Heart-Failure', tint:'blue', c:'#2563eb', icon:'fa-heart', cols:3, fields:[
+     {k:'Beta_Blocker',type:'ynbtn'},{k:'ACEi_or_ARB_or_ARNI',type:'select',opts:['ACEi','ARB','ARNI','None']},
+     {k:'MRA',type:'ynbtn'},{k:'SGLT2_Inhibitor',type:'ynbtn'},{k:'Diuretics',type:'ynbtn'}]},
+   {title:'Anti-anginal & Other', tint:'gray', c:'#475569', icon:'fa-capsules', cols:2, fields:[
+     {k:'Nitrates',type:'ynbtn'},{k:'Calcium_Channel_Blocker',type:'ynbtn'},{k:'Ranolazine',type:'ynbtn'},
+     {k:'PPI',type:'ynbtn'},{k:'Other_Medications_Notes',type:'textarea'}]}
  ]},
- {id:'reint', sheet:'Reintervention_FollowUp', title:'Reintervention', icon:'fa-rotate', color:'#be123c', fields:[
-   {k:'FollowUp_Date',type:'date'},{k:'Recurrent_Angina',type:'ynbtn'},{k:'Reintervention_Performed',type:'ynbtn'},
-   {k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
-   {k:'Type_Reintervention_PCI_or_CABG',type:'select',opts:['PCI','CABG','None']},
-   {k:'Outcome_Status',type:'select',opts:['Alive','Deceased','Lost to follow-up']},
-   {k:'Death',type:'ynbtn'},{k:'MI',type:'ynbtn'},{k:'Stroke',type:'ynbtn'},{k:'Heart_Failure_Hospitalization',type:'ynbtn'},{k:'Notes',type:'textarea'}
+ {id:'reint', sheet:'Reintervention_FollowUp', title:'Reintervention', icon:'fa-rotate', color:'#be123c', groups:[
+   {title:'Reintervention', tint:'red', c:'#be123c', icon:'fa-rotate', cols:3, fields:[
+     {k:'FollowUp_Date',type:'date'},{k:'Recurrent_Angina',type:'ynbtn'},{k:'Reintervention_Performed',type:'ynbtn'},
+     {k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
+     {k:'Type_Reintervention_PCI_or_CABG',type:'select',opts:['PCI','CABG','None']}]},
+   {title:'Outcomes', tint:'gray', c:'#475569', icon:'fa-flag-checkered', cols:3, fields:[
+     {k:'Outcome_Status',type:'select',opts:['Alive','Deceased','Lost to follow-up']},{k:'Death',type:'ynbtn'},{k:'MI',type:'ynbtn'},
+     {k:'Stroke',type:'ynbtn'},{k:'Heart_Failure_Hospitalization',type:'ynbtn'},{k:'Notes',type:'textarea'}]}
  ]}
 ];
 
 // Repeating section — multiple follow-up visits per patient
-const FOLLOWUP = {id:'fu', sheet:'FollowUp_Comprehensive', title:'Comprehensive Follow-Up', icon:'fa-calendar-check', color:'#4f46e5', fields:[
-   {k:'FollowUp_Date',type:'date'},{k:'FollowUp_Timepoint_Months',type:'num'},{k:'Alive',type:'ynbtn'},{k:'Rehospitalization',type:'ynbtn'},
-   {k:'Recurrent_Chest_Pain',type:'ynbtn'},{k:'Dyspnea',type:'ynbtn'},{k:'NYHA_Class',type:'select',opts:['I','II','III','IV']},
-   {k:'Heart_Failure_Hospitalization',type:'ynbtn'},{k:'Stroke',type:'ynbtn'},{k:'MI',type:'ynbtn'},{k:'ECG_Performed',type:'ynbtn'},
-   {k:'ECG_Rhythm',type:'select',opts:RHYTHM},{k:'ST_Changes',type:'ynbtn'},{k:'New_Q_Waves',type:'ynbtn'},{k:'Arrhythmia',type:'ynbtn'},
-   {k:'Echo_Performed',type:'ynbtn'},{k:'LVEF_FollowUp',type:'num'},{k:'RWMA_FollowUp',type:'ynbtn'},{k:'LV_Dilation',type:'ynbtn'},
-   {k:'RV_Function_FollowUp',type:'select',opts:RV},{k:'Valvular_Disease_FollowUp',type:'select',opts:VALVE},
-   {k:'Hemoglobin_FU',type:'num'},{k:'Creatinine_FU',type:'num'},{k:'eGFR_FU',type:'num'},{k:'LDL_FU',type:'num'},
-   {k:'HbA1c_FU',type:'num'},{k:'BNP_FU',type:'num'},{k:'On_Aspirin',type:'ynbtn'},{k:'On_P2Y12',type:'ynbtn'},{k:'On_Statin',type:'ynbtn'},
-   {k:'On_BetaBlocker',type:'ynbtn'},{k:'On_ACEi_ARB_ARNI',type:'ynbtn'},{k:'On_SGLT2',type:'ynbtn'},{k:'Repeat_Angiography',type:'ynbtn'},
-   {k:'Repeat_PCI',type:'ynbtn'},{k:'CABG',type:'ynbtn'},{k:'Time_to_Reintervention_Months',type:'num'},
-   {k:'Same_Vessel_Reintervention',type:'ynbtn'},{k:'MACE',type:'ynbtn'},{k:'Death',type:'ynbtn'},{k:'Notes',type:'textarea'}
+const FOLLOWUP = {id:'fu', sheet:'FollowUp_Comprehensive', title:'Comprehensive Follow-Up', icon:'fa-calendar-check', color:'#4f46e5', groups:[
+   {title:'Visit & Vital Status', tint:'blue', c:'#4f46e5', icon:'fa-calendar-check', cols:3, fields:[
+     {k:'FollowUp_Date',type:'date'},{k:'FollowUp_Timepoint_Months',type:'num'},{k:'Alive',type:'ynbtn'}]},
+   {title:'Symptoms & Clinical Events', tint:'red', c:'#e11d48', icon:'fa-notes-medical', cols:3, fields:[
+     {k:'Rehospitalization',type:'ynbtn'},{k:'Recurrent_Chest_Pain',type:'ynbtn'},{k:'Dyspnea',type:'ynbtn'},
+     {k:'NYHA_Class',type:'select',opts:['I','II','III','IV']},{k:'Heart_Failure_Hospitalization',type:'ynbtn'},
+     {k:'Stroke',type:'ynbtn'},{k:'MI',type:'ynbtn'}]},
+   {title:'ECG', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
+     {k:'ECG_Performed',type:'ynbtn'},{k:'ECG_Rhythm',type:'select',opts:RHYTHM},{k:'ST_Changes',type:'ynbtn'},
+     {k:'New_Q_Waves',type:'ynbtn'},{k:'Arrhythmia',type:'ynbtn'}]},
+   {title:'Echocardiography', tint:'teal', c:'#0d9488', icon:'fa-heart', cols:3, fields:[
+     {k:'Echo_Performed',type:'ynbtn'},{k:'LVEF_FollowUp',type:'num'},{k:'RWMA_FollowUp',type:'ynbtn'},{k:'LV_Dilation',type:'ynbtn'},
+     {k:'RV_Function_FollowUp',type:'select',opts:RV},{k:'Valvular_Disease_FollowUp',type:'select',opts:VALVE}]},
+   {title:'Laboratory', tint:'yellow', c:'#d97706', icon:'fa-vial', cols:3, fields:[
+     {k:'Hemoglobin_FU',type:'num'},{k:'Creatinine_FU',type:'num'},{k:'eGFR_FU',type:'num'},{k:'LDL_FU',type:'num'},
+     {k:'HbA1c_FU',type:'num'},{k:'BNP_FU',type:'num'}]},
+   {title:'Medications at Follow-Up', tint:'green', c:'#059669', icon:'fa-pills', cols:3, fields:[
+     {k:'On_Aspirin',type:'ynbtn'},{k:'On_P2Y12',type:'ynbtn'},{k:'On_Statin',type:'ynbtn'},{k:'On_BetaBlocker',type:'ynbtn'},
+     {k:'On_ACEi_ARB_ARNI',type:'ynbtn'},{k:'On_SGLT2',type:'ynbtn'}]},
+   {title:'Reintervention & MACE', tint:'purple', c:'#7c3aed', icon:'fa-rotate', cols:3, fields:[
+     {k:'Repeat_Angiography',type:'ynbtn'},{k:'Repeat_PCI',type:'ynbtn'},{k:'CABG',type:'ynbtn'},
+     {k:'Time_to_Reintervention_Months',type:'num'},{k:'Same_Vessel_Reintervention',type:'ynbtn'},
+     {k:'MACE',type:'ynbtn'},{k:'Death',type:'ynbtn'},{k:'Notes',type:'textarea'}]}
 ]};
 
 const ALL_STEPS = [...SECTIONS, FOLLOWUP];
-const pretty = k => k.replace(/_/g,' ').replace(/\bFU\b/,'(F/U)');
+const secFields = s => s.groups.reduce((a,g)=>a.concat(g.fields),[]);
+const pretty = k => k.replace(/_FU\b/,' (F/U)').replace(/_FollowUp\b/,' (F/U)').replace(/_/g,' ');
 
 /* ════════════════════════ FIREBASE INIT ════════════════════════ */
 (async function initFirebase(){
@@ -429,7 +498,7 @@ window.doSignOut=async function(){ if(window._auth) await window._auth.signOut()
 
 function startApp(){
   db=window._db;
-  buildStepper(); buildForm(); wireCalc(); updateIndicators();
+  buildStepper(); buildForm(); wireCalc(); applyDefaults(); updateIndicators();
   window._auth.onAuthStateChanged(async (user)=>{
     if(!user){ document.getElementById('loginOverlay').style.display='flex'; currentUser=null; return; }
     currentUser=user;
@@ -506,11 +575,10 @@ function buildStepper(){
   const sl=document.getElementById('stepperList'); sl.innerHTML='';
   ALL_STEPS.forEach((s,i)=>{
     const li=document.createElement('li');
-    li.style.cssText='display:flex;flex-direction:column;align-items:center;cursor:pointer;';
-    li.innerHTML=`<div id="sdot-${i}" class="step-dot ${i===0?'active':''}"><i class="fas ${s.icon} text-xs"></i></div><div id="slbl-${i}" class="step-label ${i===0?'active':''}">${s.title}</div>`;
+    li.className='vstep'+(i===0?' active':''); li.id='vstep-'+i;
+    li.innerHTML=`<div id="sdot-${i}" class="vdot"><i class="fas ${s.icon}"></i></div><div class="vlabel">${i+1}. ${s.title}</div>`;
     li.onclick=()=>goToStep(i);
     sl.appendChild(li);
-    if(i<ALL_STEPS.length-1){const c=document.createElement('li');c.className='step-connector';sl.appendChild(c);}
   });
 }
 function fieldHtml(secId,f){
@@ -531,41 +599,51 @@ function fieldHtml(secId,f){
     const dig=f.digits?` maxlength="${f.digits}" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')"`:'';
     inner=`<input type="${t}"${step}${dig} class="inp" id="${fid}" data-k="${f.k}" data-type="${f.type}">`;
   }
-  return `<div style="${wrap}"><label class="lbl">${pretty(f.k)}${star}${hint}${ind}</label>${inner}</div>`;
+  return `<div style="background:#fff;border-radius:9px;${wrap}"><label class="lbl">${pretty(f.k)}${star}${hint}${ind}</label>${inner}</div>`;
+}
+function groupCard(secId,g){
+  const grid=g.cols===1?'g1':(g.cols===2?'g2':(g.cols===4?'g4':'g3'));
+  return `<div class="grp card-${g.tint}"><div class="grp-head"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}</span></div>
+    <div class="${grid}" style="gap:12px;">${g.fields.map(f=>fieldHtml(secId,f)).join('')}</div></div>`;
 }
 function buildForm(){
   const cont=document.getElementById('formStepsContainer'); cont.innerHTML='';
   SECTIONS.forEach((s,i)=>{
     const div=document.createElement('div'); div.className='form-step'+(i===0?' active':''); div.dataset.step=i;
-    div.innerHTML=`<div class="sec-title"><div class="icon-wrap" style="background:${s.color};"><i class="fas ${s.icon}"></i></div>${s.title}</div><div class="g3">${s.fields.map(f=>fieldHtml(s.id,f)).join('')}</div>`;
+    div.innerHTML=`<div class="sec-title"><div class="icon-wrap" style="background:${s.color};color:#fff;"><i class="fas ${s.icon}"></i></div>${s.title}</div>${s.groups.map(g=>groupCard(s.id,g)).join('')}`;
     cont.appendChild(div);
   });
-  // Follow-up repeating step
   const fuStep=document.createElement('div'); fuStep.className='form-step'; fuStep.dataset.step=SECTIONS.length;
-  fuStep.innerHTML=`<div class="sec-title"><div class="icon-wrap" style="background:${FOLLOWUP.color};"><i class="fas ${FOLLOWUP.icon}"></i></div>${FOLLOWUP.title}</div>
-    <p style="font-size:13px;color:#64748b;margin:-8px 0 14px;">Add one card per follow-up visit (1, 3, 6, 12 months…). Each visit exports as its own row.</p>
-    <div id="fuContainer"></div>
-    <button type="button" class="btn btn-purple" style="margin-top:6px;" onclick="addFollowupCard()"><i class="fas fa-plus"></i> Add Follow-Up Visit</button>`;
+  fuStep.innerHTML=`<div class="sec-title"><div class="icon-wrap" style="background:${FOLLOWUP.color};color:#fff;"><i class="fas ${FOLLOWUP.icon}"></i></div>${FOLLOWUP.title}</div>
+    <div class="grp card-gray" style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><div style="font-size:13px;color:#475569;">Add one card per follow-up visit (1, 3, 6, 12 months…). Each visit exports as its own row.</div><button type="button" class="btn btn-purple" onclick="addFollowupCard()"><i class="fas fa-plus"></i> Add Visit</button></div>
+    <div id="fuContainer"></div>`;
   cont.appendChild(fuStep);
 }
 function _v(id){const e=document.getElementById(id);return e?e.value:'';}
 function _set(id,v){const e=document.getElementById(id);if(e)e.value=v;}
 function badgeCss(color,bg){return `display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:900;margin-left:auto;color:${color};background:${bg};line-height:1;`;}
 function updateIndicators(){
+  let totalReq=0, doneReq=0;
   SECTIONS.forEach((s,si)=>{
     let reqMissing=false, anyFilled=false;
-    s.fields.forEach(f=>{
+    secFields(s).forEach(f=>{
       const el=document.getElementById(`f_${s.id}__${f.k}`);
       const ind=document.getElementById(`f_${s.id}__${f.k}_ind`);
       if(!el||!ind)return;
       const v=(el.value||'').trim();
+      if(f.req){ totalReq++; if(v) doneReq++; }
       if(v){ ind.textContent='✓'; ind.style.cssText=badgeCss('#059669','#d1fae5'); anyFilled=true; }
       else if(f.req){ ind.textContent='✕'; ind.style.cssText=badgeCss('#e11d48','#ffe4e6'); reqMissing=true; }
       else { ind.textContent=''; ind.style.display='none'; }
     });
-    const dot=document.getElementById('sdot-'+si);
-    if(dot && !dot.classList.contains('active')) dot.classList.toggle('done', anyFilled && !reqMissing);
+    const vs=document.getElementById('vstep-'+si);
+    if(vs && !vs.classList.contains('active')) vs.classList.toggle('done', anyFilled && !reqMissing);
+    else if(vs && vs.classList.contains('active')) vs.classList.toggle('done', anyFilled && !reqMissing);
   });
+  // progress = filled sections / total sections
+  let filledSecs=0;
+  SECTIONS.forEach(s=>{ if(secFields(s).some(f=>{const el=document.getElementById(`f_${s.id}__${f.k}`);return el&&(el.value||'').trim();})) filledSecs++; });
+  const pf=document.getElementById('progressFill'); if(pf) pf.style.width=Math.round(filledSecs/ALL_STEPS.length*100)+'%';
 }
 function recalcBMI(){
   const h=parseFloat(_v('f_master__Height_cm')), w=parseFloat(_v('f_master__Weight_kg'));
@@ -574,7 +652,7 @@ function recalcBMI(){
 }
 function recalcEGFR(){
   let scr=parseFloat(_v('f_blood__Creatinine'));
-  const unit=_v('f_blood__Creatinine_Unit')||'mg/dL';
+  const unit=_v('f_blood__Creatinine_Unit')||'µmol/L';
   const age=parseFloat(_v('f_master__Age')), sex=_v('f_master__Sex');
   if(!(scr>0)||!(age>0)||!sex) return;
   if(unit==='µmol/L') scr=scr/88.42;                       // convert to mg/dL
@@ -590,6 +668,7 @@ function wireCalc(){
   ['f_master__Height_cm','f_master__Weight_kg'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',recalcBMI);});
   ['f_blood__Creatinine','f_blood__Creatinine_Unit','f_master__Age','f_master__Sex'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcEGFR);e.addEventListener('change',recalcEGFR);}});
 }
+function applyDefaults(){ SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.def){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && !el.value) el.value=f.def; } })); }
 window.setYN=function(fid,val){
   const inp=document.getElementById(fid); const grp=document.getElementById(fid+'_grp');
   inp.value=(inp.value===val)?'':val;
@@ -601,11 +680,14 @@ let _fuSeq=0;
 window.addFollowupCard=function(data){
   _fuSeq++; const idx=_fuSeq;
   const card=document.createElement('div'); card.className='fu-card'; card.dataset.fu=idx;
-  card.innerHTML=`<button type="button" class="btn btn-red" style="position:absolute;top:10px;right:10px;padding:4px 9px;font-size:11px;" onclick="this.closest('.fu-card').remove()"><i class="fas fa-trash"></i></button>
-    <div style="font-weight:800;font-size:13px;color:#4f46e5;margin-bottom:12px;"><i class="fas fa-calendar-check mr-1"></i> Follow-Up Visit</div>
-    <div class="g3">${FOLLOWUP.fields.map(f=>fieldHtml('fu'+idx,f)).join('')}</div>`;
+  const groups=FOLLOWUP.groups.map(g=>{
+    const grid=g.cols===1?'g1':(g.cols===2?'g2':(g.cols===4?'g4':'g3'));
+    return `<div style="margin-bottom:12px;"><div class="grp-head" style="font-size:12px;margin-bottom:9px;"><span class="gi" style="width:22px;height:22px;font-size:11px;background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}</span></div><div class="${grid}" style="gap:10px;">${g.fields.map(f=>fieldHtml('fu'+idx,f)).join('')}</div></div>`;
+  }).join('');
+  card.innerHTML=`<button type="button" class="btn btn-red" style="position:absolute;top:12px;right:12px;padding:4px 9px;font-size:11px;" onclick="this.closest('.fu-card').remove();updateIndicators();"><i class="fas fa-trash"></i></button>
+    <div style="font-weight:800;font-size:14px;color:#4f46e5;margin-bottom:14px;"><i class="fas fa-calendar-check mr-1"></i> Follow-Up Visit</div>${groups}`;
   document.getElementById('fuContainer').appendChild(card);
-  if(data){ FOLLOWUP.fields.forEach(f=>setFieldVal(`f_fu${idx}__${f.k}`,f,data[f.k])); }
+  if(data){ secFields(FOLLOWUP).forEach(f=>setFieldVal(`f_fu${idx}__${f.k}`,f,data[f.k])); }
   return idx;
 };
 function setFieldVal(fid,f,val){
@@ -616,16 +698,14 @@ function setFieldVal(fid,f,val){
 
 window.goToStep=function(i){
   document.querySelectorAll('.form-step').forEach(s=>s.classList.toggle('active',+s.dataset.step===i));
-  ALL_STEPS.forEach((s,k)=>{
-    const dot=document.getElementById('sdot-'+k), lbl=document.getElementById('slbl-'+k);
-    dot.classList.toggle('active',k===i); lbl.classList.toggle('active',k===i);
-  });
+  ALL_STEPS.forEach((s,k)=>{ const vs=document.getElementById('vstep-'+k); if(vs) vs.classList.toggle('active',k===i); });
   currentStep=i;
   updateIndicators();
   document.getElementById('btnPrev').style.visibility=i===0?'hidden':'visible';
   const last=i===ALL_STEPS.length-1;
   document.getElementById('btnNext').classList.toggle('hidden',last);
   document.getElementById('btnSubmit').classList.toggle('hidden',!last);
+  const fc=document.getElementById('formStepsContainer'); if(fc) fc.scrollIntoView({behavior:'smooth',block:'start'});
 };
 window.nextStep=function(){ if(currentStep<ALL_STEPS.length-1) goToStep(currentStep+1); };
 window.prevStep=function(){ if(currentStep>0) goToStep(currentStep-1); };
@@ -642,15 +722,15 @@ window.newRecord=function(){
   document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
   document.getElementById('entryStatusBadge').textContent='Draft';
   document.getElementById('entryStatusBadge').className='badge badge-amber';
-  goToStep(0); switchTab('entry'); updateIndicators();
+  applyDefaults(); goToStep(0); switchTab('entry'); updateIndicators();
 };
 function collectData(){
   const data={};
-  SECTIONS.forEach(s=>s.fields.forEach(f=>{ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el) data[`${s.sheet}.${f.k}`]=el.value; }));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>{ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el) data[`${s.sheet}.${f.k}`]=el.value; }));
   const followups=[];
   document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{
     const idx=card.dataset.fu; const v={}; let any=false;
-    FOLLOWUP.fields.forEach(f=>{ const el=document.getElementById(`f_fu${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } });
+    secFields(FOLLOWUP).forEach(f=>{ const el=document.getElementById(`f_fu${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } });
     if(any) followups.push(v);
   });
   return {data,followups};
@@ -730,7 +810,7 @@ window.editRecord=function(id){
   const r=RECORDS.find(x=>x.id===id); if(!r)return;
   newRecord();
   document.getElementById('editRecordId').value=id;
-  SECTIONS.forEach(s=>s.fields.forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${s.sheet}.${f.k}`])));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${s.sheet}.${f.k}`])));
   (r.followups||[]).forEach(fu=>addFollowupCard(fu));
   recalcBMI(); recalcEGFR(); updateIndicators();
   document.getElementById('entryTitle').textContent=r.patientId||'Edit Record';
@@ -809,11 +889,11 @@ function buildWorkbook(coded){
   const wb=XLSX.utils.book_new();
   // Patients sheet (single-occurrence sections)
   const pHeader=['Patient_ID','Entered_By','Doctor_PIN','Record_Status'];
-  SECTIONS.forEach(s=>s.fields.forEach(f=>pHeader.push(`${s.sheet}.${f.k}`)));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>pHeader.push(`${s.sheet}.${f.k}`)));
   const pRows=[pHeader];
   RECORDS.forEach(r=>{
     const row=[r.patientId||'', r.enteredByName||'', r.enteredByPin||'', r.recordStatus||'draft'];
-    SECTIONS.forEach(s=>s.fields.forEach(f=>{
+    SECTIONS.forEach(s=>secFields(s).forEach(f=>{
       const raw=r.data?.[`${s.sheet}.${f.k}`];
       row.push(coded?codeValue(f,raw):(raw||''));
     }));
@@ -821,11 +901,11 @@ function buildWorkbook(coded){
   });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(pRows),'Patients');
   // Follow-up long sheet
-  const fHeader=['Patient_ID','Visit_No']; FOLLOWUP.fields.forEach(f=>fHeader.push(f.k));
+  const fHeader=['Patient_ID','Visit_No']; secFields(FOLLOWUP).forEach(f=>fHeader.push(f.k));
   const fRows=[fHeader];
   RECORDS.forEach(r=>{ (r.followups||[]).forEach((fu,i)=>{
     const row=[r.patientId||'', i+1];
-    FOLLOWUP.fields.forEach(f=>row.push(coded?codeValue(f,fu[f.k]):(fu[f.k]||'')));
+    secFields(FOLLOWUP).forEach(f=>row.push(coded?codeValue(f,fu[f.k]):(fu[f.k]||'')));
     fRows.push(row);
   }); });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(fRows),'FollowUp');
@@ -835,8 +915,8 @@ function buildWorkbook(coded){
 }
 function appendCodebook(wb){
   const rows=[['Sheet','Variable','Label','Type','Value_Labels']];
-  SECTIONS.forEach(s=>s.fields.forEach(f=>rows.push([s.sheet,`${s.sheet}.${f.k}`,pretty(f.k),f.type,codebookFor(f)])));
-  FOLLOWUP.fields.forEach(f=>rows.push([FOLLOWUP.sheet,f.k,pretty(f.k),f.type,codebookFor(f)]));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>rows.push([s.sheet,`${s.sheet}.${f.k}`,pretty(f.k),f.type,codebookFor(f)])));
+  secFields(FOLLOWUP).forEach(f=>rows.push([FOLLOWUP.sheet,f.k,pretty(f.k),f.type,codebookFor(f)]));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Codebook');
 }
 window.exportCoded=function(){ if(!RECORDS.length){toast('No records to export','#e11d48');return;} XLSX.writeFile(buildWorkbook(true),`SACC_CAD_Coded_${stamp()}.xlsx`); toast('Coded workbook exported ✓','#7c3aed'); };
