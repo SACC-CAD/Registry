@@ -73,6 +73,10 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .card-blue{border-color:#bfdbfe;background:#f0f7ff;}.card-red{border-color:#fecdd3;background:#fff1f2;}.card-green{border-color:#a7f3d0;background:#f0fdf4;}.card-yellow{border-color:#fde68a;background:#fffbeb;}.card-purple{border-color:#ddd6fe;background:#faf5ff;}.card-gray{border-color:#e2e8f0;background:#f8fafc;}.card-teal{border-color:#99f6e4;background:#f0fdfa;}.card-cyan{border-color:#a5f3fc;background:#ecfeff;}
 .grp{border:1.5px solid var(--card-border);border-radius:13px;padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.03);}
 .grp-head{font-weight:800;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:14px;letter-spacing:-.01em;}
+.fld{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #d7dde6;border-radius:11px;padding:9px 11px;}
+.fld-main{flex:1;min-width:0;}
+.fld .inp{border-width:1.5px;}
+.inp[readonly]{background:#f1f5f9;color:#1e3a8a;font-weight:700;cursor:default;border-style:dashed;}
 .grp-head .gi{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.12);}
 .sidebar{background:linear-gradient(180deg,#f8fafc,#eef2f7);border-right:1.5px solid #e2e8f0;border-radius:14px 0 0 14px;}
 .progress-bar{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;}
@@ -334,7 +338,8 @@ const COUNTRIES = ['Kuwaiti','Bedoon','Saudi Arabian','Bahraini','Qatari','Emira
 const SECTIONS = [
  {id:'master', sheet:'Patient_Master', title:'Patient & Risk Factors', icon:'fa-id-card', color:'#2563eb', groups:[
    {title:'Identifiers & Dates', tint:'gray', c:'#64748b', icon:'fa-calendar', cols:2, fields:[
-     {k:'Civil_ID_Optional',type:'text',digits:12},{k:'Enrollment_Date',type:'date'},{k:'Index_Admission_Date',type:'date',req:true},{k:'Discharge_Date',type:'date'}]},
+     {k:'CRF_Number',type:'text',ro:true,hint:'auto'},{k:'Civil_ID_Optional',type:'text',digits:12},{k:'Contact_Phone',type:'tel'},
+     {k:'Enrollment_Date',type:'date'},{k:'Index_Admission_Date',type:'date',req:true},{k:'Discharge_Date',type:'date'}]},
    {title:'Demographics', tint:'blue', c:'#2563eb', icon:'fa-user', cols:3, fields:[
      {k:'Age',type:'num'},{k:'Sex',type:'select',opts:['Male','Female'],req:true},{k:'Nationality',type:'select',opts:COUNTRIES},
      {k:'Height_cm',type:'num'},{k:'Weight_kg',type:'num'},{k:'BMI',type:'num',hint:'auto'}]},
@@ -396,30 +401,54 @@ const SECTIONS = [
      {k:'PCI_Date',type:'date'},{k:'Primary_PCI',type:'ynbtn'},{k:'Vessel_Treated',type:'text'},{k:'Number_Stents',type:'num'}]},
    {title:'Stent & Intracoronary Imaging', tint:'gray', c:'#475569', icon:'fa-layer-group', cols:2, fields:[
      {k:'Stent_Type',type:'select',opts:['DES','BMS','DCB','None']},{k:'Total_Stent_Length',type:'num'},
-     {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']},{k:'Procedural_Complications',type:'textarea'}]}
+     {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']},{k:'Procedural_Complications_Present',type:'ynbtn'}]},
+   {title:'Procedural Complications', tint:'red', c:'#e11d48', icon:'fa-triangle-exclamation', cols:3,
+     showIf:{sec:'pci',k:'Procedural_Complications_Present',eq:'Yes'}, fields:[
+     {k:'Access_Site_Bleeding',type:'ynbtn'},{k:'Access_Hematoma',type:'ynbtn'},{k:'Pseudoaneurysm',type:'ynbtn'},
+     {k:'Retroperitoneal_Bleed',type:'ynbtn'},{k:'Access_Limb_Ischemia',type:'ynbtn'},{k:'Coronary_Dissection',type:'ynbtn'},
+     {k:'Coronary_Perforation',type:'ynbtn'},{k:'No_Reflow_Slow_Flow',type:'ynbtn'},{k:'Side_Branch_Occlusion',type:'ynbtn'},
+     {k:'Acute_Stent_Thrombosis',type:'ynbtn'},{k:'Abrupt_Vessel_Closure',type:'ynbtn'},{k:'Distal_Embolization',type:'ynbtn'},
+     {k:'Periprocedural_MI',type:'ynbtn'},{k:'Contrast_Induced_AKI',type:'ynbtn'},{k:'Contrast_Reaction',type:'ynbtn'},
+     {k:'Periprocedural_Stroke_TIA',type:'ynbtn'},{k:'Ventricular_Arrhythmia',type:'ynbtn'},{k:'Bradyarrhythmia_Heart_Block',type:'ynbtn'},
+     {k:'Cardiac_Tamponade',type:'ynbtn'},{k:'Emergency_CABG',type:'ynbtn'},{k:'Blood_Transfusion',type:'ynbtn'},
+     {k:'Procedural_Death',type:'ynbtn'},{k:'Procedural_Complications',type:'textarea'}]}
  ]},
- {id:'dc_meds', sheet:'Discharge_Medications', title:'Discharge Medications', icon:'fa-pills', color:'#059669', groups:[
-   {title:'Antiplatelet & Anticoagulation', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:2, fields:[
-     {k:'Discharge_Date',type:'date'},{k:'Aspirin',type:'ynbtn'},
-     {k:'P2Y12_Inhibitor',type:'select',opts:['Clopidogrel','Prasugrel','Ticagrelor','None']},{k:'Dual_Antiplatelet_Therapy',type:'ynbtn'},
-     {k:'Planned_DAPT_Duration_Months',type:'num'},{k:'Oral_Anticoagulant',type:'select',opts:['Warfarin','DOAC','None']},
+ {id:'dc_meds', sheet:'Discharge_Medications', title:'Discharge & Medications', icon:'fa-pills', color:'#059669', groups:[
+   {title:'In-Hospital Outcome & Discharge', tint:'gray', c:'#334155', icon:'fa-flag-checkered', cols:2, fields:[
+     {k:'In_Hospital_Outcome',type:'select',opts:['Survived to discharge','In-hospital death'],req:true},{k:'Discharge_Date',type:'date'}]},
+   {title:'Antiplatelet & Anticoagulation', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:2,
+     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
+     {k:'Aspirin',type:'ynbtn'},{k:'P2Y12_Inhibitor',type:'select',opts:['Clopidogrel','Prasugrel','Ticagrelor','None']},
+     {k:'Dual_Antiplatelet_Therapy',type:'ynbtn'},{k:'Planned_DAPT_Duration_Months',type:'num'},
+     {k:'Oral_Anticoagulant',type:'select',opts:['Warfarin','DOAC','None']},
      {k:'Indication_for_Anticoagulation',type:'select',opts:['AF','LV thrombus','VTE','Other','None']}]},
-   {title:'Lipid-Lowering Therapy', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:2, fields:[
-     {k:'Statin',type:'select',opts:['Atorvastatin','Rosuvastatin','Other','None']},{k:'Statin_Dose',type:'text'},
-     {k:'Ezetimibe',type:'ynbtn'},{k:'PCSK9_Inhibitor',type:'ynbtn'}]},
-   {title:'Neurohormonal / Heart-Failure', tint:'blue', c:'#2563eb', icon:'fa-heart', cols:3, fields:[
+   {title:'Lipid-Lowering Therapy', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:3,
+     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
+     {k:'Statin',type:'select',opts:['Atorvastatin','Rosuvastatin','Simvastatin','Pitavastatin','Other','None']},{k:'Statin_Dose',type:'text'},
+     {k:'Ezetimibe',type:'ynbtn'},{k:'PCSK9_Inhibitor',type:'ynbtn'},{k:'Bempedoic_Acid',type:'ynbtn'},
+     {k:'Inclisiran',type:'ynbtn'},{k:'Icosapent_Ethyl_Omega3',type:'ynbtn'}]},
+   {title:'Neurohormonal / Heart-Failure', tint:'blue', c:'#2563eb', icon:'fa-heart', cols:3,
+     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
      {k:'Beta_Blocker',type:'ynbtn'},{k:'ACEi_or_ARB_or_ARNI',type:'select',opts:['ACEi','ARB','ARNI','None']},
-     {k:'MRA',type:'ynbtn'},{k:'SGLT2_Inhibitor',type:'ynbtn'},{k:'Diuretics',type:'ynbtn'}]},
-   {title:'Anti-anginal & Other', tint:'gray', c:'#475569', icon:'fa-capsules', cols:2, fields:[
+     {k:'MRA',type:'ynbtn'},{k:'SGLT2_Inhibitor',type:'ynbtn'},{k:'Diuretics',type:'ynbtn'},{k:'Ivabradine',type:'ynbtn'},
+     {k:'Vericiguat',type:'ynbtn'},{k:'Digoxin',type:'ynbtn'},{k:'Hydralazine_Nitrate',type:'ynbtn'}]},
+   {title:'Anti-anginal & Anti-inflammatory', tint:'yellow', c:'#d97706', icon:'fa-capsules', cols:3,
+     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
      {k:'Nitrates',type:'ynbtn'},{k:'Calcium_Channel_Blocker',type:'ynbtn'},{k:'Ranolazine',type:'ynbtn'},
-     {k:'PPI',type:'ynbtn'},{k:'Other_Medications_Notes',type:'textarea'}]}
+     {k:'Trimetazidine',type:'ynbtn'},{k:'Nicorandil',type:'ynbtn'},{k:'Colchicine',type:'ynbtn'}]},
+   {title:'Antiarrhythmic, Glucose-Lowering & Other', tint:'gray', c:'#475569', icon:'fa-pills', cols:3,
+     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
+     {k:'Amiodarone',type:'ynbtn'},{k:'Metformin',type:'ynbtn'},{k:'GLP1_RA',type:'ynbtn'},{k:'PPI',type:'ynbtn'},
+     {k:'Other_Medications_Notes',type:'textarea'}]}
  ]},
  {id:'reint', sheet:'Reintervention_FollowUp', title:'Reintervention', icon:'fa-rotate', color:'#be123c', groups:[
-   {title:'Reintervention', tint:'red', c:'#be123c', icon:'fa-rotate', cols:3, fields:[
-     {k:'FollowUp_Date',type:'date'},{k:'Recurrent_Angina',type:'ynbtn'},{k:'Reintervention_Performed',type:'ynbtn'},
-     {k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
+   {title:'Reintervention During Index Hospital Stay?', tint:'red', c:'#be123c', icon:'fa-rotate', cols:2, fields:[
+     {k:'Reintervention_Performed',type:'ynbtn'},{k:'Recurrent_Angina',type:'ynbtn'}]},
+   {title:'Reintervention Details', tint:'gray', c:'#475569', icon:'fa-screwdriver-wrench', cols:3,
+     showIf:{sec:'reint',k:'Reintervention_Performed',eq:'Yes'}, fields:[
+     {k:'FollowUp_Date',type:'date'},{k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
      {k:'Type_Reintervention_PCI_or_CABG',type:'select',opts:['PCI','CABG','None']}]},
-   {title:'Outcomes', tint:'gray', c:'#475569', icon:'fa-flag-checkered', cols:3, fields:[
+   {title:'In-Hospital / Early Outcome', tint:'gray', c:'#334155', icon:'fa-flag-checkered', cols:3, fields:[
      {k:'Outcome_Status',type:'select',opts:['Alive','Deceased','Lost to follow-up']},{k:'Death',type:'ynbtn'},{k:'MI',type:'ynbtn'},
      {k:'Stroke',type:'ynbtn'},{k:'Heart_Failure_Hospitalization',type:'ynbtn'},{k:'Notes',type:'textarea'}]}
  ]}
@@ -445,9 +474,12 @@ const FOLLOWUP = {id:'fu', sheet:'FollowUp_Comprehensive', title:'Comprehensive 
    {title:'Medications at Follow-Up', tint:'green', c:'#059669', icon:'fa-pills', cols:3, fields:[
      {k:'On_Aspirin',type:'ynbtn'},{k:'On_P2Y12',type:'ynbtn'},{k:'On_Statin',type:'ynbtn'},{k:'On_BetaBlocker',type:'ynbtn'},
      {k:'On_ACEi_ARB_ARNI',type:'ynbtn'},{k:'On_SGLT2',type:'ynbtn'}]},
-   {title:'Reintervention & MACE', tint:'purple', c:'#7c3aed', icon:'fa-rotate', cols:3, fields:[
+   {title:'Reintervention at Follow-Up?', tint:'purple', c:'#7c3aed', icon:'fa-rotate', cols:2, fields:[
+     {k:'Reintervention_At_FollowUp',type:'ynbtn'}]},
+   {title:'Reintervention Details', tint:'gray', c:'#475569', icon:'fa-screwdriver-wrench', cols:3, fudetail:true, fields:[
      {k:'Repeat_Angiography',type:'ynbtn'},{k:'Repeat_PCI',type:'ynbtn'},{k:'CABG',type:'ynbtn'},
-     {k:'Time_to_Reintervention_Months',type:'num'},{k:'Same_Vessel_Reintervention',type:'ynbtn'},
+     {k:'Time_to_Reintervention_Months',type:'num'},{k:'Same_Vessel_Reintervention',type:'ynbtn'}]},
+   {title:'MACE & Vital Status', tint:'red', c:'#e11d48', icon:'fa-flag-checkered', cols:3, fields:[
      {k:'MACE',type:'ynbtn'},{k:'Death',type:'ynbtn'},{k:'Notes',type:'textarea'}]}
 ]};
 
@@ -499,7 +531,7 @@ window.doSignOut=async function(){ if(window._auth) await window._auth.signOut()
 
 function startApp(){
   db=window._db;
-  buildStepper(); buildForm(); wireCalc(); applyDefaults(); updateIndicators();
+  buildStepper(); buildForm(); wireCalc(); applyDefaults(); updateIndicators(); reactors(); applyConditionals();
   window._auth.onAuthStateChanged(async (user)=>{
     if(!user){ document.getElementById('loginOverlay').style.display='flex'; currentUser=null; return; }
     currentUser=user;
@@ -582,31 +614,32 @@ function buildStepper(){
     sl.appendChild(li);
   });
 }
+function showAttr(o){ if(!o.showIf) return ''; const arr=Array.isArray(o.showIf)?o.showIf:[o.showIf]; return ` data-showif='${JSON.stringify(arr)}'`; }
 function fieldHtml(secId,f){
   const fid=`f_${secId}__${f.k}`;
   const star=f.req?'<span class="req-star">*</span>':'';
   const hint=f.hint?`<span style="font-size:10px;color:#0d9488;font-weight:700;margin-left:5px;">${f.hint}</span>`:'';
-  const ind=`<span class="fi-badge" id="${fid}_ind" style="display:none;"></span>`;
-  let inner, wrap='';
+  let inner, full=false;
   if(f.type==='ynbtn'){
     inner=`<div class="yn-group" id="${fid}_grp"><button type="button" class="yn-btn yn-yes" onclick="setYN('${fid}','Yes')">Yes</button><button type="button" class="yn-btn yn-no" onclick="setYN('${fid}','No')">No</button><input type="hidden" id="${fid}" data-k="${f.k}" data-type="ynbtn"></div>`;
   } else if(f.type==='select'){
     inner=`<select class="inp" id="${fid}" data-k="${f.k}" data-type="select"><option value="">— select —</option>${f.opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
   } else if(f.type==='textarea'){
-    inner=`<textarea class="inp" id="${fid}" data-k="${f.k}" data-type="textarea"></textarea>`; wrap='grid-column:1/-1;';
+    inner=`<textarea class="inp" id="${fid}" data-k="${f.k}" data-type="textarea"></textarea>`; full=true;
   } else if(f.type==='dt24'){
-    inner=`<div style="display:flex;gap:6px;"><input type="date" class="inp" id="${fid}" data-k="${f.k}" data-type="dt24" style="flex:1;"><input type="text" id="${fid}__t" class="inp" style="width:90px;text-align:center;font-family:'DM Mono',monospace;" maxlength="5" inputmode="numeric" placeholder="HH:MM" oninput="timeMask(this)" onblur="timeClamp(this)"></div>`;
+    inner=`<div style="display:flex;gap:6px;"><input type="date" class="inp" id="${fid}" data-k="${f.k}" data-type="dt24" style="flex:1;"><input type="text" id="${fid}__t" class="inp" style="width:88px;text-align:center;font-family:'DM Mono',monospace;" maxlength="5" inputmode="numeric" placeholder="HH:MM" oninput="timeMask(this)" onblur="timeClamp(this)"></div>`;
   } else {
-    const t=f.type==='num'?'number':(f.type==='date'?'date':(f.type==='datetime'?'datetime-local':'text'));
+    const t=f.type==='num'?'number':(f.type==='date'?'date':(f.type==='datetime'?'datetime-local':(f.type==='tel'?'tel':'text')));
     const step=f.type==='num'?' step="any"':'';
     const dig=f.digits?` maxlength="${f.digits}" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')"`:'';
-    inner=`<input type="${t}"${step}${dig} class="inp" id="${fid}" data-k="${f.k}" data-type="${f.type}">`;
+    const ro=f.ro?' readonly':''; const ph=f.ro?' placeholder="auto on save"':(f.type==='tel'?' placeholder="+965 …"':'');
+    inner=`<input type="${t}"${step}${dig}${ro}${ph} class="inp" id="${fid}" data-k="${f.k}" data-type="${f.type}">`;
   }
-  return `<div style="background:#fff;border-radius:9px;${wrap}"><label class="lbl">${pretty(f.k)}${star}${hint}${ind}</label>${inner}</div>`;
+  return `<div class="fld"${full?' style="grid-column:1/-1;"':''}${showAttr(f)}><div class="fld-main"><label class="lbl">${pretty(f.k)}${star}${hint}</label>${inner}</div><span class="fi-badge" id="${fid}_ind"></span></div>`;
 }
 function groupCard(secId,g){
   const grid=g.cols===1?'g1':(g.cols===2?'g2':(g.cols===4?'g4':'g3'));
-  return `<div class="grp card-${g.tint}"><div class="grp-head"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}</span></div>
+  return `<div class="grp card-${g.tint}"${showAttr(g)}><div class="grp-head"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}</span></div>
     <div class="${grid}" style="gap:12px;">${g.fields.map(f=>fieldHtml(secId,f)).join('')}</div></div>`;
 }
 function buildForm(){
@@ -665,8 +698,9 @@ function recalcEGFR(){
 }
 function wireCalc(){
   const form=document.getElementById('cadForm');
-  form.addEventListener('input',updateIndicators);
-  form.addEventListener('change',updateIndicators);
+  const onChange=()=>{ updateIndicators(); reactors(); applyConditionals(); };
+  form.addEventListener('input',onChange);
+  form.addEventListener('change',onChange);
   ['f_master__Height_cm','f_master__Weight_kg'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',recalcBMI);});
   ['f_blood__Creatinine','f_blood__Creatinine_Unit','f_master__Age','f_master__Sex'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcEGFR);e.addEventListener('change',recalcEGFR);}});
   ['Symptom_Onset_Time','Hospital_Arrival_Time','Balloon_Time_First_Device'].forEach(k=>{['f_present__'+k,'f_present__'+k+'__t'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcTiming);e.addEventListener('change',recalcTiming);}});});
@@ -681,12 +715,34 @@ function recalcTiming(){
   if(onset&&bal){ const m=Math.round((bal-onset)/60000); if(m>=0)_set('f_present__Symptom_to_Balloon_Min',m); }
   updateIndicators();
 }
+function ctrlVal(sec,k){ const el=document.getElementById(`f_${sec}__${k}`); return el?(el.value||'').trim():''; }
+function passCond(c){ const v=ctrlVal(c.sec,c.k); if('eq' in c)return v===c.eq; if('ne' in c)return v!==c.ne; if('in' in c)return c.in.includes(v); return true; }
+function applyConditionals(){
+  document.querySelectorAll('#cadForm [data-showif]').forEach(el=>{ let cs; try{cs=JSON.parse(el.getAttribute('data-showif'));}catch(e){return;} el.style.display=cs.every(passCond)?'':'none'; });
+  document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{ const idx=card.dataset.fu; const gate=document.getElementById(`f_fu${idx}__Reintervention_At_FollowUp`); const det=card.querySelector('.fu-reint-detail'); if(det) det.style.display=(gate&&gate.value==='Yes')?'':'none'; });
+}
+function setYNsilent(fid,val){ const inp=document.getElementById(fid); if(!inp||inp.value===val)return; inp.value=val; const grp=document.getElementById(fid+'_grp'); if(grp){grp.querySelector('.yn-yes').classList.toggle('selected',val==='Yes');grp.querySelector('.yn-no').classList.toggle('selected',val==='No');} }
+function reactors(){
+  const dapt=document.getElementById('f_dc_meds__Dual_Antiplatelet_Therapy');
+  const p2=document.getElementById('f_dc_meds__P2Y12_Inhibitor');
+  if(dapt && dapt.value==='Yes'){
+    setYNsilent('f_dc_meds__Aspirin','Yes');
+    if(p2){ const bad=(!p2.value||p2.value==='None'); p2.style.borderColor=bad?'#e11d48':''; p2.style.boxShadow=bad?'0 0 0 3px rgba(225,29,72,.15)':''; }
+  } else if(p2){ p2.style.borderColor=''; p2.style.boxShadow=''; }
+  const out=document.getElementById('f_dc_meds__In_Hospital_Outcome');
+  if(out && out.value==='In-hospital death'){
+    setYNsilent('f_reint__Death','Yes');
+    const os=document.getElementById('f_reint__Outcome_Status'); if(os && os.value!=='Deceased') os.value='Deceased';
+  }
+  const os2=document.getElementById('f_reint__Outcome_Status');
+  if(os2 && os2.value==='Deceased') setYNsilent('f_reint__Death','Yes');
+}
 window.setYN=function(fid,val){
   const inp=document.getElementById(fid); const grp=document.getElementById(fid+'_grp');
   inp.value=(inp.value===val)?'':val;
   grp.querySelector('.yn-yes').classList.toggle('selected',inp.value==='Yes');
   grp.querySelector('.yn-no').classList.toggle('selected',inp.value==='No');
-  updateIndicators();
+  updateIndicators(); reactors(); applyConditionals();
 };
 let _fuSeq=0;
 window.addFollowupCard=function(data){
@@ -694,12 +750,14 @@ window.addFollowupCard=function(data){
   const card=document.createElement('div'); card.className='fu-card'; card.dataset.fu=idx;
   const groups=FOLLOWUP.groups.map(g=>{
     const grid=g.cols===1?'g1':(g.cols===2?'g2':(g.cols===4?'g4':'g3'));
-    return `<div style="margin-bottom:12px;"><div class="grp-head" style="font-size:12px;margin-bottom:9px;"><span class="gi" style="width:22px;height:22px;font-size:11px;background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}</span></div><div class="${grid}" style="gap:10px;">${g.fields.map(f=>fieldHtml('fu'+idx,f)).join('')}</div></div>`;
+    const block=`<div style="margin-bottom:12px;"><div class="grp-head" style="font-size:12px;margin-bottom:9px;"><span class="gi" style="width:22px;height:22px;font-size:11px;background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}</span></div><div class="${grid}" style="gap:10px;">${g.fields.map(f=>fieldHtml('fu'+idx,f)).join('')}</div></div>`;
+    return g.fudetail ? `<div class="fu-reint-detail" style="display:none;">${block}</div>` : block;
   }).join('');
   card.innerHTML=`<button type="button" class="btn btn-red" style="position:absolute;top:12px;right:12px;padding:4px 9px;font-size:11px;" onclick="this.closest('.fu-card').remove();updateIndicators();"><i class="fas fa-trash"></i></button>
     <div style="font-weight:800;font-size:14px;color:#4f46e5;margin-bottom:14px;"><i class="fas fa-calendar-check mr-1"></i> Follow-Up Visit</div>${groups}`;
   document.getElementById('fuContainer').appendChild(card);
   if(data){ secFields(FOLLOWUP).forEach(f=>setFieldVal(`f_fu${idx}__${f.k}`,f,data[f.k])); }
+  applyConditionals();
   return idx;
 };
 function setFieldVal(fid,f,val){
@@ -713,7 +771,7 @@ window.goToStep=function(i){
   document.querySelectorAll('.form-step').forEach(s=>s.classList.toggle('active',+s.dataset.step===i));
   ALL_STEPS.forEach((s,k)=>{ const vs=document.getElementById('vstep-'+k); if(vs) vs.classList.toggle('active',k===i); });
   currentStep=i;
-  updateIndicators();
+  updateIndicators(); applyConditionals(); reactors();
   document.getElementById('btnPrev').style.visibility=i===0?'hidden':'visible';
   const last=i===ALL_STEPS.length-1;
   document.getElementById('btnNext').classList.toggle('hidden',last);
@@ -736,7 +794,7 @@ window.newRecord=function(){
   document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
   document.getElementById('entryStatusBadge').textContent='Draft';
   document.getElementById('entryStatusBadge').className='badge badge-amber';
-  applyDefaults(); goToStep(0); switchTab('entry'); updateIndicators();
+  applyDefaults(); goToStep(0); switchTab("entry"); updateIndicators(); applyConditionals();
 };
 function collectData(){
   const data={};
@@ -756,11 +814,12 @@ async function nextPatientId(pin){
   const used=new Set();
   RECORDS.forEach(r=>{ const m=(r.patientId||'').split('-'); if(m.length===3){const n=parseInt(m[2],10);if(!isNaN(n))used.add(n);} });
   let s=1; while(used.has(s)) s++;
-  return `CAD-${pin}-${String(s).padStart(3,'0')}`;
+  return `01-${pin}-${String(s).padStart(3,'0')}`;
 }
 /* ════════════════════════ MEDICAL & TEMPORAL LOGIC ════════════════════════ */
 function validateLogic(data){
   const errors=[], warnings=[];
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.req){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && el.offsetParent!==null && !((data[`${s.sheet}.${f.k}`]||'').trim())) errors.push(`${pretty(f.k)} is required.`); } }));
   const today=new Date(); today.setHours(23,59,59,999);
   const D=key=>{ const v=data[key]; if(!v) return null; const d=new Date(v); return isNaN(d.getTime())?null:d; };
   const adm=D('Patient_Master.Index_Admission_Date'), dis=D('Patient_Master.Discharge_Date');
@@ -839,7 +898,8 @@ window.saveRecord=async function(status, closeAfter){
       if(status==='submitted') await db.collection(COL_PATIENTS).doc(recId).update({submittedAt:new Date()});
     } else {
       const pid=await nextPatientId(currentDoctor.pin);
-      obj.patientId=pid; obj.createdAt=new Date(); obj.enteredByName=currentDoctor.name; obj.enteredByPin=currentDoctor.pin;
+      obj.patientId=pid; obj.data['Patient_Master.CRF_Number']=pid; _set('f_master__CRF_Number',pid);
+      obj.createdAt=new Date(); obj.enteredByName=currentDoctor.name; obj.enteredByPin=currentDoctor.pin;
       if(status==='submitted') obj.submittedAt=new Date();
       const nd=await db.collection(COL_PATIENTS).add(obj);
       document.getElementById('editRecordId').value=nd.id;
@@ -893,7 +953,8 @@ window.editRecord=function(id){
   document.getElementById('editRecordId').value=id;
   SECTIONS.forEach(s=>secFields(s).forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${s.sheet}.${f.k}`])));
   (r.followups||[]).forEach(fu=>addFollowupCard(fu));
-  recalcBMI(); recalcEGFR(); updateIndicators();
+  recalcBMI(); recalcEGFR(); updateIndicators(); reactors(); applyConditionals();
+  _set('f_master__CRF_Number', r.patientId||r.data?.['Patient_Master.CRF_Number']||'');
   document.getElementById('entryTitle').textContent=r.patientId||'Edit Record';
   document.getElementById('entrySubtitle').textContent='Entered by '+(r.enteredByName||'—');
   const st=r.recordStatus||'draft';
