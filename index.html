@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SACC CAD Registry — Sabah Al-Ahmad Cardiac Center</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--blue-primary:#2563eb;--blue-dark:#1d4ed8;--blue-light:#eff6ff;--red-accent:#e11d48;--green-accent:#059669;--amber-accent:#d97706;--gray-bg:#f0f4f8;--card-border:#e2e8f0;--text-main:#0f172a;--text-sub:#475569;}
+*{box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--gray-bg);color:var(--text-main);margin:0;}
+::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:#f1f5f9;}::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:4px;}
+.step-dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;border:2px solid #cbd5e1;background:#fff;color:#94a3b8;transition:all .3s cubic-bezier(.34,1.3,.64,1);cursor:pointer;flex-shrink:0;}
+.step-dot.active{background:var(--blue-primary);border-color:var(--blue-primary);color:#fff;box-shadow:0 0 0 5px rgba(37,99,235,.2);}
+.step-dot.done{background:#ecfdf5;border-color:#10b981;color:#10b981;}
+.step-label{font-size:10px;font-weight:600;color:#94a3b8;margin-top:5px;text-align:center;line-height:1.3;max-width:78px;transition:color .2s;}
+.step-label.active{color:var(--blue-primary);font-weight:700;}
+.step-connector{flex:1;height:2px;background:#e2e8f0;margin:0 3px;margin-bottom:14px;}
+.form-step{display:none;animation:fadeUp .35s cubic-bezier(.22,1,.36,1);}
+.form-step.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.inp{width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:14px;background:#fff;color:var(--text-main);transition:border-color .2s,box-shadow .25s;appearance:none;-webkit-appearance:none;}
+.inp:focus{border-color:var(--blue-primary);outline:none;box-shadow:0 0 0 4px rgba(37,99,235,.14);background:#fafcff;}
+.inp:hover:not(:focus){border-color:#9ca3af;}
+.inp:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed;border-color:#e2e8f0;}
+.inp-sm{padding:7px 10px;font-size:13px;}
+select.inp{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+textarea.inp{resize:vertical;min-height:70px;}
+.lbl{display:flex;align-items:center;font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:5px;letter-spacing:.025em;gap:4px;}
+.card{background:#fff;border:1.5px solid var(--card-border);border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.04);transition:box-shadow .2s;}
+.card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);}
+.sec-title{font-size:17px;font-weight:800;color:var(--text-main);display:flex;align-items:center;gap:10px;padding-bottom:13px;border-bottom:2px solid #e2e8f0;margin-bottom:20px;letter-spacing:-.01em;}
+.sec-title .icon-wrap{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.1);color:#fff;}
+.yn-group{display:inline-flex;gap:6px;}
+.yn-btn{padding:7px 18px;border-radius:8px;border:1.5px solid #d1d5db;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:#fff;color:#64748b;}
+.yn-btn.yn-yes.selected{background:#ecfdf5;border-color:#10b981;color:#065f46;}
+.yn-btn.yn-no.selected{background:#fff1f2;border-color:#e11d48;color:#9f1239;}
+header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff,#fff),linear-gradient(90deg,#1d4ed8,#3b82f6,#6366f1);background-origin:border-box;background-clip:padding-box,border-box;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.tab-active{border-bottom:3px solid var(--blue-primary);color:#1e3a8a;font-weight:700;}
+.btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;border:none;letter-spacing:.01em;}
+.btn:disabled{opacity:.6;cursor:not-allowed;}
+.btn-primary{background:var(--blue-primary);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.35);}.btn-primary:hover:not(:disabled){background:var(--blue-dark);transform:translateY(-1px);}
+.btn-gray{background:#f8fafc;color:#475569;border:1.5px solid #e2e8f0;}.btn-gray:hover:not(:disabled){background:#f1f5f9;}
+.btn-green{background:var(--green-accent);color:#fff;}.btn-green:hover:not(:disabled){background:#047857;transform:translateY(-1px);}
+.btn-red{background:var(--red-accent);color:#fff;}.btn-red:hover:not(:disabled){background:#be123c;}
+.btn-yellow{background:#d97706;color:#fff;}.btn-yellow:hover:not(:disabled){background:#b45309;}
+.btn-purple{background:#7c3aed;color:#fff;}.btn-purple:hover:not(:disabled){background:#6d28d9;transform:translateY(-1px);}
+.btn-teal{background:#0d9488;color:#fff;}.btn-teal:hover:not(:disabled){background:#0f766e;transform:translateY(-1px);}
+.admin-table th{background:#f8fafc;padding:11px 14px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#64748b;text-align:left;border-bottom:1.5px solid #e2e8f0;}
+.admin-table td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+.admin-table tr:hover td{background:#f8fafc;}
+.hidden{display:none!important;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:640px){.g2,.g3,.g4{grid-template-columns:1fr!important;}}
+@media(max-width:1024px){.g3{grid-template-columns:1fr 1fr;}.g4{grid-template-columns:1fr 1fr;}}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-blue{background:#dbeafe;color:#1d4ed8;}.badge-green{background:#d1fae5;color:#065f46;}.badge-red{background:#ffe4e6;color:#9f1239;}.badge-gray{background:#f1f5f9;color:#475569;}.badge-amber{background:#fef3c7;color:#92400e;}
+.step-footer{position:sticky;bottom:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1.5px solid #e2e8f0;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;z-index:30;border-radius:0 0 14px 14px;}
+.fu-card{border:1.5px solid #c7d2fe;background:#f5f7ff;border-radius:12px;padding:16px;margin-bottom:14px;position:relative;}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:#e2e8f0;display:inline-block;transition:background .15s;}
+.pin-dot.filled{background:var(--blue-primary);}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;padding:18px;}
+.dash-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px;transition:box-shadow .2s,transform .15s;}
+.dash-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.08);transform:translateY(-1px);}
+.req-star{color:#e11d48;font-weight:800;margin-left:2px;}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN OVERLAY ============ -->
+<div id="loginOverlay" class="overlay">
+  <div class="card" style="max-width:420px;width:100%;">
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#6366f1);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#fff;font-size:24px;"><i class="fas fa-heart-pulse"></i></div>
+      <h1 style="font-size:20px;font-weight:800;margin:0;">SACC CAD Registry</h1>
+      <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Sabah Al-Ahmad Cardiac Center</p>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label class="lbl">Department Email</label>
+      <input id="loginEmail" type="email" class="inp" placeholder="registry@sacc.org" autocomplete="username">
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="lbl">Password</label>
+      <input id="loginPassword" type="password" class="inp" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="loginError" style="display:none;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:12px;"></div>
+    <button id="loginBtn" class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doLogin()"><i class="fas fa-sign-in-alt mr-2"></i> Sign In</button>
+    <p style="font-size:11px;color:#94a3b8;text-align:center;margin:14px 0 0;">Shared department login. Your identity is set by your personal PIN inside the app.</p>
+  </div>
+</div>
+
+<!-- ============ DOCTOR PIN GATE ============ -->
+<div id="doctorPinOverlay" class="overlay hidden">
+  <div class="card" style="max-width:380px;width:100%;text-align:center;">
+    <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#0d9488,#10b981);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#fff;font-size:22px;"><i class="fas fa-user-doctor"></i></div>
+    <h2 style="font-size:18px;font-weight:800;margin:0 0 4px;">Who is entering data?</h2>
+    <p style="font-size:13px;color:#64748b;margin:0 0 16px;">Enter your personal PIN. Every record you create is stamped with your name.</p>
+    <input id="doctorPinInput" type="password" inputmode="numeric" maxlength="6" class="inp" style="text-align:center;font-size:22px;letter-spacing:8px;font-family:'DM Mono',monospace;" placeholder="••••" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyDoctorPin()">
+    <div id="doctorPinError" style="display:none;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:8px;padding:8px 12px;font-size:13px;margin-top:12px;"></div>
+    <button class="btn btn-teal" style="width:100%;justify-content:center;margin-top:14px;" onclick="verifyDoctorPin()"><i class="fas fa-unlock"></i> Confirm Identity</button>
+    <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:8px;" onclick="doSignOut()"><i class="fas fa-right-from-bracket"></i> Sign Out</button>
+  </div>
+</div>
+
+<!-- ============ ADMIN PIN GATE ============ -->
+<div id="adminPinOverlay" class="overlay hidden">
+  <div class="card" style="max-width:360px;width:100%;text-align:center;">
+    <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#fff;font-size:22px;"><i class="fas fa-shield-halved"></i></div>
+    <h2 style="font-size:18px;font-weight:800;margin:0 0 4px;">Admin Panel</h2>
+    <p style="font-size:13px;color:#64748b;margin:0 0 16px;">Enter the master admin PIN to manage doctors and exports.</p>
+    <input id="adminPinInput" type="password" inputmode="numeric" maxlength="8" class="inp" style="text-align:center;font-size:22px;letter-spacing:8px;font-family:'DM Mono',monospace;" placeholder="••••" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyAdminPin()">
+    <div id="adminPinError" style="display:none;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:8px;padding:8px 12px;font-size:13px;margin-top:12px;"></div>
+    <button class="btn btn-purple" style="width:100%;justify-content:center;margin-top:14px;" onclick="verifyAdminPin()"><i class="fas fa-unlock"></i> Open Admin Panel</button>
+    <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:8px;" onclick="closeAdminGate()">Cancel</button>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header style="position:sticky;top:0;z-index:40;">
+  <div style="max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#1d4ed8,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;"><i class="fas fa-heart-pulse"></i></div>
+      <div>
+        <div style="font-size:16px;font-weight:800;line-height:1.1;">SACC CAD Registry</div>
+        <div style="font-size:11px;color:#64748b;">Coronary Artery Disease · Sabah Al-Ahmad Cardiac Center</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div id="doctorBadge" class="badge badge-blue hidden" style="font-size:12px;"><i class="fas fa-user-doctor mr-1"></i><span id="doctorBadgeName"></span></div>
+      <button class="btn btn-gray" style="padding:7px 12px;font-size:12px;" onclick="switchDoctor()" title="Switch doctor"><i class="fas fa-user-pen"></i></button>
+      <button class="btn btn-gray" style="padding:7px 12px;font-size:12px;" onclick="doSignOut()" title="Sign out"><i class="fas fa-right-from-bracket"></i></button>
+    </div>
+  </div>
+  <div style="max-width:1200px;margin:0 auto;padding:0 20px;display:flex;gap:6px;overflow-x:auto;">
+    <button class="tabBtn tab-active" data-tab="entry" onclick="switchTab('entry')" style="padding:11px 16px;font-size:14px;background:none;border:none;cursor:pointer;white-space:nowrap;"><i class="fas fa-notes-medical mr-2"></i>Data Entry</button>
+    <button class="tabBtn" data-tab="records" onclick="switchTab('records')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-table-list mr-2"></i>Records</button>
+    <button class="tabBtn" data-tab="analytics" onclick="switchTab('analytics')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-chart-pie mr-2"></i>Analytics</button>
+    <button class="tabBtn" data-tab="admin" onclick="openAdminGate()" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-shield-halved mr-2"></i>Admin</button>
+  </div>
+</header>
+
+<main style="max-width:1200px;margin:0 auto;padding:20px;">
+
+  <!-- ============ DATA ENTRY TAB ============ -->
+  <section id="tab-entry">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:18px 24px;border-bottom:1.5px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:15px;font-weight:800;" id="entryTitle">New CAD Patient Record</div>
+          <div style="font-size:12px;color:#64748b;" id="entrySubtitle">Patient ID will be generated on first save</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="entryStatusBadge" class="badge badge-amber">Draft</span>
+          <button class="btn btn-gray" style="padding:7px 12px;font-size:12px;" onclick="newRecord()"><i class="fas fa-plus"></i> New</button>
+        </div>
+      </div>
+      <!-- stepper -->
+      <ul id="stepperList" style="list-style:none;display:flex;align-items:flex-start;padding:18px 24px;margin:0;overflow-x:auto;gap:2px;border-bottom:1.5px solid #f1f5f9;"></ul>
+      <!-- form -->
+      <form id="cadForm" onsubmit="return false;" style="padding:24px;">
+        <input type="hidden" id="editRecordId" value="">
+        <div id="formStepsContainer"></div>
+      </form>
+      <div class="step-footer">
+        <button type="button" class="btn btn-gray" id="btnPrev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
+        <div style="display:flex;gap:10px;">
+          <button type="button" class="btn btn-yellow" id="btnSaveDraft" onclick="saveRecord('draft',false)"><i class="fas fa-save"></i> Save Draft</button>
+          <button type="button" class="btn btn-green hidden" id="btnSubmit" onclick="saveRecord('submitted',true)"><i class="fas fa-check"></i> Submit</button>
+          <button type="button" class="btn btn-primary" id="btnNext" onclick="nextStep()">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RECORDS TAB ============ -->
+  <section id="tab-records" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <div class="sec-title" style="border:none;padding:0;margin:0;"><div class="icon-wrap" style="background:#2563eb;"><i class="fas fa-table-list"></i></div>Patient Records</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input id="recSearch" class="inp inp-sm" style="width:220px;" placeholder="Search ID / civil ID / doctor…" oninput="renderRecords()">
+          <select id="recStatusFilter" class="inp inp-sm" style="width:140px;" onchange="renderRecords()">
+            <option value="">All statuses</option><option value="draft">Draft</option><option value="submitted">Submitted</option>
+          </select>
+          <button class="btn btn-gray inp-sm" onclick="loadRecords()"><i class="fas fa-rotate"></i></button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="admin-table" style="width:100%;border-collapse:collapse;">
+          <thead><tr><th>Patient ID</th><th>Civil ID</th><th>Adm. Date</th><th>Presentation</th><th>Entered By</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="recordsBody"><tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8;">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ANALYTICS TAB ============ -->
+  <section id="tab-analytics" class="hidden">
+    <div class="g4" style="margin-bottom:18px;">
+      <div class="dash-card"><div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Total Patients</div><div id="stTotal" style="font-size:30px;font-weight:800;color:#1d4ed8;">—</div></div>
+      <div class="dash-card"><div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Primary PCI</div><div id="stPci" style="font-size:30px;font-weight:800;color:#059669;">—</div></div>
+      <div class="dash-card"><div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">MACE Events</div><div id="stMace" style="font-size:30px;font-weight:800;color:#e11d48;">—</div></div>
+      <div class="dash-card"><div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Deaths</div><div id="stDeath" style="font-size:30px;font-weight:800;color:#0f172a;">—</div></div>
+    </div>
+    <div class="g2">
+      <div class="card"><div style="font-size:14px;font-weight:800;margin-bottom:10px;">Presentation Type</div><canvas id="chartPresentation" height="200"></canvas></div>
+      <div class="card"><div style="font-size:14px;font-weight:800;margin-bottom:10px;">Diseased Vessels</div><canvas id="chartVessels" height="200"></canvas></div>
+      <div class="card"><div style="font-size:14px;font-weight:800;margin-bottom:10px;">Records per Doctor</div><canvas id="chartDoctors" height="200"></canvas></div>
+      <div class="card"><div style="font-size:14px;font-weight:800;margin-bottom:10px;">Risk Factors</div><canvas id="chartRisk" height="200"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ============ ADMIN TAB ============ -->
+  <section id="tab-admin" class="hidden">
+    <div class="g2" style="align-items:start;">
+      <!-- Doctors management -->
+      <div class="card">
+        <div class="sec-title"><div class="icon-wrap" style="background:#0d9488;"><i class="fas fa-user-doctor"></i></div>Doctors & PINs</div>
+        <div id="addDoctorForm" style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:11px;padding:14px;margin-bottom:14px;">
+          <div class="g2" style="gap:10px;">
+            <div><label class="lbl">Doctor Name</label><input id="newDocName" class="inp inp-sm" placeholder="Dr Ahmed Shafie"></div>
+            <div><label class="lbl">PIN (3–6 digits)</label><input id="newDocPin" class="inp inp-sm" maxlength="6" style="font-family:'DM Mono',monospace;" placeholder="1234" oninput="this.value=this.value.replace(/\D/g,'')"></div>
+          </div>
+          <button class="btn btn-teal inp-sm" style="margin-top:12px;" onclick="addDoctor()"><i class="fas fa-user-plus"></i> Add Doctor</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table" style="width:100%;border-collapse:collapse;">
+            <thead><tr><th>Name</th><th>PIN</th><th>Records</th><th>Status</th><th></th></tr></thead>
+            <tbody id="doctorsBody"><tr><td colspan="5" style="text-align:center;padding:18px;color:#94a3b8;">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Settings + exports -->
+      <div>
+        <div class="card" style="margin-bottom:18px;">
+          <div class="sec-title"><div class="icon-wrap" style="background:#7c3aed;"><i class="fas fa-key"></i></div>Admin PIN</div>
+          <label class="lbl">Change master admin PIN</label>
+          <div style="display:flex;gap:8px;">
+            <input id="newAdminPin" class="inp inp-sm" maxlength="8" style="font-family:'DM Mono',monospace;" placeholder="New PIN" oninput="this.value=this.value.replace(/\D/g,'')">
+            <button class="btn btn-purple inp-sm" onclick="changeAdminPin()"><i class="fas fa-save"></i> Save</button>
+          </div>
+          <p style="font-size:11px;color:#94a3b8;margin-top:8px;">PIN is stored in Firestore (<code>cad_settings/config</code>), never in the page source.</p>
+        </div>
+        <div class="card">
+          <div class="sec-title"><div class="icon-wrap" style="background:#059669;"><i class="fas fa-file-export"></i></div>Data Export</div>
+          <p style="font-size:13px;color:#64748b;margin:0 0 14px;">Exports follow your EPS convention: numeric byte-coding for SPSS/Stata plus a codebook of value labels, and a human-readable labeled workbook.</p>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button class="btn btn-purple" style="justify-content:center;" onclick="exportCoded()"><i class="fas fa-database"></i> Excel — Numeric Coded + Codebook (SPSS/Stata)</button>
+            <button class="btn btn-teal" style="justify-content:center;" onclick="exportLabeled()"><i class="fas fa-table"></i> Excel — Labeled / Human-Readable</button>
+            <button class="btn btn-gray" style="justify-content:center;" onclick="exportCodebookOnly()"><i class="fas fa-book"></i> Codebook Only</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" style="position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:12px;color:#fff;font-weight:700;font-size:13px;z-index:9999;opacity:0;transition:opacity .35s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2);"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   ⚙️  CONFIG — EDIT THESE TWO BLOCKS ONLY
+   ════════════════════════════════════════════════════════════════════ */
+
+// 1) Paste your NEW Firebase project's web config here (Project Settings → SDK config)
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyAm2jcFQawfYVeSuvZTsQX4HT1pwhs40hU",
+  authDomain:        "cad-registry.firebaseapp.com",
+  projectId:         "cad-registry",
+  storageBucket:     "cad-registry.firebasestorage.app",
+  messagingSenderId: "894913551607",
+  appId:             "1:894913551607:web:5c97315a4531df9c6a87f2"
+};
+
+// 2) First-run master admin PIN. Used ONLY to bootstrap cad_settings/config the
+//    very first time. After that the PIN lives in Firestore and is changed in-app.
+const DEFAULT_ADMIN_PIN = "1986";
+
+/* ════════════════════════════════════════════════════════════════════
+   Firestore collection names
+   ════════════════════════════════════════════════════════════════════ */
+const COL_PATIENTS = "cad_patients";
+const COL_DOCTORS  = "cad_doctors";
+const COL_SETTINGS = "cad_settings";
+</script>
+<script>
+/* ════════════════════════ DATA SCHEMA (single source of truth) ════════════════════════
+   Each field key (k) matches the Excel column header 1:1.
+   type: text | num | date | datetime | ynbtn | select | textarea
+   Codes at export: ynbtn → Yes=1/No=0 ; select → 1-based option index ; num → numeric ;
+   date/datetime → kept as text ; free text → blank in coded sheet (kept in labeled sheet). */
+const RV = ['Normal','Mildly reduced','Moderately reduced','Severely reduced'];
+const VALVE = ['None','Mild','Moderate','Severe'];
+const RHYTHM = ['Sinus','Atrial Fibrillation','Atrial Flutter','Paced','Other'];
+
+const SECTIONS = [
+ {id:'master', sheet:'Patient_Master', title:'Patient & Risk Factors', icon:'fa-id-card', color:'#2563eb', fields:[
+   {k:'Civil_ID_Optional',type:'text'},{k:'Enrollment_Date',type:'date'},{k:'Index_Admission_Date',type:'date',req:true},
+   {k:'Discharge_Date',type:'date'},{k:'Age',type:'num'},{k:'Sex',type:'select',opts:['Male','Female'],req:true},
+   {k:'Nationality',type:'text'},{k:'BMI',type:'num'},{k:'Smoking_Status',type:'select',opts:['Never','Former','Current']},
+   {k:'Diabetes',type:'ynbtn'},{k:'Hypertension',type:'ynbtn'},{k:'Dyslipidemia',type:'ynbtn'},{k:'Family_History_CAD',type:'ynbtn'},
+   {k:'Chronic_Kidney_Disease',type:'ynbtn'},{k:'Prior_MI',type:'ynbtn'},{k:'Prior_PCI',type:'ynbtn'},{k:'Prior_CABG',type:'ynbtn'},
+   {k:'Prior_Stroke_TIA',type:'ynbtn'},{k:'Peripheral_Artery_Disease',type:'ynbtn'},{k:'Heart_Failure',type:'ynbtn'},
+   {k:'Atrial_Fibrillation',type:'ynbtn'},{k:'Baseline_Medications',type:'textarea'}
+ ]},
+ {id:'present', sheet:'Presentation_ECG_Timing', title:'Presentation, ECG & Timing', icon:'fa-heart-pulse', color:'#e11d48', fields:[
+   {k:'Presentation_Type',type:'select',opts:['STEMI','NSTEMI','Unstable Angina','Stable Angina','Silent Ischemia','Other']},
+   {k:'Presenting_Symptom_Chest_Pain',type:'ynbtn'},{k:'Presenting_Symptom_Dyspnea',type:'ynbtn'},{k:'Presenting_Symptom_Syncope',type:'ynbtn'},
+   {k:'Symptom_Onset_Time',type:'datetime'},{k:'Hospital_Arrival_Time',type:'datetime'},{k:'Balloon_Time_First_Device',type:'datetime'},
+   {k:'Door_to_Balloon_Min',type:'num'},{k:'Symptom_to_Balloon_Min',type:'num'},{k:'Killip_Class',type:'select',opts:['I','II','III','IV']},
+   {k:'Cardiogenic_Shock',type:'ynbtn'},{k:'Cardiac_Arrest',type:'ynbtn'},{k:'ECG_Rhythm',type:'select',opts:RHYTHM},
+   {k:'ST_Elevation',type:'ynbtn'},{k:'ST_Elevation_Leads',type:'text'},{k:'ST_Depression',type:'ynbtn'},{k:'T_Wave_Inversion',type:'ynbtn'},
+   {k:'Pathologic_Q_Waves',type:'ynbtn'},{k:'New_LBBB',type:'ynbtn'},{k:'Posterior_MI_Suspected',type:'ynbtn'},{k:'ECG_Notes',type:'textarea'}
+ ]},
+ {id:'echo', sheet:'Echocardiography', title:'Echocardiography', icon:'fa-wave-square', color:'#0d9488', fields:[
+   {k:'Echo_Date',type:'date'},{k:'LVEF',type:'num'},{k:'Regional_Wall_Motion_Abnormality',type:'ynbtn'},
+   {k:'Diastolic_Dysfunction',type:'select',opts:['None','Grade I','Grade II','Grade III']},{k:'LVH',type:'ynbtn'},
+   {k:'LA_Size',type:'select',opts:['Normal','Mildly dilated','Moderately dilated','Severely dilated']},
+   {k:'RV_Function',type:'select',opts:RV},{k:'Pulmonary_Pressure',type:'num'},{k:'Valvular_Disease',type:'select',opts:VALVE},
+   {k:'Pericardial_Effusion',type:'ynbtn'},{k:'Echo_Notes',type:'textarea'}
+ ]},
+ {id:'blood', sheet:'Blood_Work', title:'Blood Work', icon:'fa-vial', color:'#d97706', fields:[
+   {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'num'},{k:'WBC',type:'num'},{k:'Platelets',type:'num'},{k:'Creatinine',type:'num'},
+   {k:'eGFR',type:'num'},{k:'Sodium',type:'num'},{k:'Potassium',type:'num'},{k:'Glucose',type:'num'},{k:'HbA1c',type:'num'},
+   {k:'Total_Cholesterol',type:'num'},{k:'LDL',type:'num'},{k:'HDL',type:'num'},{k:'Triglycerides',type:'num'},
+   {k:'Troponin',type:'num'},{k:'BNP',type:'num'},{k:'CRP',type:'num'}
+ ]},
+ {id:'coronary', sheet:'Coronary_Anatomy', title:'Coronary Anatomy', icon:'fa-diagram-project', color:'#7c3aed', fields:[
+   {k:'Angio_Date',type:'date'},{k:'Left_Main_Disease',type:'ynbtn'},{k:'LAD_Disease',type:'ynbtn'},{k:'LCX_Disease',type:'ynbtn'},
+   {k:'RCA_Disease',type:'ynbtn'},{k:'Number_Diseased_Vessels',type:'select',opts:['0','1','2','3']},
+   {k:'Culprit_Vessel',type:'select',opts:['Left Main','LAD','LCX','RCA','Ramus','Graft','None']},
+   {k:'CTO',type:'ynbtn'},{k:'Thrombus',type:'ynbtn'},{k:'Notes',type:'textarea'}
+ ]},
+ {id:'pci', sheet:'PCI_Details', title:'PCI Details', icon:'fa-syringe', color:'#0891b2', fields:[
+   {k:'PCI_Date',type:'date'},{k:'Primary_PCI',type:'ynbtn'},{k:'Vessel_Treated',type:'text'},{k:'Number_Stents',type:'num'},
+   {k:'Stent_Type',type:'select',opts:['DES','BMS','DCB','None']},{k:'Total_Stent_Length',type:'num'},
+   {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']},{k:'Procedural_Complications',type:'textarea'}
+ ]},
+ {id:'dc_meds', sheet:'Discharge_Medications', title:'Discharge Medications', icon:'fa-pills', color:'#059669', fields:[
+   {k:'Discharge_Date',type:'date'},{k:'Aspirin',type:'ynbtn'},
+   {k:'P2Y12_Inhibitor',type:'select',opts:['Clopidogrel','Prasugrel','Ticagrelor','None']},
+   {k:'Dual_Antiplatelet_Therapy',type:'ynbtn'},{k:'Planned_DAPT_Duration_Months',type:'num'},
+   {k:'Oral_Anticoagulant',type:'select',opts:['Warfarin','DOAC','None']},
+   {k:'Indication_for_Anticoagulation',type:'select',opts:['AF','LV thrombus','VTE','Other','None']},
+   {k:'Statin',type:'select',opts:['Atorvastatin','Rosuvastatin','Other','None']},{k:'Statin_Dose',type:'text'},
+   {k:'Ezetimibe',type:'ynbtn'},{k:'PCSK9_Inhibitor',type:'ynbtn'},{k:'Beta_Blocker',type:'ynbtn'},
+   {k:'ACEi_or_ARB_or_ARNI',type:'select',opts:['ACEi','ARB','ARNI','None']},{k:'MRA',type:'ynbtn'},
+   {k:'SGLT2_Inhibitor',type:'ynbtn'},{k:'Diuretics',type:'ynbtn'},{k:'Nitrates',type:'ynbtn'},
+   {k:'Calcium_Channel_Blocker',type:'ynbtn'},{k:'Ranolazine',type:'ynbtn'},{k:'PPI',type:'ynbtn'},{k:'Other_Medications_Notes',type:'textarea'}
+ ]},
+ {id:'reint', sheet:'Reintervention_FollowUp', title:'Reintervention', icon:'fa-rotate', color:'#be123c', fields:[
+   {k:'FollowUp_Date',type:'date'},{k:'Recurrent_Angina',type:'ynbtn'},{k:'Reintervention_Performed',type:'ynbtn'},
+   {k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
+   {k:'Type_Reintervention_PCI_or_CABG',type:'select',opts:['PCI','CABG','None']},
+   {k:'Outcome_Status',type:'select',opts:['Alive','Deceased','Lost to follow-up']},
+   {k:'Death',type:'ynbtn'},{k:'MI',type:'ynbtn'},{k:'Stroke',type:'ynbtn'},{k:'Heart_Failure_Hospitalization',type:'ynbtn'},{k:'Notes',type:'textarea'}
+ ]}
+];
+
+// Repeating section — multiple follow-up visits per patient
+const FOLLOWUP = {id:'fu', sheet:'FollowUp_Comprehensive', title:'Comprehensive Follow-Up', icon:'fa-calendar-check', color:'#4f46e5', fields:[
+   {k:'FollowUp_Date',type:'date'},{k:'FollowUp_Timepoint_Months',type:'num'},{k:'Alive',type:'ynbtn'},{k:'Rehospitalization',type:'ynbtn'},
+   {k:'Recurrent_Chest_Pain',type:'ynbtn'},{k:'Dyspnea',type:'ynbtn'},{k:'NYHA_Class',type:'select',opts:['I','II','III','IV']},
+   {k:'Heart_Failure_Hospitalization',type:'ynbtn'},{k:'Stroke',type:'ynbtn'},{k:'MI',type:'ynbtn'},{k:'ECG_Performed',type:'ynbtn'},
+   {k:'ECG_Rhythm',type:'select',opts:RHYTHM},{k:'ST_Changes',type:'ynbtn'},{k:'New_Q_Waves',type:'ynbtn'},{k:'Arrhythmia',type:'ynbtn'},
+   {k:'Echo_Performed',type:'ynbtn'},{k:'LVEF_FollowUp',type:'num'},{k:'RWMA_FollowUp',type:'ynbtn'},{k:'LV_Dilation',type:'ynbtn'},
+   {k:'RV_Function_FollowUp',type:'select',opts:RV},{k:'Valvular_Disease_FollowUp',type:'select',opts:VALVE},
+   {k:'Hemoglobin_FU',type:'num'},{k:'Creatinine_FU',type:'num'},{k:'eGFR_FU',type:'num'},{k:'LDL_FU',type:'num'},
+   {k:'HbA1c_FU',type:'num'},{k:'BNP_FU',type:'num'},{k:'On_Aspirin',type:'ynbtn'},{k:'On_P2Y12',type:'ynbtn'},{k:'On_Statin',type:'ynbtn'},
+   {k:'On_BetaBlocker',type:'ynbtn'},{k:'On_ACEi_ARB_ARNI',type:'ynbtn'},{k:'On_SGLT2',type:'ynbtn'},{k:'Repeat_Angiography',type:'ynbtn'},
+   {k:'Repeat_PCI',type:'ynbtn'},{k:'CABG',type:'ynbtn'},{k:'Time_to_Reintervention_Months',type:'num'},
+   {k:'Same_Vessel_Reintervention',type:'ynbtn'},{k:'MACE',type:'ynbtn'},{k:'Death',type:'ynbtn'},{k:'Notes',type:'textarea'}
+]};
+
+const ALL_STEPS = [...SECTIONS, FOLLOWUP];
+const pretty = k => k.replace(/_/g,' ').replace(/\bFU\b/,'(F/U)');
+
+/* ════════════════════════ FIREBASE INIT ════════════════════════ */
+(async function initFirebase(){
+  const cdns=[
+    "https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js",
+    "https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.js",
+    "https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-auth-compat.js"
+  ];
+  try{
+    for(const src of cdns){
+      await new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('Failed to load Firebase from CDN.'));document.head.appendChild(s);});
+    }
+    firebase.initializeApp(FIREBASE_CONFIG);
+    window._db=firebase.firestore(); window._auth=firebase.auth();
+    window._fbReady=true; window.dispatchEvent(new Event('firebaseReady'));
+  }catch(err){ showLoginError(err.message); }
+})();
+
+let db=null, currentUser=null;
+let currentDoctor=null;          // {id,name,pin}
+let DOCTORS=[];                  // [{id,name,pin,active}]
+let SETTINGS={adminPin:DEFAULT_ADMIN_PIN};
+let currentRecord=null;          // working record
+let RECORDS=[];                  // cached patient records
+let currentStep=0;
+
+/* ════════════════════════ AUTH ════════════════════════ */
+function showLoginError(msg){const el=document.getElementById('loginError');if(el){el.textContent=msg;el.style.display='block';}}
+window.doLogin=async function(){
+  const e=document.getElementById('loginEmail').value.trim();
+  const p=document.getElementById('loginPassword').value;
+  if(!e||!p){showLoginError('Enter email and password.');return;}
+  const btn=document.getElementById('loginBtn');btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i> Signing in…';
+  let waited=0; while(!window._auth&&waited<8000){await new Promise(r=>setTimeout(r,200));waited+=200;}
+  if(!window._auth){showLoginError('Connection timeout. Refresh and retry.');btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt mr-2"></i> Sign In';return;}
+  try{ await window._auth.signInWithEmailAndPassword(e,p); }
+  catch(err){
+    const msg=(['auth/invalid-credential','auth/wrong-password','auth/user-not-found','auth/invalid-email'].includes(err.code))?'Invalid email or password.':'Login failed: '+(err.code||err.message);
+    showLoginError(msg);btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt mr-2"></i> Sign In';
+  }
+};
+window.doSignOut=async function(){ if(window._auth) await window._auth.signOut(); location.reload(); };
+
+function startApp(){
+  db=window._db;
+  buildStepper(); buildForm();
+  window._auth.onAuthStateChanged(async (user)=>{
+    if(!user){ document.getElementById('loginOverlay').style.display='flex'; currentUser=null; return; }
+    currentUser=user;
+    document.getElementById('loginOverlay').style.display='none';
+    await loadDoctors(); await loadSettings();
+    showDoctorGate();
+  });
+}
+if(window._fbReady) startApp(); else window.addEventListener('firebaseReady', startApp);
+
+/* ════════════════════════ DOCTOR / ADMIN PINS ════════════════════════ */
+async function loadDoctors(){
+  try{ const snap=await db.collection(COL_DOCTORS).get(); DOCTORS=[]; snap.forEach(d=>DOCTORS.push({id:d.id,...d.data()})); }
+  catch(e){ console.warn('loadDoctors',e); }
+}
+async function loadSettings(){
+  try{
+    const snap=await db.collection(COL_SETTINGS).doc('config').get();
+    if(snap.exists){ SETTINGS=snap.data(); }
+    else { await db.collection(COL_SETTINGS).doc('config').set({adminPin:DEFAULT_ADMIN_PIN}); SETTINGS={adminPin:DEFAULT_ADMIN_PIN}; }
+  }catch(e){ console.warn('loadSettings',e); }
+}
+function showDoctorGate(){
+  document.getElementById('doctorPinInput').value='';
+  document.getElementById('doctorPinError').style.display='none';
+  document.getElementById('doctorPinOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('doctorPinInput').focus(),100);
+}
+window.verifyDoctorPin=function(){
+  const pin=document.getElementById('doctorPinInput').value.trim();
+  const err=document.getElementById('doctorPinError');
+  if(!pin){err.textContent='Enter your PIN.';err.style.display='block';return;}
+  const doc=DOCTORS.find(d=>String(d.pin)===pin && d.active!==false);
+  if(!doc){err.textContent='PIN not recognised. Ask the admin to add you.';err.style.display='block';return;}
+  currentDoctor=doc;
+  document.getElementById('doctorPinOverlay').classList.add('hidden');
+  document.getElementById('doctorBadge').classList.remove('hidden');
+  document.getElementById('doctorBadgeName').textContent=doc.name;
+  loadRecords(); newRecord();
+};
+window.switchDoctor=function(){ showDoctorGate(); };
+
+window.openAdminGate=function(){
+  document.getElementById('adminPinInput').value='';
+  document.getElementById('adminPinError').style.display='none';
+  document.getElementById('adminPinOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('adminPinInput').focus(),100);
+};
+window.closeAdminGate=function(){ document.getElementById('adminPinOverlay').classList.add('hidden'); };
+window.verifyAdminPin=async function(){
+  const pin=document.getElementById('adminPinInput').value.trim();
+  const err=document.getElementById('adminPinError');
+  await loadSettings();
+  if(String(SETTINGS.adminPin)!==pin){err.textContent='Incorrect admin PIN.';err.style.display='block';return;}
+  closeAdminGate(); switchTab('admin'); renderDoctors();
+};
+
+/* ════════════════════════ TABS ════════════════════════ */
+window.switchTab=function(tab){
+  ['entry','records','analytics','admin'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('hidden', t!==tab);
+  });
+  document.querySelectorAll('.tabBtn').forEach(b=>{
+    const on=b.dataset.tab===tab; b.classList.toggle('tab-active',on); b.style.color=on?'#1e3a8a':'#64748b';
+  });
+  if(tab==='records'){ renderRecords(); }
+  if(tab==='analytics'){ renderAnalytics(); }
+};
+
+/* ════════════════════════ STEPPER + FORM ════════════════════════ */
+function buildStepper(){
+  const sl=document.getElementById('stepperList'); sl.innerHTML='';
+  ALL_STEPS.forEach((s,i)=>{
+    const li=document.createElement('li');
+    li.style.cssText='display:flex;flex-direction:column;align-items:center;cursor:pointer;';
+    li.innerHTML=`<div id="sdot-${i}" class="step-dot ${i===0?'active':''}"><i class="fas ${s.icon} text-xs"></i></div><div id="slbl-${i}" class="step-label ${i===0?'active':''}">${s.title}</div>`;
+    li.onclick=()=>goToStep(i);
+    sl.appendChild(li);
+    if(i<ALL_STEPS.length-1){const c=document.createElement('li');c.className='step-connector';sl.appendChild(c);}
+  });
+}
+function fieldHtml(secId,f){
+  const fid=`f_${secId}__${f.k}`;
+  const star=f.req?'<span class="req-star">*</span>':'';
+  let inner, wrap='';
+  if(f.type==='ynbtn'){
+    inner=`<div class="yn-group" id="${fid}_grp"><button type="button" class="yn-btn yn-yes" onclick="setYN('${fid}','Yes')">Yes</button><button type="button" class="yn-btn yn-no" onclick="setYN('${fid}','No')">No</button><input type="hidden" id="${fid}" data-k="${f.k}" data-type="ynbtn"></div>`;
+  } else if(f.type==='select'){
+    inner=`<select class="inp" id="${fid}" data-k="${f.k}" data-type="select"><option value="">— select —</option>${f.opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
+  } else if(f.type==='textarea'){
+    inner=`<textarea class="inp" id="${fid}" data-k="${f.k}" data-type="textarea"></textarea>`; wrap='grid-column:1/-1;';
+  } else {
+    const t=f.type==='num'?'number':(f.type==='date'?'date':(f.type==='datetime'?'datetime-local':'text'));
+    const step=f.type==='num'?' step="any"':'';
+    inner=`<input type="${t}"${step} class="inp" id="${fid}" data-k="${f.k}" data-type="${f.type}">`;
+  }
+  return `<div style="${wrap}"><label class="lbl">${pretty(f.k)}${star}</label>${inner}</div>`;
+}
+function buildForm(){
+  const cont=document.getElementById('formStepsContainer'); cont.innerHTML='';
+  SECTIONS.forEach((s,i)=>{
+    const div=document.createElement('div'); div.className='form-step'+(i===0?' active':''); div.dataset.step=i;
+    div.innerHTML=`<div class="sec-title"><div class="icon-wrap" style="background:${s.color};"><i class="fas ${s.icon}"></i></div>${s.title}</div><div class="g3">${s.fields.map(f=>fieldHtml(s.id,f)).join('')}</div>`;
+    cont.appendChild(div);
+  });
+  // Follow-up repeating step
+  const fuStep=document.createElement('div'); fuStep.className='form-step'; fuStep.dataset.step=SECTIONS.length;
+  fuStep.innerHTML=`<div class="sec-title"><div class="icon-wrap" style="background:${FOLLOWUP.color};"><i class="fas ${FOLLOWUP.icon}"></i></div>${FOLLOWUP.title}</div>
+    <p style="font-size:13px;color:#64748b;margin:-8px 0 14px;">Add one card per follow-up visit (1, 3, 6, 12 months…). Each visit exports as its own row.</p>
+    <div id="fuContainer"></div>
+    <button type="button" class="btn btn-purple" style="margin-top:6px;" onclick="addFollowupCard()"><i class="fas fa-plus"></i> Add Follow-Up Visit</button>`;
+  cont.appendChild(fuStep);
+}
+window.setYN=function(fid,val){
+  const inp=document.getElementById(fid); const grp=document.getElementById(fid+'_grp');
+  inp.value=(inp.value===val)?'':val;
+  grp.querySelector('.yn-yes').classList.toggle('selected',inp.value==='Yes');
+  grp.querySelector('.yn-no').classList.toggle('selected',inp.value==='No');
+};
+let _fuSeq=0;
+window.addFollowupCard=function(data){
+  _fuSeq++; const idx=_fuSeq;
+  const card=document.createElement('div'); card.className='fu-card'; card.dataset.fu=idx;
+  card.innerHTML=`<button type="button" class="btn btn-red" style="position:absolute;top:10px;right:10px;padding:4px 9px;font-size:11px;" onclick="this.closest('.fu-card').remove()"><i class="fas fa-trash"></i></button>
+    <div style="font-weight:800;font-size:13px;color:#4f46e5;margin-bottom:12px;"><i class="fas fa-calendar-check mr-1"></i> Follow-Up Visit</div>
+    <div class="g3">${FOLLOWUP.fields.map(f=>fieldHtml('fu'+idx,f)).join('')}</div>`;
+  document.getElementById('fuContainer').appendChild(card);
+  if(data){ FOLLOWUP.fields.forEach(f=>setFieldVal(`f_fu${idx}__${f.k}`,f,data[f.k])); }
+  return idx;
+};
+function setFieldVal(fid,f,val){
+  const el=document.getElementById(fid); if(!el)return;
+  if(f.type==='ynbtn'){ el.value=val||''; const grp=document.getElementById(fid+'_grp'); if(grp){grp.querySelector('.yn-yes').classList.toggle('selected',val==='Yes');grp.querySelector('.yn-no').classList.toggle('selected',val==='No');} }
+  else { el.value=(val===undefined||val===null)?'':val; }
+}
+
+window.goToStep=function(i){
+  document.querySelectorAll('.form-step').forEach(s=>s.classList.toggle('active',+s.dataset.step===i));
+  ALL_STEPS.forEach((s,k)=>{
+    const dot=document.getElementById('sdot-'+k), lbl=document.getElementById('slbl-'+k);
+    dot.classList.toggle('active',k===i); dot.classList.toggle('done',k<i); lbl.classList.toggle('active',k===i);
+  });
+  currentStep=i;
+  document.getElementById('btnPrev').style.visibility=i===0?'hidden':'visible';
+  const last=i===ALL_STEPS.length-1;
+  document.getElementById('btnNext').classList.toggle('hidden',last);
+  document.getElementById('btnSubmit').classList.toggle('hidden',!last);
+};
+window.nextStep=function(){ if(currentStep<ALL_STEPS.length-1) goToStep(currentStep+1); };
+window.prevStep=function(){ if(currentStep>0) goToStep(currentStep-1); };
+
+/* ════════════════════════ RECORD CRUD ════════════════════════ */
+window.newRecord=function(){
+  currentRecord=null;
+  document.getElementById('editRecordId').value='';
+  document.getElementById('cadForm').querySelectorAll('[data-k]').forEach(el=>{
+    el.value=''; if(el.dataset.type==='ynbtn'){const g=document.getElementById(el.id+'_grp');if(g){g.querySelector('.yn-yes').classList.remove('selected');g.querySelector('.yn-no').classList.remove('selected');}}
+  });
+  document.getElementById('fuContainer').innerHTML='';
+  document.getElementById('entryTitle').textContent='New CAD Patient Record';
+  document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
+  document.getElementById('entryStatusBadge').textContent='Draft';
+  document.getElementById('entryStatusBadge').className='badge badge-amber';
+  goToStep(0); switchTab('entry');
+};
+function collectData(){
+  const data={};
+  SECTIONS.forEach(s=>s.fields.forEach(f=>{ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el) data[`${s.sheet}.${f.k}`]=el.value; }));
+  const followups=[];
+  document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{
+    const idx=card.dataset.fu; const v={}; let any=false;
+    FOLLOWUP.fields.forEach(f=>{ const el=document.getElementById(`f_fu${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } });
+    if(any) followups.push(v);
+  });
+  return {data,followups};
+}
+async function nextPatientId(pin){
+  const used=new Set();
+  RECORDS.forEach(r=>{ const m=(r.patientId||'').split('-'); if(m.length===3){const n=parseInt(m[2],10);if(!isNaN(n))used.add(n);} });
+  let s=1; while(used.has(s)) s++;
+  return `CAD-${pin}-${String(s).padStart(3,'0')}`;
+}
+window.saveRecord=async function(status, closeAfter){
+  if(!currentDoctor){ showDoctorGate(); return; }
+  const admEl=document.getElementById('f_master__Index_Admission_Date');
+  const sexEl=document.getElementById('f_master__Sex');
+  if(!admEl.value){ goToStep(0); admEl.focus(); toast('Index Admission Date is required','#e11d48'); return; }
+  if(!sexEl.value){ goToStep(0); sexEl.focus(); toast('Sex is required','#e11d48'); return; }
+  const {data,followups}=collectData();
+  const recId=document.getElementById('editRecordId').value;
+  const btns=[document.getElementById('btnSaveDraft'),document.getElementById('btnSubmit')];
+  btns.forEach(b=>b&&(b.disabled=true));
+  try{
+    let obj={ data, followups, recordStatus:status, updatedAt:new Date(), updatedByName:currentDoctor.name, updatedByPin:currentDoctor.pin };
+    if(recId){
+      await db.collection(COL_PATIENTS).doc(recId).set(obj,{merge:true});
+      if(status==='submitted') await db.collection(COL_PATIENTS).doc(recId).update({submittedAt:new Date()});
+    } else {
+      const pid=await nextPatientId(currentDoctor.pin);
+      obj.patientId=pid; obj.createdAt=new Date(); obj.enteredByName=currentDoctor.name; obj.enteredByPin=currentDoctor.pin;
+      if(status==='submitted') obj.submittedAt=new Date();
+      const nd=await db.collection(COL_PATIENTS).add(obj);
+      document.getElementById('editRecordId').value=nd.id;
+      document.getElementById('entryTitle').textContent=pid;
+      document.getElementById('entrySubtitle').textContent='Saved · '+currentDoctor.name;
+    }
+    document.getElementById('entryStatusBadge').textContent=status==='submitted'?'Submitted':'Draft';
+    document.getElementById('entryStatusBadge').className='badge '+(status==='submitted'?'badge-green':'badge-amber');
+    await loadRecords();
+    toast(status==='submitted'?'Record submitted ✓':'Draft saved ✓','#059669');
+    if(closeAfter && status==='submitted'){ newRecord(); switchTab('records'); }
+  }catch(e){ console.error(e); toast('Save failed: '+e.message,'#e11d48'); }
+  finally{ btns.forEach(b=>b&&(b.disabled=false)); }
+};
+async function loadRecords(){
+  try{ const snap=await db.collection(COL_PATIENTS).get(); RECORDS=[]; snap.forEach(d=>RECORDS.push({id:d.id,...d.data()})); renderRecords(); }
+  catch(e){ console.warn('loadRecords',e); }
+}
+window.renderRecords=function(){
+  const tb=document.getElementById('recordsBody'); if(!tb)return;
+  const q=(document.getElementById('recSearch').value||'').toLowerCase();
+  const sf=document.getElementById('recStatusFilter').value;
+  let rows=RECORDS.slice().sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||''));
+  rows=rows.filter(r=>{
+    if(sf && (r.recordStatus||'draft')!==sf) return false;
+    if(q){ const blob=`${r.patientId} ${r.data?.['Patient_Master.Civil_ID_Optional']||''} ${r.enteredByName||''}`.toLowerCase(); if(!blob.includes(q)) return false; }
+    return true;
+  });
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8;">No records.</td></tr>'; return; }
+  tb.innerHTML=rows.map(r=>{
+    const st=r.recordStatus||'draft';
+    const badge=st==='submitted'?'<span class="badge badge-green">Submitted</span>':'<span class="badge badge-amber">Draft</span>';
+    return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-weight:700;color:#1d4ed8;">${r.patientId||'—'}</td>
+      <td>${r.data?.['Patient_Master.Civil_ID_Optional']||'—'}</td>
+      <td>${r.data?.['Patient_Master.Index_Admission_Date']||'—'}</td>
+      <td>${r.data?.['Presentation_ECG_Timing.Presentation_Type']||'—'}</td>
+      <td>${r.enteredByName||'—'}</td>
+      <td>${badge}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-yellow" style="padding:5px 10px;font-size:12px;" onclick="editRecord('${r.id}')"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-red" style="padding:5px 10px;font-size:12px;margin-left:4px;" onclick="deleteRecord('${r.id}','${r.patientId||''}')"><i class="fas fa-trash"></i></button>
+      </td></tr>`;
+  }).join('');
+};
+window.editRecord=function(id){
+  const r=RECORDS.find(x=>x.id===id); if(!r)return;
+  newRecord();
+  document.getElementById('editRecordId').value=id;
+  SECTIONS.forEach(s=>s.fields.forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${s.sheet}.${f.k}`])));
+  (r.followups||[]).forEach(fu=>addFollowupCard(fu));
+  document.getElementById('entryTitle').textContent=r.patientId||'Edit Record';
+  document.getElementById('entrySubtitle').textContent='Entered by '+(r.enteredByName||'—');
+  const st=r.recordStatus||'draft';
+  document.getElementById('entryStatusBadge').textContent=st==='submitted'?'Submitted':'Draft';
+  document.getElementById('entryStatusBadge').className='badge '+(st==='submitted'?'badge-green':'badge-amber');
+  switchTab('entry'); goToStep(0);
+};
+window.deleteRecord=async function(id,pid){
+  if(!confirm(`Permanently delete ${pid}? This cannot be undone.`))return;
+  try{ await db.collection(COL_PATIENTS).doc(id).delete(); await loadRecords(); toast('Record deleted','#64748b'); }
+  catch(e){ toast('Delete failed: '+e.message,'#e11d48'); }
+};
+
+/* ════════════════════════ ADMIN: DOCTORS ════════════════════════ */
+window.renderDoctors=async function(){
+  await loadDoctors(); await loadRecords();
+  const tb=document.getElementById('doctorsBody'); if(!tb)return;
+  const counts={}; RECORDS.forEach(r=>{ if(r.enteredByPin) counts[r.enteredByPin]=(counts[r.enteredByPin]||0)+1; });
+  if(!DOCTORS.length){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:18px;color:#94a3b8;">No doctors yet. Add one above.</td></tr>'; return; }
+  tb.innerHTML=DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`
+    <tr>
+      <td style="font-weight:700;">${d.name}</td>
+      <td style="font-family:'DM Mono',monospace;"><span class="badge badge-blue">${d.pin}</span></td>
+      <td style="font-weight:700;color:#1d4ed8;">${counts[d.pin]||0}</td>
+      <td>${d.active!==false?'<span class="badge badge-green">Active</span>':'<span class="badge badge-red">Disabled</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-gray" style="padding:5px 9px;font-size:11px;" onclick="toggleDoctor('${d.id}',${d.active===false})">${d.active!==false?'Disable':'Enable'}</button>
+        <button class="btn btn-red" style="padding:5px 9px;font-size:11px;margin-left:4px;" onclick="deleteDoctor('${d.id}','${(d.name||'').replace(/'/g,"")}')"><i class="fas fa-trash"></i></button>
+      </td></tr>`).join('');
+};
+window.addDoctor=async function(){
+  const name=document.getElementById('newDocName').value.trim();
+  const pin=document.getElementById('newDocPin').value.trim();
+  if(!name||!pin){ toast('Name and PIN required','#e11d48'); return; }
+  if(!/^\d{3,6}$/.test(pin)){ toast('PIN must be 3–6 digits','#e11d48'); return; }
+  if(DOCTORS.some(d=>String(d.pin)===pin)){ toast('That PIN is already in use','#e11d48'); return; }
+  try{
+    await db.collection(COL_DOCTORS).add({name,pin,active:true,createdAt:new Date()});
+    document.getElementById('newDocName').value=''; document.getElementById('newDocPin').value='';
+    await renderDoctors(); toast('Doctor added ✓','#059669');
+  }catch(e){ toast('Failed: '+e.message,'#e11d48'); }
+};
+window.toggleDoctor=async function(id,enable){ try{ await db.collection(COL_DOCTORS).doc(id).update({active:enable}); await renderDoctors(); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
+window.deleteDoctor=async function(id,name){ if(!confirm(`Remove "${name}"? Existing records keep their stamp.`))return; try{ await db.collection(COL_DOCTORS).doc(id).delete(); await renderDoctors(); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
+window.changeAdminPin=async function(){
+  const p=document.getElementById('newAdminPin').value.trim();
+  if(!/^\d{3,8}$/.test(p)){ toast('Admin PIN must be 3–8 digits','#e11d48'); return; }
+  try{ await db.collection(COL_SETTINGS).doc('config').set({adminPin:p},{merge:true}); SETTINGS.adminPin=p; document.getElementById('newAdminPin').value=''; toast('Admin PIN updated ✓','#059669'); }
+  catch(e){ toast('Failed: '+e.message,'#e11d48'); }
+};
+
+/* ════════════════════════ CODING + EXPORTS ════════════════════════ */
+function codeValue(f,val){
+  if(val===undefined||val===null||val==='') return '';
+  switch(f.type){
+    case 'num':{const n=parseFloat(val);return isNaN(n)?'':n;}
+    case 'ynbtn':return val==='Yes'?1:(val==='No'?0:'');
+    case 'select':{const i=f.opts.indexOf(val);return i<0?'':i+1;}
+    case 'date':case 'datetime':return val;
+    default:return '';
+  }
+}
+function codebookFor(f){
+  switch(f.type){
+    case 'ynbtn':return '1=Yes; 0=No';
+    case 'select':return f.opts.map((o,i)=>`${i+1}=${o}`).join('; ');
+    case 'num':return 'numeric';
+    case 'date':return 'date (YYYY-MM-DD)';
+    case 'datetime':return 'datetime';
+    default:return 'free text';
+  }
+}
+function buildWorkbook(coded){
+  const wb=XLSX.utils.book_new();
+  // Patients sheet (single-occurrence sections)
+  const pHeader=['Patient_ID','Entered_By','Doctor_PIN','Record_Status'];
+  SECTIONS.forEach(s=>s.fields.forEach(f=>pHeader.push(`${s.sheet}.${f.k}`)));
+  const pRows=[pHeader];
+  RECORDS.forEach(r=>{
+    const row=[r.patientId||'', r.enteredByName||'', r.enteredByPin||'', r.recordStatus||'draft'];
+    SECTIONS.forEach(s=>s.fields.forEach(f=>{
+      const raw=r.data?.[`${s.sheet}.${f.k}`];
+      row.push(coded?codeValue(f,raw):(raw||''));
+    }));
+    pRows.push(row);
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(pRows),'Patients');
+  // Follow-up long sheet
+  const fHeader=['Patient_ID','Visit_No']; FOLLOWUP.fields.forEach(f=>fHeader.push(f.k));
+  const fRows=[fHeader];
+  RECORDS.forEach(r=>{ (r.followups||[]).forEach((fu,i)=>{
+    const row=[r.patientId||'', i+1];
+    FOLLOWUP.fields.forEach(f=>row.push(coded?codeValue(f,fu[f.k]):(fu[f.k]||'')));
+    fRows.push(row);
+  }); });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(fRows),'FollowUp');
+  // Codebook
+  appendCodebook(wb);
+  return wb;
+}
+function appendCodebook(wb){
+  const rows=[['Sheet','Variable','Label','Type','Value_Labels']];
+  SECTIONS.forEach(s=>s.fields.forEach(f=>rows.push([s.sheet,`${s.sheet}.${f.k}`,pretty(f.k),f.type,codebookFor(f)])));
+  FOLLOWUP.fields.forEach(f=>rows.push([FOLLOWUP.sheet,f.k,pretty(f.k),f.type,codebookFor(f)]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Codebook');
+}
+window.exportCoded=function(){ if(!RECORDS.length){toast('No records to export','#e11d48');return;} XLSX.writeFile(buildWorkbook(true),`SACC_CAD_Coded_${stamp()}.xlsx`); toast('Coded workbook exported ✓','#7c3aed'); };
+window.exportLabeled=function(){ if(!RECORDS.length){toast('No records to export','#e11d48');return;} XLSX.writeFile(buildWorkbook(false),`SACC_CAD_Labeled_${stamp()}.xlsx`); toast('Labeled workbook exported ✓','#0d9488'); };
+window.exportCodebookOnly=function(){ const wb=XLSX.utils.book_new(); appendCodebook(wb); XLSX.writeFile(wb,`SACC_CAD_Codebook_${stamp()}.xlsx`); toast('Codebook exported ✓','#64748b'); };
+function stamp(){ const d=new Date(); return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
+
+/* ════════════════════════ ANALYTICS ════════════════════════ */
+let _charts={};
+function destroyCharts(){ Object.values(_charts).forEach(c=>c&&c.destroy()); _charts={}; }
+function renderAnalytics(){
+  destroyCharts();
+  const g=k=>RECORDS.map(r=>r.data?.[k]).filter(Boolean);
+  document.getElementById('stTotal').textContent=RECORDS.length;
+  document.getElementById('stPci').textContent=g('PCI_Details.Primary_PCI').filter(v=>v==='Yes').length;
+  let mace=0,death=0;
+  RECORDS.forEach(r=>{ (r.followups||[]).forEach(fu=>{ if(fu.MACE==='Yes')mace++; if(fu.Death==='Yes')death++; }); if(r.data?.['Reintervention_FollowUp.Death']==='Yes')death++; });
+  document.getElementById('stMace').textContent=mace;
+  document.getElementById('stDeath').textContent=death;
+  const C=['#2563eb','#059669','#d97706','#e11d48','#7c3aed','#0d9488','#0891b2'];
+  const countBy=(arr)=>arr.reduce((m,v)=>{m[v]=(m[v]||0)+1;return m;},{});
+  const mk=(id,type,labels,data,colors)=>{ const el=document.getElementById(id); if(!el)return; _charts[id]=new Chart(el,{type,data:{labels,datasets:[{data,backgroundColor:colors||C,borderWidth:0}]},options:{plugins:{legend:{display:type!=='bar',position:'bottom',labels:{font:{size:11}}}},scales:type==='bar'?{y:{beginAtZero:true,ticks:{precision:0}}}:{}}}); };
+  const pres=countBy(g('Presentation_ECG_Timing.Presentation_Type'));
+  mk('chartPresentation','doughnut',Object.keys(pres),Object.values(pres));
+  const ves=countBy(g('Coronary_Anatomy.Number_Diseased_Vessels'));
+  mk('chartVessels','bar',Object.keys(ves),Object.values(ves),'#2563eb');
+  const docs=countBy(RECORDS.map(r=>r.enteredByName||'—'));
+  mk('chartDoctors','bar',Object.keys(docs),Object.values(docs),'#0d9488');
+  const risk=['Diabetes','Hypertension','Dyslipidemia','Smoking_Status'];
+  const rl=['Diabetes','Hypertension','Dyslipidemia','Current Smoker'];
+  const rd=[
+    g('Patient_Master.Diabetes').filter(v=>v==='Yes').length,
+    g('Patient_Master.Hypertension').filter(v=>v==='Yes').length,
+    g('Patient_Master.Dyslipidemia').filter(v=>v==='Yes').length,
+    g('Patient_Master.Smoking_Status').filter(v=>v==='Current').length
+  ];
+  mk('chartRisk','bar',rl,rd,'#e11d48');
+}
+
+/* ════════════════════════ TOAST ════════════════════════ */
+function toast(msg,color='#059669'){ const t=document.getElementById('toast'); t.style.background=color; t.textContent=msg; t.style.opacity='1'; clearTimeout(t._to); t._to=setTimeout(()=>t.style.opacity='0',2800); }
+</script>
+</body>
+</html>
