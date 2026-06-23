@@ -192,6 +192,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
         <div style="display:flex;flex-direction:column;">
           <form id="cadForm" onsubmit="return false;" style="padding:22px 24px;flex:1;">
             <input type="hidden" id="editRecordId" value="">
+            <div id="valSummary" style="display:none;margin-bottom:16px;"></div>
             <div id="formStepsContainer"></div>
           </form>
           <div class="step-footer">
@@ -353,7 +354,7 @@ const SECTIONS = [
      {k:'Presenting_Symptom_Dyspnea',type:'ynbtn'},{k:'Presenting_Symptom_Syncope',type:'ynbtn'},
      {k:'Cardiogenic_Shock',type:'ynbtn'},{k:'Cardiac_Arrest',type:'ynbtn'}]},
    {title:'Reperfusion Timing', tint:'yellow', c:'#d97706', icon:'fa-clock', cols:2, fields:[
-     {k:'Symptom_Onset_Time',type:'datetime'},{k:'Hospital_Arrival_Time',type:'datetime'},{k:'Balloon_Time_First_Device',type:'datetime'},
+     {k:'Symptom_Onset_Time',type:'dt24'},{k:'Hospital_Arrival_Time',type:'dt24'},{k:'Balloon_Time_First_Device',type:'dt24'},
      {k:'Door_to_Balloon_Min',type:'num',hint:'auto'},{k:'Symptom_to_Balloon_Min',type:'num',hint:'auto'}]},
    {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
      {k:'ECG_Rhythm',type:'select',opts:RHYTHM},{k:'ST_Elevation',type:'ynbtn'},{k:'ST_Elevation_Leads',type:'text'},
@@ -593,6 +594,8 @@ function fieldHtml(secId,f){
     inner=`<select class="inp" id="${fid}" data-k="${f.k}" data-type="select"><option value="">— select —</option>${f.opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
   } else if(f.type==='textarea'){
     inner=`<textarea class="inp" id="${fid}" data-k="${f.k}" data-type="textarea"></textarea>`; wrap='grid-column:1/-1;';
+  } else if(f.type==='dt24'){
+    inner=`<div style="display:flex;gap:6px;"><input type="date" class="inp" id="${fid}" data-k="${f.k}" data-type="dt24" style="flex:1;"><input type="text" id="${fid}__t" class="inp" style="width:90px;text-align:center;font-family:'DM Mono',monospace;" maxlength="5" inputmode="numeric" placeholder="HH:MM" oninput="timeMask(this)" onblur="timeClamp(this)"></div>`;
   } else {
     const t=f.type==='num'?'number':(f.type==='date'?'date':(f.type==='datetime'?'datetime-local':'text'));
     const step=f.type==='num'?' step="any"':'';
@@ -631,10 +634,9 @@ function updateIndicators(){
       const ind=document.getElementById(`f_${s.id}__${f.k}_ind`);
       if(!el||!ind)return;
       const v=(el.value||'').trim();
-      if(f.req){ totalReq++; if(v) doneReq++; }
+      if(f.req){ totalReq++; if(v) doneReq++; else reqMissing=true; }
       if(v){ ind.textContent='✓'; ind.style.cssText=badgeCss('#059669','#d1fae5'); anyFilled=true; }
-      else if(f.req){ ind.textContent='✕'; ind.style.cssText=badgeCss('#e11d48','#ffe4e6'); reqMissing=true; }
-      else { ind.textContent=''; ind.style.display='none'; }
+      else { ind.textContent='✕'; ind.style.cssText=badgeCss('#e11d48','#ffe4e6'); }
     });
     const vs=document.getElementById('vstep-'+si);
     if(vs && !vs.classList.contains('active')) vs.classList.toggle('done', anyFilled && !reqMissing);
@@ -667,8 +669,18 @@ function wireCalc(){
   form.addEventListener('change',updateIndicators);
   ['f_master__Height_cm','f_master__Weight_kg'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',recalcBMI);});
   ['f_blood__Creatinine','f_blood__Creatinine_Unit','f_master__Age','f_master__Sex'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcEGFR);e.addEventListener('change',recalcEGFR);}});
+  ['Symptom_Onset_Time','Hospital_Arrival_Time','Balloon_Time_First_Device'].forEach(k=>{['f_present__'+k,'f_present__'+k+'__t'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcTiming);e.addEventListener('change',recalcTiming);}});});
 }
 function applyDefaults(){ SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.def){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && !el.value) el.value=f.def; } })); }
+window.timeMask=function(el){ let d=el.value.replace(/\D/g,'').slice(0,4); el.value = d.length>=3 ? d.slice(0,2)+':'+d.slice(2) : d; };
+window.timeClamp=function(el){ const m=el.value.match(/^(\d{1,2}):?(\d{0,2})$/); if(!m){ if(el.value)el.value=''; return; } let h=Math.min(23,parseInt(m[1]||'0',10)), mi=Math.min(59,parseInt(m[2]||'0',10)); el.value=String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0'); recalcTiming(); };
+function tval(secId,k){ const d=_v(`f_${secId}__${k}`); if(!d)return null; const t=_v(`f_${secId}__${k}__t`); return new Date(d+'T'+(/^\d{2}:\d{2}$/.test(t)?t:'00:00')); }
+function recalcTiming(){
+  const onset=tval('present','Symptom_Onset_Time'), arr=tval('present','Hospital_Arrival_Time'), bal=tval('present','Balloon_Time_First_Device');
+  if(arr&&bal){ const m=Math.round((bal-arr)/60000); if(m>=0)_set('f_present__Door_to_Balloon_Min',m); }
+  if(onset&&bal){ const m=Math.round((bal-onset)/60000); if(m>=0)_set('f_present__Symptom_to_Balloon_Min',m); }
+  updateIndicators();
+}
 window.setYN=function(fid,val){
   const inp=document.getElementById(fid); const grp=document.getElementById(fid+'_grp');
   inp.value=(inp.value===val)?'':val;
@@ -691,6 +703,7 @@ window.addFollowupCard=function(data){
   return idx;
 };
 function setFieldVal(fid,f,val){
+  if(f.type==='dt24'){ const el=document.getElementById(fid), te=document.getElementById(fid+'__t'); const p=(val||'').split('T'); if(el)el.value=p[0]||''; if(te)te.value=p[1]||''; return; }
   const el=document.getElementById(fid); if(!el)return;
   if(f.type==='ynbtn'){ el.value=val||''; const grp=document.getElementById(fid+'_grp'); if(grp){grp.querySelector('.yn-yes').classList.toggle('selected',val==='Yes');grp.querySelector('.yn-no').classList.toggle('selected',val==='No');} }
   else { el.value=(val===undefined||val===null)?'':val; }
@@ -717,6 +730,7 @@ window.newRecord=function(){
   document.getElementById('cadForm').querySelectorAll('[data-k]').forEach(el=>{
     el.value=''; if(el.dataset.type==='ynbtn'){const g=document.getElementById(el.id+'_grp');if(g){g.querySelector('.yn-yes').classList.remove('selected');g.querySelector('.yn-no').classList.remove('selected');}}
   });
+  document.getElementById('cadForm').querySelectorAll('input[id$="__t"]').forEach(e=>e.value='');
   document.getElementById('fuContainer').innerHTML='';
   document.getElementById('entryTitle').textContent='New CAD Patient Record';
   document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
@@ -726,7 +740,10 @@ window.newRecord=function(){
 };
 function collectData(){
   const data={};
-  SECTIONS.forEach(s=>secFields(s).forEach(f=>{ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el) data[`${s.sheet}.${f.k}`]=el.value; }));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>{
+    if(f.type==='dt24'){ const d=_v(`f_${s.id}__${f.k}`), t=_v(`f_${s.id}__${f.k}__t`); data[`${s.sheet}.${f.k}`]= d?(d+(t?('T'+t):'')):''; }
+    else { const el=document.getElementById(`f_${s.id}__${f.k}`); if(el) data[`${s.sheet}.${f.k}`]=el.value; }
+  }));
   const followups=[];
   document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{
     const idx=card.dataset.fu; const v={}; let any=false;
@@ -741,6 +758,62 @@ async function nextPatientId(pin){
   let s=1; while(used.has(s)) s++;
   return `CAD-${pin}-${String(s).padStart(3,'0')}`;
 }
+/* ════════════════════════ MEDICAL & TEMPORAL LOGIC ════════════════════════ */
+function validateLogic(data){
+  const errors=[], warnings=[];
+  const today=new Date(); today.setHours(23,59,59,999);
+  const D=key=>{ const v=data[key]; if(!v) return null; const d=new Date(v); return isNaN(d.getTime())?null:d; };
+  const adm=D('Patient_Master.Index_Admission_Date'), dis=D('Patient_Master.Discharge_Date');
+  const echo=D('Echocardiography.Echo_Date'), samp=D('Blood_Work.Sample_Date');
+  const angio=D('Coronary_Anatomy.Angio_Date'), pci=D('PCI_Details.PCI_Date'), dcm=D('Discharge_Medications.Discharge_Date');
+  const onset=D('Presentation_ECG_Timing.Symptom_Onset_Time'), arr=D('Presentation_ECG_Timing.Hospital_Arrival_Time'), bal=D('Presentation_ECG_Timing.Balloon_Time_First_Device');
+  // no future dates
+  [['Index Admission',adm],['Discharge',dis],['Echo',echo],['Blood sample',samp],['Angiography',angio],['PCI',pci],['Symptom onset',onset],['Hospital arrival',arr],['Balloon',bal]].forEach(([n,d])=>{ if(d&&d>today) errors.push(`${n} date/time is in the future.`); });
+  // chronological order (hard)
+  if(adm&&dis&&dis<adm) errors.push('Discharge date is before the index admission date.');
+  if(adm&&angio&&angio<adm) errors.push('Angiography date is before the admission date.');
+  if(adm&&pci&&pci<adm) errors.push('PCI date is before the admission date.');
+  if(angio&&pci&&pci<angio) warnings.push('PCI date is before the angiography date.');
+  if(pci&&dis&&dis<pci) errors.push('Discharge date is before the PCI date.');
+  if(adm&&dcm&&dcm<adm) errors.push('Discharge-medications date is before the admission date.');
+  if(onset&&arr&&arr<onset) errors.push('Hospital arrival is before symptom onset.');
+  if(arr&&bal&&bal<arr) errors.push('Balloon time is before hospital arrival.');
+  if(adm&&echo&&echo<adm) warnings.push('Echo date is before the admission date.');
+  if(adm&&samp&&samp<adm) warnings.push('Blood sample date is before the admission date.');
+  // DAPT conditional (hard)
+  if(data['Discharge_Medications.Dual_Antiplatelet_Therapy']==='Yes'){
+    if(data['Discharge_Medications.Aspirin']!=='Yes') errors.push('DAPT = Yes → Aspirin must be set to Yes.');
+    const p2=data['Discharge_Medications.P2Y12_Inhibitor']; if(!p2||p2==='None') errors.push('DAPT = Yes → a P2Y12 inhibitor (Clopidogrel/Prasugrel/Ticagrelor) is required.');
+  }
+  // reverse: both antiplatelets present but DAPT not marked
+  if(data['Discharge_Medications.Aspirin']==='Yes' && ['Clopidogrel','Prasugrel','Ticagrelor'].includes(data['Discharge_Medications.P2Y12_Inhibitor']) && data['Discharge_Medications.Dual_Antiplatelet_Therapy']!=='Yes')
+    warnings.push('Aspirin + a P2Y12 inhibitor are recorded but DAPT is not marked Yes.');
+  // medication / clinical cross-checks (soft)
+  const pres=data['Presentation_ECG_Timing.Presentation_Type'];
+  if(data['PCI_Details.Primary_PCI']==='Yes' && pres && pres!=='STEMI') warnings.push('Primary PCI is recorded but presentation type is not STEMI.');
+  if(pres==='STEMI' && data['Presentation_ECG_Timing.ST_Elevation']==='No') warnings.push('Presentation is STEMI but ST-elevation is marked No.');
+  if(data['Reintervention_FollowUp.Reintervention_Performed']==='Yes' && (data['Reintervention_FollowUp.Type_Reintervention_PCI_or_CABG']||'None')==='None') warnings.push('Reintervention performed but its type is None.');
+  const oac=data['Discharge_Medications.Oral_Anticoagulant']; if(oac&&oac!=='None'&&!data['Discharge_Medications.Indication_for_Anticoagulation']) warnings.push('Oral anticoagulant selected but no indication is chosen.');
+  if((data['Discharge_Medications.Statin']||'None')==='None' && data['Discharge_Medications.Statin_Dose']) warnings.push('Statin is None but a statin dose is entered.');
+  if(data['Coronary_Anatomy.Number_Diseased_Vessels']==='0' && data['Coronary_Anatomy.Culprit_Vessel'] && data['Coronary_Anatomy.Culprit_Vessel']!=='None') warnings.push('Number of diseased vessels is 0 but a culprit vessel is selected.');
+  if(data['Patient_Master.Chronic_Kidney_Disease']==='No'){ const e=parseFloat(data['Blood_Work.eGFR']); if(!isNaN(e)&&e<60) warnings.push(`eGFR is ${e} but CKD is marked No.`); }
+  if(data['PCI_Details.Primary_PCI']==='Yes'){ const n=parseFloat(data['PCI_Details.Number_Stents']); if(!isNaN(n)&&n===0) warnings.push('Primary PCI = Yes but number of stents is 0.'); }
+  // numeric range sanity (soft)
+  const rng=(key,lo,hi,label)=>{ const v=parseFloat(data[key]); if(!isNaN(v)&&(v<lo||v>hi)) warnings.push(`${label} (${v}) is outside the expected range ${lo}–${hi}.`); };
+  rng('Patient_Master.Age',18,110,'Age'); rng('Patient_Master.BMI',10,70,'BMI');
+  rng('Echocardiography.LVEF',5,85,'LVEF %'); rng('Blood_Work.eGFR',1,200,'eGFR');
+  rng('Blood_Work.Potassium',2,8,'Potassium'); rng('Blood_Work.Sodium',110,170,'Sodium');
+  rng('Blood_Work.Hemoglobin',3,22,'Hemoglobin'); rng('Blood_Work.HbA1c',3,20,'HbA1c %');
+  return {errors,warnings};
+}
+function renderValSummary(errors,warnings){
+  const el=document.getElementById('valSummary'); if(!el)return;
+  if(!errors.length && !warnings.length){ el.style.display='none'; el.innerHTML=''; return; }
+  let h='';
+  if(errors.length) h+=`<div class="card card-red" style="margin-bottom:${warnings.length?'10px':'0'};"><div style="font-weight:800;color:#9f1239;font-size:13px;margin-bottom:8px;"><i class="fas fa-circle-xmark"></i> ${errors.length} issue(s) blocking submission</div><ul style="margin:0;padding-left:20px;font-size:13px;color:#9f1239;line-height:1.6;">${errors.map(e=>`<li>${e}</li>`).join('')}</ul></div>`;
+  if(warnings.length) h+=`<div class="card card-yellow"><div style="font-weight:800;color:#92400e;font-size:13px;margin-bottom:8px;"><i class="fas fa-triangle-exclamation"></i> ${warnings.length} advisory warning(s) — review, but you can still save</div><ul style="margin:0;padding-left:20px;font-size:13px;color:#92400e;line-height:1.6;">${warnings.map(w=>`<li>${w}</li>`).join('')}</ul></div>`;
+  el.innerHTML=h; el.style.display='block';
+}
 window.saveRecord=async function(status, closeAfter){
   if(!currentDoctor){ showDoctorGate(); return; }
   const admEl=document.getElementById('f_master__Index_Admission_Date');
@@ -750,6 +823,12 @@ window.saveRecord=async function(status, closeAfter){
   const civEl=document.getElementById('f_master__Civil_ID_Optional');
   if(civEl && civEl.value && civEl.value.length!==12){ goToStep(0); civEl.focus(); toast('Civil ID must be exactly 12 digits, or left blank','#e11d48'); return; }
   const {data,followups}=collectData();
+  const vr=validateLogic(data);
+  renderValSummary(vr.errors, vr.warnings);
+  if(status==='submitted' && vr.errors.length){
+    document.getElementById('valSummary').scrollIntoView({behavior:'smooth',block:'center'});
+    toast(`Cannot submit — ${vr.errors.length} issue(s) to fix`,'#e11d48'); return;
+  }
   const recId=document.getElementById('editRecordId').value;
   const btns=[document.getElementById('btnSaveDraft'),document.getElementById('btnSubmit')];
   btns.forEach(b=>b&&(b.disabled=true));
@@ -770,7 +849,9 @@ window.saveRecord=async function(status, closeAfter){
     document.getElementById('entryStatusBadge').textContent=status==='submitted'?'Submitted':'Draft';
     document.getElementById('entryStatusBadge').className='badge '+(status==='submitted'?'badge-green':'badge-amber');
     await loadRecords();
-    toast(status==='submitted'?'Record submitted ✓':'Draft saved ✓','#059669');
+    const vs=document.getElementById('valSummary');
+    if(!vr.errors.length && vr.warnings.length){ toast(`Saved · ${vr.warnings.length} advisory warning(s)`,'#d97706'); }
+    else { if(vs) vs.style.display='none'; toast(status==='submitted'?'Record submitted ✓':'Draft saved ✓','#059669'); }
     if(closeAfter && status==='submitted'){ newRecord(); switchTab('records'); }
   }catch(e){ console.error(e); toast('Save failed: '+e.message,'#e11d48'); }
   finally{ btns.forEach(b=>b&&(b.disabled=false)); }
@@ -871,7 +952,7 @@ function codeValue(f,val){
     case 'num':{const n=parseFloat(val);return isNaN(n)?'':n;}
     case 'ynbtn':return val==='Yes'?1:(val==='No'?0:'');
     case 'select':{const i=f.opts.indexOf(val);return i<0?'':i+1;}
-    case 'date':case 'datetime':return val;
+    case 'date':case 'datetime':case 'dt24':return val;
     default:return '';
   }
 }
@@ -882,6 +963,7 @@ function codebookFor(f){
     case 'num':return 'numeric';
     case 'date':return 'date (YYYY-MM-DD)';
     case 'datetime':return 'datetime';
+    case 'dt24':return 'datetime (YYYY-MM-DDTHH:MM, 24h)';
     default:return 'free text';
   }
 }
