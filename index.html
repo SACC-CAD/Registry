@@ -105,6 +105,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
     <input id="doctorPinInput" type="password" inputmode="numeric" maxlength="6" class="inp" style="text-align:center;font-size:22px;letter-spacing:8px;font-family:'DM Mono',monospace;" placeholder="••••" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyDoctorPin()">
     <div id="doctorPinError" style="display:none;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:8px;padding:8px 12px;font-size:13px;margin-top:12px;"></div>
     <button class="btn btn-teal" style="width:100%;justify-content:center;margin-top:14px;" onclick="verifyDoctorPin()"><i class="fas fa-unlock"></i> Confirm Identity</button>
+    <button class="btn btn-purple" style="width:100%;justify-content:center;margin-top:8px;" onclick="openAdminGate()"><i class="fas fa-shield-halved"></i> Admin Panel</button>
     <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:8px;" onclick="doSignOut()"><i class="fas fa-right-from-bracket"></i> Sign Out</button>
   </div>
 </div>
@@ -481,7 +482,9 @@ window.verifyAdminPin=async function(){
   const err=document.getElementById('adminPinError');
   await loadSettings();
   if(String(SETTINGS.adminPin)!==pin){err.textContent='Incorrect admin PIN.';err.style.display='block';return;}
-  closeAdminGate(); switchTab('admin'); renderDoctors();
+  closeAdminGate();
+  document.getElementById('doctorPinOverlay').classList.add('hidden');
+  switchTab('admin'); renderDoctors();
 };
 
 /* ════════════════════════ TABS ════════════════════════ */
