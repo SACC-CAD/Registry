@@ -300,12 +300,14 @@ const COL_SETTINGS = "cad_settings";
 const RV = ['Normal','Mildly reduced','Moderately reduced','Severely reduced'];
 const VALVE = ['None','Mild','Moderate','Severe'];
 const RHYTHM = ['Sinus','Atrial Fibrillation','Atrial Flutter','Paced','Other'];
+const COUNTRIES = ['Kuwaiti','Bedoon','Saudi Arabian','Bahraini','Qatari','Emirati','Omani','Egyptian','Syrian','Lebanese','Jordanian','Palestinian','Iraqi','Iranian','Yemeni','Sudanese','Somali','Indian','Pakistani','Bangladeshi','Sri Lankan','Nepalese','Filipino','Indonesian','Afghan','Turkish','Moroccan','Tunisian','Algerian','Libyan','Ethiopian','Eritrean','Kenyan','Nigerian','Ghanaian','American','British','Canadian','Australian','French','German','Italian','Spanish','Dutch','Russian','Ukrainian','Chinese','Japanese','Korean','Thai','Vietnamese','Other'];
 
 const SECTIONS = [
  {id:'master', sheet:'Patient_Master', title:'Patient & Risk Factors', icon:'fa-id-card', color:'#2563eb', fields:[
-   {k:'Civil_ID_Optional',type:'text'},{k:'Enrollment_Date',type:'date'},{k:'Index_Admission_Date',type:'date',req:true},
+   {k:'Civil_ID_Optional',type:'text',digits:12},{k:'Enrollment_Date',type:'date'},{k:'Index_Admission_Date',type:'date',req:true},
    {k:'Discharge_Date',type:'date'},{k:'Age',type:'num'},{k:'Sex',type:'select',opts:['Male','Female'],req:true},
-   {k:'Nationality',type:'text'},{k:'BMI',type:'num'},{k:'Smoking_Status',type:'select',opts:['Never','Former','Current']},
+   {k:'Nationality',type:'select',opts:COUNTRIES},{k:'Height_cm',type:'num'},{k:'Weight_kg',type:'num'},
+   {k:'BMI',type:'num',hint:'auto'},{k:'Smoking_Status',type:'select',opts:['Never','Former','Current']},
    {k:'Diabetes',type:'ynbtn'},{k:'Hypertension',type:'ynbtn'},{k:'Dyslipidemia',type:'ynbtn'},{k:'Family_History_CAD',type:'ynbtn'},
    {k:'Chronic_Kidney_Disease',type:'ynbtn'},{k:'Prior_MI',type:'ynbtn'},{k:'Prior_PCI',type:'ynbtn'},{k:'Prior_CABG',type:'ynbtn'},
    {k:'Prior_Stroke_TIA',type:'ynbtn'},{k:'Peripheral_Artery_Disease',type:'ynbtn'},{k:'Heart_Failure',type:'ynbtn'},
@@ -329,7 +331,7 @@ const SECTIONS = [
  ]},
  {id:'blood', sheet:'Blood_Work', title:'Blood Work', icon:'fa-vial', color:'#d97706', fields:[
    {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'num'},{k:'WBC',type:'num'},{k:'Platelets',type:'num'},{k:'Creatinine',type:'num'},
-   {k:'eGFR',type:'num'},{k:'Sodium',type:'num'},{k:'Potassium',type:'num'},{k:'Glucose',type:'num'},{k:'HbA1c',type:'num'},
+   {k:'Creatinine_Unit',type:'select',opts:['mg/dL','µmol/L']},{k:'eGFR',type:'num',hint:'auto CKD-EPI'},{k:'Sodium',type:'num'},{k:'Potassium',type:'num'},{k:'Glucose',type:'num'},{k:'HbA1c',type:'num'},
    {k:'Total_Cholesterol',type:'num'},{k:'LDL',type:'num'},{k:'HDL',type:'num'},{k:'Triglycerides',type:'num'},
    {k:'Troponin',type:'num'},{k:'BNP',type:'num'},{k:'CRP',type:'num'}
  ]},
@@ -427,7 +429,7 @@ window.doSignOut=async function(){ if(window._auth) await window._auth.signOut()
 
 function startApp(){
   db=window._db;
-  buildStepper(); buildForm();
+  buildStepper(); buildForm(); wireCalc(); updateIndicators();
   window._auth.onAuthStateChanged(async (user)=>{
     if(!user){ document.getElementById('loginOverlay').style.display='flex'; currentUser=null; return; }
     currentUser=user;
@@ -514,6 +516,8 @@ function buildStepper(){
 function fieldHtml(secId,f){
   const fid=`f_${secId}__${f.k}`;
   const star=f.req?'<span class="req-star">*</span>':'';
+  const hint=f.hint?`<span style="font-size:10px;color:#0d9488;font-weight:700;margin-left:5px;">${f.hint}</span>`:'';
+  const ind=`<span class="fi-badge" id="${fid}_ind" style="display:none;"></span>`;
   let inner, wrap='';
   if(f.type==='ynbtn'){
     inner=`<div class="yn-group" id="${fid}_grp"><button type="button" class="yn-btn yn-yes" onclick="setYN('${fid}','Yes')">Yes</button><button type="button" class="yn-btn yn-no" onclick="setYN('${fid}','No')">No</button><input type="hidden" id="${fid}" data-k="${f.k}" data-type="ynbtn"></div>`;
@@ -524,9 +528,10 @@ function fieldHtml(secId,f){
   } else {
     const t=f.type==='num'?'number':(f.type==='date'?'date':(f.type==='datetime'?'datetime-local':'text'));
     const step=f.type==='num'?' step="any"':'';
-    inner=`<input type="${t}"${step} class="inp" id="${fid}" data-k="${f.k}" data-type="${f.type}">`;
+    const dig=f.digits?` maxlength="${f.digits}" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')"`:'';
+    inner=`<input type="${t}"${step}${dig} class="inp" id="${fid}" data-k="${f.k}" data-type="${f.type}">`;
   }
-  return `<div style="${wrap}"><label class="lbl">${pretty(f.k)}${star}</label>${inner}</div>`;
+  return `<div style="${wrap}"><label class="lbl">${pretty(f.k)}${star}${hint}${ind}</label>${inner}</div>`;
 }
 function buildForm(){
   const cont=document.getElementById('formStepsContainer'); cont.innerHTML='';
@@ -543,11 +548,54 @@ function buildForm(){
     <button type="button" class="btn btn-purple" style="margin-top:6px;" onclick="addFollowupCard()"><i class="fas fa-plus"></i> Add Follow-Up Visit</button>`;
   cont.appendChild(fuStep);
 }
+function _v(id){const e=document.getElementById(id);return e?e.value:'';}
+function _set(id,v){const e=document.getElementById(id);if(e)e.value=v;}
+function badgeCss(color,bg){return `display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:900;margin-left:auto;color:${color};background:${bg};line-height:1;`;}
+function updateIndicators(){
+  SECTIONS.forEach((s,si)=>{
+    let reqMissing=false, anyFilled=false;
+    s.fields.forEach(f=>{
+      const el=document.getElementById(`f_${s.id}__${f.k}`);
+      const ind=document.getElementById(`f_${s.id}__${f.k}_ind`);
+      if(!el||!ind)return;
+      const v=(el.value||'').trim();
+      if(v){ ind.textContent='✓'; ind.style.cssText=badgeCss('#059669','#d1fae5'); anyFilled=true; }
+      else if(f.req){ ind.textContent='✕'; ind.style.cssText=badgeCss('#e11d48','#ffe4e6'); reqMissing=true; }
+      else { ind.textContent=''; ind.style.display='none'; }
+    });
+    const dot=document.getElementById('sdot-'+si);
+    if(dot && !dot.classList.contains('active')) dot.classList.toggle('done', anyFilled && !reqMissing);
+  });
+}
+function recalcBMI(){
+  const h=parseFloat(_v('f_master__Height_cm')), w=parseFloat(_v('f_master__Weight_kg'));
+  if(h>0 && w>0) _set('f_master__BMI',(w/Math.pow(h/100,2)).toFixed(1));
+  updateIndicators();
+}
+function recalcEGFR(){
+  let scr=parseFloat(_v('f_blood__Creatinine'));
+  const unit=_v('f_blood__Creatinine_Unit')||'mg/dL';
+  const age=parseFloat(_v('f_master__Age')), sex=_v('f_master__Sex');
+  if(!(scr>0)||!(age>0)||!sex) return;
+  if(unit==='µmol/L') scr=scr/88.42;                       // convert to mg/dL
+  const female=sex==='Female', k=female?0.7:0.9, a=female?-0.241:-0.302;  // CKD-EPI 2021 (race-free)
+  const egfr=142*Math.pow(Math.min(scr/k,1),a)*Math.pow(Math.max(scr/k,1),-1.200)*Math.pow(0.9938,age)*(female?1.012:1);
+  _set('f_blood__eGFR',Math.round(egfr));
+  updateIndicators();
+}
+function wireCalc(){
+  const form=document.getElementById('cadForm');
+  form.addEventListener('input',updateIndicators);
+  form.addEventListener('change',updateIndicators);
+  ['f_master__Height_cm','f_master__Weight_kg'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',recalcBMI);});
+  ['f_blood__Creatinine','f_blood__Creatinine_Unit','f_master__Age','f_master__Sex'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcEGFR);e.addEventListener('change',recalcEGFR);}});
+}
 window.setYN=function(fid,val){
   const inp=document.getElementById(fid); const grp=document.getElementById(fid+'_grp');
   inp.value=(inp.value===val)?'':val;
   grp.querySelector('.yn-yes').classList.toggle('selected',inp.value==='Yes');
   grp.querySelector('.yn-no').classList.toggle('selected',inp.value==='No');
+  updateIndicators();
 };
 let _fuSeq=0;
 window.addFollowupCard=function(data){
@@ -570,9 +618,10 @@ window.goToStep=function(i){
   document.querySelectorAll('.form-step').forEach(s=>s.classList.toggle('active',+s.dataset.step===i));
   ALL_STEPS.forEach((s,k)=>{
     const dot=document.getElementById('sdot-'+k), lbl=document.getElementById('slbl-'+k);
-    dot.classList.toggle('active',k===i); dot.classList.toggle('done',k<i); lbl.classList.toggle('active',k===i);
+    dot.classList.toggle('active',k===i); lbl.classList.toggle('active',k===i);
   });
   currentStep=i;
+  updateIndicators();
   document.getElementById('btnPrev').style.visibility=i===0?'hidden':'visible';
   const last=i===ALL_STEPS.length-1;
   document.getElementById('btnNext').classList.toggle('hidden',last);
@@ -593,7 +642,7 @@ window.newRecord=function(){
   document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
   document.getElementById('entryStatusBadge').textContent='Draft';
   document.getElementById('entryStatusBadge').className='badge badge-amber';
-  goToStep(0); switchTab('entry');
+  goToStep(0); switchTab('entry'); updateIndicators();
 };
 function collectData(){
   const data={};
@@ -618,6 +667,8 @@ window.saveRecord=async function(status, closeAfter){
   const sexEl=document.getElementById('f_master__Sex');
   if(!admEl.value){ goToStep(0); admEl.focus(); toast('Index Admission Date is required','#e11d48'); return; }
   if(!sexEl.value){ goToStep(0); sexEl.focus(); toast('Sex is required','#e11d48'); return; }
+  const civEl=document.getElementById('f_master__Civil_ID_Optional');
+  if(civEl && civEl.value && civEl.value.length!==12){ goToStep(0); civEl.focus(); toast('Civil ID must be exactly 12 digits, or left blank','#e11d48'); return; }
   const {data,followups}=collectData();
   const recId=document.getElementById('editRecordId').value;
   const btns=[document.getElementById('btnSaveDraft'),document.getElementById('btnSubmit')];
@@ -681,6 +732,7 @@ window.editRecord=function(id){
   document.getElementById('editRecordId').value=id;
   SECTIONS.forEach(s=>s.fields.forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${s.sheet}.${f.k}`])));
   (r.followups||[]).forEach(fu=>addFollowupCard(fu));
+  recalcBMI(); recalcEGFR(); updateIndicators();
   document.getElementById('entryTitle').textContent=r.patientId||'Edit Record';
   document.getElementById('entrySubtitle').textContent='Entered by '+(r.enteredByName||'—');
   const st=r.recordStatus||'draft';
