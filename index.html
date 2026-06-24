@@ -363,6 +363,7 @@ const CA_REASONS = ['Primary PCI (STEMI)','Urgent / early invasive (NSTEMI / hig
 const ORIGIN = ['Home','Transferred from other hospital','Same hospital — inpatient, another department','Clinic (primary care / private / outpatient)'];
 const CM_TIMEFRAME = ['New diagnosis (this admission)','< 3 months','3–12 months','> 12 months'];
 const GDMT = ['Not on GDMT','Sub-maximal dose','Maximally tolerated dose'];
+const REASON_NO_PPCI = ['Late presentation (outside reperfusion window)','Successful thrombolysis / pharmaco-invasive','Spontaneous reperfusion','Patient / family refusal','Non-obstructive coronaries (MINOCA)','Anatomy unsuitable / referred for CABG','Comorbidity / palliative decision','Cath-lab unavailable / logistic delay','Other'];
 
 const SECTIONS = [
  {id:'master', sheet:'Patient_Master', title:'Identification', icon:'fa-id-card', color:'#2563eb', groups:[
@@ -398,10 +399,6 @@ const SECTIONS = [
      {k:'Systolic_BP',type:'numu',label:'Systolic BP (mmHg)',info:'BP'},{k:'Diastolic_BP',type:'numu',label:'Diastolic BP (mmHg)',info:'BP'},
      {k:'Presenting_HR',type:'numu',label:'Presenting HR (/min)',info:'HR'},{k:'Weight_kg',type:'numu',label:'Weight (kg)'},
      {k:'Height_cm',type:'numu',label:'Height (cm)'},{k:'BMI',type:'num',hint:'auto'}]},
-   {title:'Reperfusion Timing', tint:'yellow', c:'#d97706', icon:'fa-clock', cols:2, fields:[
-     {k:'Symptom_Onset_Time',type:'dt24',sheet:'Presentation_ECG_Timing'},{k:'Hospital_Arrival_Time',type:'dt24',sheet:'Presentation_ECG_Timing'},
-     {k:'Balloon_Time_First_Device',type:'dt24',sheet:'Presentation_ECG_Timing'},
-     {k:'Door_to_Balloon_Min',type:'num',hint:'auto',sheet:'Presentation_ECG_Timing'},{k:'Symptom_to_Balloon_Min',type:'num',hint:'auto',sheet:'Presentation_ECG_Timing'}]},
    {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
      {k:'ECG_Rhythm',type:'select',opts:RHYTHM,sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation_Leads',type:'text',sheet:'Presentation_ECG_Timing'},
      {k:'ST_Depression',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'T_Wave_Inversion',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Pathologic_Q_Waves',type:'ynbtn',sheet:'Presentation_ECG_Timing'},
@@ -410,53 +407,54 @@ const SECTIONS = [
      {k:'Smoking_Status',type:'select',opts:['Never','Former','Current'],sheet:'Patient_Master'},{k:'Diabetes',type:'ynbtn',sheet:'Patient_Master'},
      {k:'Hypertension',type:'ynbtn',sheet:'Patient_Master'},{k:'Dyslipidemia',type:'ynbtn',sheet:'Patient_Master'},
      {k:'Family_History_CAD',type:'ynbtn',sheet:'Patient_Master'},{k:'Chronic_Kidney_Disease',type:'ynbtn',sheet:'Patient_Master'}]},
-   {gate:'Atrial_Fibrillation', gateSheet:'Patient_Master', title:'4.1 Atrial Fibrillation', tint:'red', c:'#e11d48', icon:'fa-heart-pulse', cols:2, fields:[]},
-   {gate:'Prior_Cardiac_Arrest', title:'4.2 Prior Cardiac Arrest', tint:'red', c:'#e11d48', icon:'fa-bolt', cols:2, fields:[]},
-   {gate:'Ischemic_Cardiomyopathy', title:'4.3 Cardiomyopathy – Ischemic', tint:'red', c:'#e11d48', icon:'fa-heart-crack', cols:2, fields:[
-     {k:'Cardiomyopathy_Timeframe',type:'select',opts:CM_TIMEFRAME,label:'4.3a Timeframe'},{k:'GDMT_Max_Dose',type:'select',opts:GDMT,label:'4.3b GDMT Max Dose'}]},
-   {gate:'Heart_Failure', gateSheet:'Patient_Master', title:'4.4 Heart Failure', tint:'red', c:'#e11d48', icon:'fa-heart', cols:1, fields:[
+   {title:'Coronary Disease & Infarction', tint:'gray', c:'#475569', icon:'fa-heart-circle-exclamation', cols:2, fields:[
+     {k:'Coronary_Artery_Disease',type:'select',opts:YN,label:'Coronary artery disease'},{k:'Myocardial_Infarction',type:'select',opts:YN,label:'Myocardial infarction'}]},
+   {gate:'Prior_PCI', gateSheet:'Patient_Master', title:'Prior PCI', tint:'red', c:'#e11d48', icon:'fa-syringe', cols:1, fields:[
+     {k:'PCI_Within_6_Months',type:'select',opts:YN,label:'PCI done within last 6 months'}]},
+   {gate:'Prior_CABG', gateSheet:'Patient_Master', title:'Prior CABG', tint:'red', c:'#e11d48', icon:'fa-heart-circle-plus', cols:1, fields:[
+     {k:'CABG_Within_6_Months',type:'select',opts:YN,label:'CABG within last 6 months'}]},
+   {gate:'Prior_Coronary_Angiography', title:'Prior Coronary Angiography', tint:'red', c:'#e11d48', icon:'fa-diagram-project', cols:2, fields:[
+     {k:'CA_Within_6_Months',type:'select',opts:YN,label:'Within last 6 months'},{k:'CA_After_Cardiac_Arrest',type:'select',opts:YN,label:'After most recent cardiac arrest'}]},
+   {gate:'Ischemic_Cardiomyopathy', title:'Ischemic Cardiomyopathy', tint:'red', c:'#e11d48', icon:'fa-heart-crack', cols:2, fields:[
+     {k:'Cardiomyopathy_Timeframe',type:'select',opts:CM_TIMEFRAME,label:'Timeframe'},{k:'GDMT_Max_Dose',type:'select',opts:GDMT,label:'GDMT max dose'}]},
+   {gate:'Heart_Failure', gateSheet:'Patient_Master', title:'Heart Failure', tint:'red', c:'#e11d48', icon:'fa-heart', cols:1, fields:[
      {k:'HF_Type',type:'radio',opts:['HFrEF','HFpEF','HFmrEF'],label:'Heart-failure phenotype'}]},
-   {gate:'Prior_Coronary_Angiography', title:'4.5 Coronary Angiography', tint:'red', c:'#e11d48', icon:'fa-diagram-project', cols:2, fields:[
-     {k:'CA_Within_6_Months',type:'select',opts:YN,label:'4.5a CA within last 6 months'},{k:'CA_After_Cardiac_Arrest',type:'select',opts:YN,label:'4.5b After most recent cardiac arrest'}]},
-   {title:'4.6–4.7 Coronary Disease & Infarction', tint:'gray', c:'#475569', icon:'fa-heart-circle-exclamation', cols:2, fields:[
-     {k:'Coronary_Artery_Disease',type:'select',opts:YN,label:'4.6 Coronary artery disease'},{k:'Myocardial_Infarction',type:'select',opts:YN,label:'4.7 Myocardial infarction'}]},
-   {gate:'Prior_PCI', gateSheet:'Patient_Master', title:'4.8 Prior PCI', tint:'red', c:'#e11d48', icon:'fa-syringe', cols:1, fields:[
-     {k:'PCI_Within_6_Months',type:'select',opts:YN,label:'4.8a PCI done within last 6 months'}]},
-   {gate:'Prior_CABG', gateSheet:'Patient_Master', title:'4.9 Prior CABG', tint:'red', c:'#e11d48', icon:'fa-heart-circle-plus', cols:1, fields:[
-     {k:'CABG_Within_6_Months',type:'select',opts:YN,label:'4.9a CABG within last 6 months'}]},
-   {title:'4.10–4.16 Other Comorbidities', tint:'gray', c:'#475569', icon:'fa-list-check', cols:3, fields:[
-     {k:'Valvular_Heart_Disease',type:'select',opts:YN,label:'4.10 Valvular heart disease'},{k:'Cerebrovascular_Disease',type:'select',opts:YN,label:'4.11 Cerebrovascular disease'},
-     {k:'Chronic_Lung_Disease',type:'select',opts:YN,label:'4.12 Chronic lung disease'},{k:'Currently_On_Dialysis',type:'select',opts:YN,label:'4.13 Currently on dialysis'},
-     {k:'Peripheral_Artery_Disease',type:'select',opts:YN,label:'4.14 Peripheral artery disease',sheet:'Patient_Master'},{k:'Familial_Syndrome',type:'select',opts:YN,label:'4.16 Familial syndrome'},
-     {k:'Prior_Stroke_TIA',type:'select',opts:YN,label:'Prior Stroke / TIA',sheet:'Patient_Master'}]},
-   {gate:'Syndromes_Of_Sudden_Death', title:'4.17 Syndromes of Sudden Death', info:'SUDDEN_DEATH', tint:'red', c:'#e11d48', icon:'fa-dna', cols:1, fields:[]},
-   {gate:'Structural_Abnormalities', title:'4.18 Structural Abnormalities', tint:'red', c:'#e11d48', icon:'fa-heart-crack', cols:1, fields:[]},
-   {gate:'Syncope', title:'4.19 Syncope', tint:'red', c:'#e11d48', icon:'fa-person-falling', cols:1, fields:[]},
-   {title:'4.20–4.22 Arrhythmia History', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
-     {k:'Paroxysmal_SVT',type:'select',opts:YN,label:'4.20 Paroxysmal SVT history'},{k:'Ventricular_Fibrillation',type:'select',opts:YN,label:'4.21 Ventricular fibrillation'},
-     {k:'Ventricular_Tachycardia',type:'select',opts:YN,label:'4.22 Ventricular tachycardia'}]},
-   {gate:'Aortic_Valve_Procedure', title:'4.23 Aortic Valve Procedure', tint:'red', c:'#e11d48', icon:'fa-heart-circle-bolt', cols:2, fields:[
-     {k:'AV_Procedure_Type',type:'radio',opts:['TAVR','SAVR'],label:'4.23a Type'},{k:'AV_Within_6_Months',type:'select',opts:YN,label:'4.23b Within last 6 months'}]},
-   {gate:'Mitral_Valve_Procedure', title:'4.24 Mitral Valve Procedure', tint:'red', c:'#e11d48', icon:'fa-heart-circle-bolt', cols:2, fields:[
-     {k:'MV_Procedure_Type',type:'radio',opts:['PMVR','Mechanical MV','Bioprosthetic MV','Mitral clipping'],label:'4.24a Type'},{k:'MV_Within_6_Months',type:'select',opts:YN,label:'4.24b Within last 6 months'}]},
-   {gate:'Prior_CIED', title:'4.25 Prior CV Implantable Electronic Device (CIED)', tint:'red', c:'#e11d48', icon:'fa-microchip', cols:1, fields:[]}
+   {title:'Other Comorbidities', tint:'gray', c:'#475569', icon:'fa-list-check', cols:3, fields:[
+     {k:'Valvular_Heart_Disease',type:'select',opts:YN,label:'Valvular heart disease'},{k:'Cerebrovascular_Disease',type:'select',opts:YN,label:'Cerebrovascular disease'},
+     {k:'Chronic_Lung_Disease',type:'select',opts:YN,label:'Chronic lung disease'},{k:'Currently_On_Dialysis',type:'select',opts:YN,label:'Currently on dialysis'},
+     {k:'Peripheral_Artery_Disease',type:'select',opts:YN,label:'Peripheral artery disease',sheet:'Patient_Master'},{k:'Prior_Stroke_TIA',type:'select',opts:YN,label:'Prior stroke / TIA',sheet:'Patient_Master'},
+     {k:'Familial_Syndrome',type:'select',opts:YN,label:'Familial syndrome'}]},
+   {gate:'Atrial_Fibrillation', gateSheet:'Patient_Master', title:'Atrial Fibrillation', tint:'gray', c:'#64748b', icon:'fa-heart-pulse', cols:1, fields:[]},
+   {gate:'Prior_Cardiac_Arrest', title:'Prior Cardiac Arrest', tint:'gray', c:'#64748b', icon:'fa-bolt', cols:1, fields:[]},
+   {title:'Arrhythmia History', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
+     {k:'Paroxysmal_SVT',type:'select',opts:YN,label:'Paroxysmal SVT history'},{k:'Ventricular_Fibrillation',type:'select',opts:YN,label:'Ventricular fibrillation'},
+     {k:'Ventricular_Tachycardia',type:'select',opts:YN,label:'Ventricular tachycardia'}]},
+   {gate:'Syndromes_Of_Sudden_Death', title:'Syndromes of Sudden Death', info:'SUDDEN_DEATH', tint:'gray', c:'#64748b', icon:'fa-dna', cols:1, fields:[]},
+   {gate:'Structural_Abnormalities', title:'Structural Abnormalities', tint:'gray', c:'#64748b', icon:'fa-heart-crack', cols:1, fields:[]},
+   {gate:'Syncope', title:'Syncope', tint:'gray', c:'#64748b', icon:'fa-person-falling', cols:1, fields:[]},
+   {gate:'Aortic_Valve_Procedure', title:'Aortic Valve Procedure', tint:'gray', c:'#64748b', icon:'fa-heart-circle-bolt', cols:2, fields:[
+     {k:'AV_Procedure_Type',type:'radio',opts:['TAVR','SAVR'],label:'Type'},{k:'AV_Within_6_Months',type:'select',opts:YN,label:'Within last 6 months'}]},
+   {gate:'Mitral_Valve_Procedure', title:'Mitral Valve Procedure', tint:'gray', c:'#64748b', icon:'fa-heart-circle-bolt', cols:2, fields:[
+     {k:'MV_Procedure_Type',type:'radio',opts:['PMVR','Mechanical MV','Bioprosthetic MV','Mitral clipping'],label:'Type'},{k:'MV_Within_6_Months',type:'select',opts:YN,label:'Within last 6 months'}]},
+   {gate:'Prior_CIED', title:'Prior CV Implantable Electronic Device (CIED)', tint:'gray', c:'#64748b', icon:'fa-microchip', cols:1, fields:[]}
  ]},
  {id:'homemeds', sheet:'Home_Medications', title:'Home Meds', icon:'fa-prescription-bottle-medical', color:'#0891b2', groups:[
-   {title:'Antiarrhythmics', tint:'purple', c:'#7c3aed', icon:'fa-bolt', cols:3, fields:[
-     {k:'Amiodarone',type:'ynbtn'},{k:'Disopyramide',type:'ynbtn'},{k:'Flecainide',type:'ynbtn'},
-     {k:'Procainamide',type:'ynbtn'},{k:'Propafenone',type:'ynbtn'},{k:'Sotalol',type:'ynbtn'}]},
-   {title:'Rate Control / Calcium-Channel Blockers', tint:'blue', c:'#2563eb', icon:'fa-gauge', cols:3, fields:[
-     {k:'Verapamil',type:'ynbtn'},{k:'Diltiazem',type:'ynbtn'}]},
+   {title:'Antiplatelets', tint:'yellow', c:'#d97706', icon:'fa-tablets', cols:3, fields:[
+     {k:'Aspirin',type:'ynbtn'},{k:'Prasugrel',type:'ynbtn'},{k:'Clopidogrel',type:'ynbtn'},{k:'Ticagrelor',type:'ynbtn'},{k:'Cangrelor',type:'ynbtn'}]},
+   {title:'Lipid-Lowering', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:3, fields:[
+     {k:'Statin',type:'ynbtn'},{k:'PCSK9i',type:'ynbtn'},{k:'Ezetimibe',type:'ynbtn'}]},
+   {title:'Beta-Blocker & Renin-Angiotensin', tint:'green', c:'#059669', icon:'fa-heart', cols:3, fields:[
+     {k:'Beta_Blockers',type:'ynbtn'},{k:'ACE_I',type:'ynbtn'},{k:'ARB',type:'ynbtn'},{k:'ARNI',type:'ynbtn'}]},
    {title:'Anticoagulants', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:3, fields:[
      {k:'Warfarin',type:'ynbtn'},{k:'Dabigatran',type:'ynbtn'},{k:'Apixaban',type:'ynbtn'},{k:'Rivaroxaban',type:'ynbtn'},
      {k:'Edoxaban',type:'ynbtn'},{k:'LMWH',type:'ynbtn'},{k:'Unfractionated_Heparin',type:'ynbtn'}]},
-   {title:'Antiplatelets', tint:'yellow', c:'#d97706', icon:'fa-tablets', cols:3, fields:[
-     {k:'Aspirin',type:'ynbtn'},{k:'Prasugrel',type:'ynbtn'},{k:'Clopidogrel',type:'ynbtn'},{k:'Ticagrelor',type:'ynbtn'},{k:'Cangrelor',type:'ynbtn'}]},
-   {title:'Neurohormonal / Heart-Failure', tint:'green', c:'#059669', icon:'fa-heart', cols:3, fields:[
-     {k:'ACE_I',type:'ynbtn'},{k:'ARB',type:'ynbtn'},{k:'ARNI',type:'ynbtn'},{k:'SGLT_Inhibitor',type:'ynbtn'},
-     {k:'Beta_Blockers',type:'ynbtn'},{k:'MRA',type:'ynbtn'},{k:'Digoxin',type:'ynbtn'},{k:'Loop_Diuretics',type:'ynbtn'},{k:'Ivabradine',type:'ynbtn'}]},
-   {title:'Lipid-Lowering', tint:'gray', c:'#475569', icon:'fa-oil-can', cols:3, fields:[
-     {k:'Statin',type:'ynbtn'},{k:'PCSK9i',type:'ynbtn'},{k:'Ezetimibe',type:'ynbtn'}]}
+   {title:'Heart-Failure / Other Neurohormonal', tint:'blue', c:'#2563eb', icon:'fa-heart-pulse', cols:3, fields:[
+     {k:'MRA',type:'ynbtn'},{k:'SGLT_Inhibitor',type:'ynbtn'},{k:'Digoxin',type:'ynbtn'},{k:'Loop_Diuretics',type:'ynbtn'},{k:'Ivabradine',type:'ynbtn'}]},
+   {title:'Rate Control / Calcium-Channel Blockers', tint:'gray', c:'#475569', icon:'fa-gauge', cols:3, fields:[
+     {k:'Verapamil',type:'ynbtn'},{k:'Diltiazem',type:'ynbtn'}]},
+   {title:'Antiarrhythmics', tint:'gray', c:'#64748b', icon:'fa-bolt', cols:3, fields:[
+     {k:'Amiodarone',type:'ynbtn'},{k:'Disopyramide',type:'ynbtn'},{k:'Flecainide',type:'ynbtn'},
+     {k:'Procainamide',type:'ynbtn'},{k:'Propafenone',type:'ynbtn'},{k:'Sotalol',type:'ynbtn'}]}
  ]},
  {id:'echo', sheet:'Echocardiography', title:'Echocardiography', icon:'fa-wave-square', color:'#0d9488', groups:[
    {title:'LV Systolic & Diastolic Function', tint:'teal', c:'#0d9488', icon:'fa-heart', cols:3, fields:[
@@ -488,9 +486,20 @@ const SECTIONS = [
      {k:'Culprit_Vessel',type:'select',opts:['Left Main','LAD','LCX','RCA','Ramus','Graft','None']},
      {k:'CTO',type:'ynbtn'},{k:'Thrombus',type:'ynbtn'},{k:'Notes',type:'textarea'}]}
  ]},
- {id:'pci', sheet:'PCI_Details', title:'PCI Details', icon:'fa-syringe', color:'#0891b2', groups:[
-   {title:'Procedure', tint:'cyan', c:'#0891b2', icon:'fa-syringe', cols:2, fields:[
-     {k:'PCI_Date',type:'date'},{k:'Primary_PCI',type:'ynbtn'},{k:'Vessel_Treated',type:'text'},{k:'Number_Stents',type:'num'}]},
+ {id:'pci', sheet:'PCI_Details', title:'Procedure', icon:'fa-syringe', color:'#0891b2', groups:[
+   {title:'Reperfusion — Primary PCI (STEMI)', tint:'red', c:'#e11d48', icon:'fa-bolt', cols:1,
+     showIf:{sec:'history',k:'Presentation_Type',eq:'STEMI'}, fields:[
+     {k:'Primary_PCI',type:'ynbtn',label:'Primary PCI performed?'}]},
+   {title:'Reperfusion Timing', tint:'yellow', c:'#d97706', icon:'fa-clock', cols:2,
+     showIf:[{sec:'history',k:'Presentation_Type',eq:'STEMI'},{sec:'pci',k:'Primary_PCI',eq:'Yes'}], fields:[
+     {k:'Symptom_Onset_Time',type:'dt24',sheet:'Presentation_ECG_Timing'},{k:'Hospital_Arrival_Time',type:'dt24',sheet:'Presentation_ECG_Timing'},
+     {k:'Balloon_Time_First_Device',type:'dt24',sheet:'Presentation_ECG_Timing'},
+     {k:'Door_to_Balloon_Min',type:'num',hint:'auto',sheet:'Presentation_ECG_Timing'},{k:'Symptom_to_Balloon_Min',type:'num',hint:'auto',sheet:'Presentation_ECG_Timing'}]},
+   {title:'Reason Primary PCI Not Performed', tint:'gray', c:'#475569', icon:'fa-circle-question', cols:1,
+     showIf:[{sec:'history',k:'Presentation_Type',eq:'STEMI'},{sec:'pci',k:'Primary_PCI',eq:'No'}], fields:[
+     {k:'Reason_No_Primary_PCI',type:'select',opts:REASON_NO_PPCI,label:'Reason primary PCI was not performed'}]},
+   {title:'Procedure', tint:'cyan', c:'#0891b2', icon:'fa-syringe', cols:3, fields:[
+     {k:'PCI_Date',type:'date'},{k:'Vessel_Treated',type:'text'},{k:'Number_Stents',type:'num'}]},
    {title:'Stent & Intracoronary Imaging', tint:'gray', c:'#475569', icon:'fa-layer-group', cols:2, fields:[
      {k:'Stent_Type',type:'select',opts:['DES','BMS','DCB','None']},{k:'Total_Stent_Length',type:'num'},
      {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']},{k:'Procedural_Complications_Present',type:'ynbtn'}]},
@@ -808,16 +817,16 @@ function wireCalc(){
   form.addEventListener('change',onChange);
   ['f_history__Height_cm','f_history__Weight_kg'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',recalcBMI);});
   ['f_blood__Creatinine','f_blood__Creatinine_Unit','f_master__Age','f_master__Sex'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcEGFR);e.addEventListener('change',recalcEGFR);}});
-  ['Symptom_Onset_Time','Hospital_Arrival_Time','Balloon_Time_First_Device'].forEach(k=>{['f_history__'+k,'f_history__'+k+'__t'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcTiming);e.addEventListener('change',recalcTiming);}});});
+  ['Symptom_Onset_Time','Hospital_Arrival_Time','Balloon_Time_First_Device'].forEach(k=>{['f_pci__'+k,'f_pci__'+k+'__t'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcTiming);e.addEventListener('change',recalcTiming);}});});
 }
 function applyDefaults(){ SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.def){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && !el.value) el.value=f.def; } })); }
 window.timeMask=function(el){ let d=el.value.replace(/\D/g,'').slice(0,4); el.value = d.length>=3 ? d.slice(0,2)+':'+d.slice(2) : d; };
 window.timeClamp=function(el){ const m=el.value.match(/^(\d{1,2}):?(\d{0,2})$/); if(!m){ if(el.value)el.value=''; return; } let h=Math.min(23,parseInt(m[1]||'0',10)), mi=Math.min(59,parseInt(m[2]||'0',10)); el.value=String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0'); recalcTiming(); };
 function tval(secId,k){ const d=_v(`f_${secId}__${k}`); if(!d)return null; const t=_v(`f_${secId}__${k}__t`); return new Date(d+'T'+(/^\d{2}:\d{2}$/.test(t)?t:'00:00')); }
 function recalcTiming(){
-  const onset=tval('history','Symptom_Onset_Time'), arr=tval('history','Hospital_Arrival_Time'), bal=tval('history','Balloon_Time_First_Device');
-  if(arr&&bal){ const m=Math.round((bal-arr)/60000); if(m>=0)_set('f_history__Door_to_Balloon_Min',m); }
-  if(onset&&bal){ const m=Math.round((bal-onset)/60000); if(m>=0)_set('f_history__Symptom_to_Balloon_Min',m); }
+  const onset=tval('pci','Symptom_Onset_Time'), arr=tval('pci','Hospital_Arrival_Time'), bal=tval('pci','Balloon_Time_First_Device');
+  if(arr&&bal){ const m=Math.round((bal-arr)/60000); if(m>=0)_set('f_pci__Door_to_Balloon_Min',m); }
+  if(onset&&bal){ const m=Math.round((bal-onset)/60000); if(m>=0)_set('f_pci__Symptom_to_Balloon_Min',m); }
   updateIndicators();
 }
 function ctrlVal(sec,k){ const el=document.getElementById(`f_${sec}__${k}`); return el?(el.value||'').trim():''; }
