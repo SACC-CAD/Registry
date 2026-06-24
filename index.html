@@ -77,6 +77,25 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .fld-main{flex:1;min-width:0;}
 .fld .inp{border-width:1.5px;}
 .inp[readonly]{background:#f1f5f9;color:#1e3a8a;font-weight:700;cursor:default;border-style:dashed;}
+.fn-btn{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;border:none;background:#dbeafe;color:#1d4ed8;font-size:10px;font-weight:800;font-style:italic;cursor:pointer;margin-left:5px;vertical-align:middle;}
+.fn-btn:hover{background:#bfdbfe;}
+.radio-row{display:flex;flex-wrap:wrap;gap:8px;}
+.radio-pill{display:flex;align-items:center;gap:7px;padding:8px 13px;border:1.5px solid #d7dde6;border-radius:9px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#334155;user-select:none;}
+.radio-pill .dot{width:15px;height:15px;border-radius:50%;border:2px solid #cbd5e1;flex-shrink:0;}
+.radio-pill.selected{border-color:#2563eb;background:#eff6ff;color:#1e3a8a;}
+.radio-pill.selected .dot{border-color:#2563eb;background:#2563eb;box-shadow:inset 0 0 0 2.5px #fff;}
+.ur-line{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:12px;color:#64748b;cursor:pointer;}
+.ur-line input{width:14px;height:14px;}
+.gate-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.gate-title{font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px;letter-spacing:-.01em;}
+.sub-reveal{margin-top:13px;padding:13px 14px 4px;border-left:3px solid #2563eb;background:#f8fafc;border-radius:0 10px 10px 0;}
+.modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px;}
+.modal-back.show{display:flex;}
+.modal-box{background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:82vh;overflow:auto;padding:24px 26px;box-shadow:0 24px 60px rgba(0,0,0,.3);}
+.modal-box h3{font-size:18px;font-weight:800;margin-bottom:12px;color:#0f172a;display:flex;align-items:center;gap:9px;}
+.modal-box table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+.modal-box th,.modal-box td{border:1px solid #e2e8f0;padding:7px 9px;text-align:left;vertical-align:top;}
+.modal-box th{background:#f1f5f9;font-weight:700;}
 .grp-head .gi{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.12);}
 .sidebar{background:linear-gradient(180deg,#f8fafc,#eef2f7);border-right:1.5px solid #e2e8f0;border-radius:14px 0 0 14px;}
 .progress-bar{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;}
@@ -297,6 +316,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 </main>
 
 <div id="toast" style="position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:12px;color:#fff;font-weight:700;font-size:13px;z-index:9999;opacity:0;transition:opacity .35s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2);"></div>
+<div id="infoModal" class="modal-back" onclick="if(event.target===this)closeInfo()"><div class="modal-box"><h3 id="infoTitle"></h3><div id="infoBody" style="font-size:14px;color:#334155;line-height:1.55;"></div><div style="text-align:right;margin-top:18px;"><button type="button" class="btn btn-blue" onclick="closeInfo()">Got it</button></div></div></div>
 
 <script>
 /* ════════════════════════════════════════════════════════════════════
@@ -334,37 +354,109 @@ const RV = ['Normal','Mildly reduced','Moderately reduced','Severely reduced'];
 const VALVE = ['None','Mild','Moderate','Severe'];
 const RHYTHM = ['Sinus','Atrial Fibrillation','Atrial Flutter','Paced','Other'];
 const COUNTRIES = ['Kuwaiti','Bedoon','Saudi Arabian','Bahraini','Qatari','Emirati','Omani','Egyptian','Syrian','Lebanese','Jordanian','Palestinian','Iraqi','Iranian','Yemeni','Sudanese','Somali','Indian','Pakistani','Bangladeshi','Sri Lankan','Nepalese','Filipino','Indonesian','Afghan','Turkish','Moroccan','Tunisian','Algerian','Libyan','Ethiopian','Eritrean','Kenyan','Nigerian','Ghanaian','American','British','Canadian','Australian','French','German','Italian','Spanish','Dutch','Russian','Ukrainian','Chinese','Japanese','Korean','Thai','Vietnamese','Other'];
+const YN = ['Yes','No'];
+const KILLIP = ['I','II','III','IV'];
+const CCS = ['No angina','CCS I','CCS II','CCS III','CCS IV'];
+const NYHA = ['No dyspnea','NYHA I','NYHA II','NYHA III','NYHA IV'];
+const SCAI = ['No shock','SCAI A','SCAI B','SCAI C','SCAI D','SCAI E'];
+const CA_REASONS = ['Primary PCI (STEMI)','Urgent / early invasive (NSTEMI / high-risk ACS)','Rescue PCI (failed thrombolysis)','Elective diagnostic angiography','Elective / staged PCI','Ad-hoc PCI','Other'];
+const ORIGIN = ['Home','Transferred from other hospital','Same hospital — inpatient, another department','Clinic (primary care / private / outpatient)'];
+const CM_TIMEFRAME = ['New diagnosis (this admission)','< 3 months','3–12 months','> 12 months'];
+const GDMT = ['Not on GDMT','Sub-maximal dose','Maximally tolerated dose'];
 
 const SECTIONS = [
- {id:'master', sheet:'Patient_Master', title:'Patient & Risk Factors', icon:'fa-id-card', color:'#2563eb', groups:[
-   {title:'Identifiers & Dates', tint:'gray', c:'#64748b', icon:'fa-calendar', cols:2, fields:[
-     {k:'CRF_Number',type:'text',ro:true,hint:'auto'},{k:'Civil_ID_Optional',type:'text',digits:12},{k:'Contact_Phone',type:'tel'},
-     {k:'Enrollment_Date',type:'date'},{k:'Index_Admission_Date',type:'date',req:true},{k:'Discharge_Date',type:'date'}]},
-   {title:'Demographics', tint:'blue', c:'#2563eb', icon:'fa-user', cols:3, fields:[
-     {k:'Age',type:'num'},{k:'Sex',type:'select',opts:['Male','Female'],req:true},{k:'Nationality',type:'select',opts:COUNTRIES},
-     {k:'Height_cm',type:'num'},{k:'Weight_kg',type:'num'},{k:'BMI',type:'num',hint:'auto'}]},
-   {title:'Risk Factors', tint:'yellow', c:'#d97706', icon:'fa-triangle-exclamation', cols:3, fields:[
-     {k:'Smoking_Status',type:'select',opts:['Never','Former','Current']},{k:'Diabetes',type:'ynbtn'},{k:'Hypertension',type:'ynbtn'},
-     {k:'Dyslipidemia',type:'ynbtn'},{k:'Family_History_CAD',type:'ynbtn'},{k:'Chronic_Kidney_Disease',type:'ynbtn'}]},
-   {title:'Cardiac & Vascular History', tint:'red', c:'#e11d48', icon:'fa-heart-crack', cols:3, fields:[
-     {k:'Prior_MI',type:'ynbtn'},{k:'Prior_PCI',type:'ynbtn'},{k:'Prior_CABG',type:'ynbtn'},{k:'Prior_Stroke_TIA',type:'ynbtn'},
-     {k:'Peripheral_Artery_Disease',type:'ynbtn'},{k:'Heart_Failure',type:'ynbtn'},{k:'Atrial_Fibrillation',type:'ynbtn'}]},
-   {title:'Baseline Medications', tint:'gray', c:'#64748b', icon:'fa-pills', cols:1, fields:[
-     {k:'Baseline_Medications',type:'textarea'}]}
+ {id:'master', sheet:'Patient_Master', title:'Identification', icon:'fa-id-card', color:'#2563eb', groups:[
+   {title:'1.1 Patient Name (Initials)', tint:'blue', c:'#2563eb', icon:'fa-signature', cols:3, fields:[
+     {k:'Name_First',type:'text',label:'First'},{k:'Name_Middle',type:'text',label:'Middle'},{k:'Name_Last',type:'text',label:'Last'}]},
+   {title:'Identifiers', tint:'gray', c:'#64748b', icon:'fa-id-card', cols:2, fields:[
+     {k:'Civil_ID_Optional',type:'text',digits:12,label:'1.2 Civil ID',ph:'12 digits'},
+     {k:'CRF_Number',type:'text',ro:true,label:'1.3 CRF Number',info:'CRF'},
+     {k:'Sex',type:'select',opts:['Male','Female'],req:true,label:'1.4 Gender'},
+     {k:'Nationality',type:'select',opts:COUNTRIES,label:'1.5 Nationality',info:'NATIONALITY'},
+     {k:'Year_of_Birth',type:'text',digits:4,label:'1.6 Year of Birth',ph:'YYYY',info:'YOB'},
+     {k:'Age',type:'num',label:'1.6a Est. Age (yrs)'},
+     {k:'Index_Admission_Date',type:'date',req:true,label:'1.7 Hospital Admission Date'},
+     {k:'Patient_Contact',type:'tel',digits:8,label:'1.8 Patient Contact'},
+     {k:'Relative_Contact',type:'tel',digits:8,label:'1.9 Relative Contact'}]}
  ]},
- {id:'present', sheet:'Presentation_ECG_Timing', title:'Presentation, ECG & Timing', icon:'fa-heart-pulse', color:'#e11d48', groups:[
+ {id:'careason', sheet:'Admission_Reason', title:'CA Reason', icon:'fa-clipboard-question', color:'#7c3aed', groups:[
+   {title:'2. Reason for Coronary Angiography / Cath Lab', tint:'purple', c:'#7c3aed', icon:'fa-clipboard-question', cols:1, fields:[
+     {k:'CA_Reason',type:'select',opts:CA_REASONS,req:true,label:'Patient is coming to the cath lab because of'}]},
+   {title:'3. Hospital Admission', tint:'blue', c:'#2563eb', icon:'fa-hospital', cols:1, fields:[
+     {k:'Patient_Origin',type:'select',opts:ORIGIN,label:'3.1 Patient Origin'}]}
+ ]},
+ {id:'history', sheet:'History_Presentation', title:'History & Presentation', icon:'fa-heart-pulse', color:'#e11d48', groups:[
    {title:'Clinical Presentation', tint:'red', c:'#e11d48', icon:'fa-notes-medical', cols:2, fields:[
-     {k:'Presentation_Type',type:'select',opts:['STEMI','NSTEMI','Unstable Angina','Stable Angina','Silent Ischemia','Other']},
-     {k:'Killip_Class',type:'select',opts:['I','II','III','IV']},{k:'Presenting_Symptom_Chest_Pain',type:'ynbtn'},
-     {k:'Presenting_Symptom_Dyspnea',type:'ynbtn'},{k:'Presenting_Symptom_Syncope',type:'ynbtn'},
-     {k:'Cardiogenic_Shock',type:'ynbtn'},{k:'Cardiac_Arrest',type:'ynbtn'}]},
+     {k:'Presentation_Type',type:'select',opts:['STEMI','NSTEMI','Unstable Angina','Stable Angina','Silent Ischemia','Other'],sheet:'Presentation_ECG_Timing'},
+     {k:'Killip_Class',type:'select',opts:KILLIP,info:'KILLIP',sheet:'Presentation_ECG_Timing'},
+     {k:'Chest_Pain_CCS_Class',type:'select',opts:CCS,info:'CCS',label:'Chest Pain (CCS class)'},
+     {k:'Dyspnea_NYHA_Class',type:'select',opts:NYHA,info:'NYHA',label:'Dyspnea (NYHA class)'},
+     {k:'Cardiogenic_Shock_SCAI',type:'select',opts:SCAI,info:'SCAI',label:'Cardiogenic Shock (SCAI stage)'},
+     {k:'Presenting_Symptom_Syncope',type:'ynbtn',sheet:'Presentation_ECG_Timing'},
+     {k:'Cardiac_Arrest',type:'ynbtn',sheet:'Presentation_ECG_Timing'}]},
+   {title:'Vital Signs on Presentation', tint:'blue', c:'#2563eb', icon:'fa-heart-circle-bolt', cols:4, fields:[
+     {k:'Systolic_BP',type:'numu',label:'Systolic BP (mmHg)',info:'BP'},{k:'Diastolic_BP',type:'numu',label:'Diastolic BP (mmHg)',info:'BP'},
+     {k:'Presenting_HR',type:'numu',label:'Presenting HR (/min)',info:'HR'},{k:'Weight_kg',type:'numu',label:'Weight (kg)'},
+     {k:'Height_cm',type:'numu',label:'Height (cm)'},{k:'BMI',type:'num',hint:'auto'}]},
    {title:'Reperfusion Timing', tint:'yellow', c:'#d97706', icon:'fa-clock', cols:2, fields:[
-     {k:'Symptom_Onset_Time',type:'dt24'},{k:'Hospital_Arrival_Time',type:'dt24'},{k:'Balloon_Time_First_Device',type:'dt24'},
-     {k:'Door_to_Balloon_Min',type:'num',hint:'auto'},{k:'Symptom_to_Balloon_Min',type:'num',hint:'auto'}]},
+     {k:'Symptom_Onset_Time',type:'dt24',sheet:'Presentation_ECG_Timing'},{k:'Hospital_Arrival_Time',type:'dt24',sheet:'Presentation_ECG_Timing'},
+     {k:'Balloon_Time_First_Device',type:'dt24',sheet:'Presentation_ECG_Timing'},
+     {k:'Door_to_Balloon_Min',type:'num',hint:'auto',sheet:'Presentation_ECG_Timing'},{k:'Symptom_to_Balloon_Min',type:'num',hint:'auto',sheet:'Presentation_ECG_Timing'}]},
    {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
-     {k:'ECG_Rhythm',type:'select',opts:RHYTHM},{k:'ST_Elevation',type:'ynbtn'},{k:'ST_Elevation_Leads',type:'text'},
-     {k:'ST_Depression',type:'ynbtn'},{k:'T_Wave_Inversion',type:'ynbtn'},{k:'Pathologic_Q_Waves',type:'ynbtn'},
-     {k:'New_LBBB',type:'ynbtn'},{k:'Posterior_MI_Suspected',type:'ynbtn'},{k:'ECG_Notes',type:'textarea'}]}
+     {k:'ECG_Rhythm',type:'select',opts:RHYTHM,sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation_Leads',type:'text',sheet:'Presentation_ECG_Timing'},
+     {k:'ST_Depression',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'T_Wave_Inversion',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Pathologic_Q_Waves',type:'ynbtn',sheet:'Presentation_ECG_Timing'},
+     {k:'New_LBBB',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Posterior_MI_Suspected',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ECG_Notes',type:'textarea',sheet:'Presentation_ECG_Timing'}]},
+   {title:'Cardiovascular Risk Factors', tint:'yellow', c:'#d97706', icon:'fa-triangle-exclamation', cols:3, fields:[
+     {k:'Smoking_Status',type:'select',opts:['Never','Former','Current'],sheet:'Patient_Master'},{k:'Diabetes',type:'ynbtn',sheet:'Patient_Master'},
+     {k:'Hypertension',type:'ynbtn',sheet:'Patient_Master'},{k:'Dyslipidemia',type:'ynbtn',sheet:'Patient_Master'},
+     {k:'Family_History_CAD',type:'ynbtn',sheet:'Patient_Master'},{k:'Chronic_Kidney_Disease',type:'ynbtn',sheet:'Patient_Master'}]},
+   {gate:'Atrial_Fibrillation', gateSheet:'Patient_Master', title:'4.1 Atrial Fibrillation', tint:'red', c:'#e11d48', icon:'fa-heart-pulse', cols:2, fields:[]},
+   {gate:'Prior_Cardiac_Arrest', title:'4.2 Prior Cardiac Arrest', tint:'red', c:'#e11d48', icon:'fa-bolt', cols:2, fields:[]},
+   {gate:'Ischemic_Cardiomyopathy', title:'4.3 Cardiomyopathy – Ischemic', tint:'red', c:'#e11d48', icon:'fa-heart-crack', cols:2, fields:[
+     {k:'Cardiomyopathy_Timeframe',type:'select',opts:CM_TIMEFRAME,label:'4.3a Timeframe'},{k:'GDMT_Max_Dose',type:'select',opts:GDMT,label:'4.3b GDMT Max Dose'}]},
+   {gate:'Heart_Failure', gateSheet:'Patient_Master', title:'4.4 Heart Failure', tint:'red', c:'#e11d48', icon:'fa-heart', cols:1, fields:[
+     {k:'HF_Type',type:'radio',opts:['HFrEF','HFpEF','HFmrEF'],label:'Heart-failure phenotype'}]},
+   {gate:'Prior_Coronary_Angiography', title:'4.5 Coronary Angiography', tint:'red', c:'#e11d48', icon:'fa-diagram-project', cols:2, fields:[
+     {k:'CA_Within_6_Months',type:'select',opts:YN,label:'4.5a CA within last 6 months'},{k:'CA_After_Cardiac_Arrest',type:'select',opts:YN,label:'4.5b After most recent cardiac arrest'}]},
+   {title:'4.6–4.7 Coronary Disease & Infarction', tint:'gray', c:'#475569', icon:'fa-heart-circle-exclamation', cols:2, fields:[
+     {k:'Coronary_Artery_Disease',type:'select',opts:YN,label:'4.6 Coronary artery disease'},{k:'Myocardial_Infarction',type:'select',opts:YN,label:'4.7 Myocardial infarction'}]},
+   {gate:'Prior_PCI', gateSheet:'Patient_Master', title:'4.8 Prior PCI', tint:'red', c:'#e11d48', icon:'fa-syringe', cols:1, fields:[
+     {k:'PCI_Within_6_Months',type:'select',opts:YN,label:'4.8a PCI done within last 6 months'}]},
+   {gate:'Prior_CABG', gateSheet:'Patient_Master', title:'4.9 Prior CABG', tint:'red', c:'#e11d48', icon:'fa-heart-circle-plus', cols:1, fields:[
+     {k:'CABG_Within_6_Months',type:'select',opts:YN,label:'4.9a CABG within last 6 months'}]},
+   {title:'4.10–4.16 Other Comorbidities', tint:'gray', c:'#475569', icon:'fa-list-check', cols:3, fields:[
+     {k:'Valvular_Heart_Disease',type:'select',opts:YN,label:'4.10 Valvular heart disease'},{k:'Cerebrovascular_Disease',type:'select',opts:YN,label:'4.11 Cerebrovascular disease'},
+     {k:'Chronic_Lung_Disease',type:'select',opts:YN,label:'4.12 Chronic lung disease'},{k:'Currently_On_Dialysis',type:'select',opts:YN,label:'4.13 Currently on dialysis'},
+     {k:'Peripheral_Artery_Disease',type:'select',opts:YN,label:'4.14 Peripheral artery disease',sheet:'Patient_Master'},{k:'Familial_Syndrome',type:'select',opts:YN,label:'4.16 Familial syndrome'},
+     {k:'Prior_Stroke_TIA',type:'select',opts:YN,label:'Prior Stroke / TIA',sheet:'Patient_Master'}]},
+   {gate:'Syndromes_Of_Sudden_Death', title:'4.17 Syndromes of Sudden Death', info:'SUDDEN_DEATH', tint:'red', c:'#e11d48', icon:'fa-dna', cols:1, fields:[]},
+   {gate:'Structural_Abnormalities', title:'4.18 Structural Abnormalities', tint:'red', c:'#e11d48', icon:'fa-heart-crack', cols:1, fields:[]},
+   {gate:'Syncope', title:'4.19 Syncope', tint:'red', c:'#e11d48', icon:'fa-person-falling', cols:1, fields:[]},
+   {title:'4.20–4.22 Arrhythmia History', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
+     {k:'Paroxysmal_SVT',type:'select',opts:YN,label:'4.20 Paroxysmal SVT history'},{k:'Ventricular_Fibrillation',type:'select',opts:YN,label:'4.21 Ventricular fibrillation'},
+     {k:'Ventricular_Tachycardia',type:'select',opts:YN,label:'4.22 Ventricular tachycardia'}]},
+   {gate:'Aortic_Valve_Procedure', title:'4.23 Aortic Valve Procedure', tint:'red', c:'#e11d48', icon:'fa-heart-circle-bolt', cols:2, fields:[
+     {k:'AV_Procedure_Type',type:'radio',opts:['TAVR','SAVR'],label:'4.23a Type'},{k:'AV_Within_6_Months',type:'select',opts:YN,label:'4.23b Within last 6 months'}]},
+   {gate:'Mitral_Valve_Procedure', title:'4.24 Mitral Valve Procedure', tint:'red', c:'#e11d48', icon:'fa-heart-circle-bolt', cols:2, fields:[
+     {k:'MV_Procedure_Type',type:'radio',opts:['PMVR','Mechanical MV','Bioprosthetic MV','Mitral clipping'],label:'4.24a Type'},{k:'MV_Within_6_Months',type:'select',opts:YN,label:'4.24b Within last 6 months'}]},
+   {gate:'Prior_CIED', title:'4.25 Prior CV Implantable Electronic Device (CIED)', tint:'red', c:'#e11d48', icon:'fa-microchip', cols:1, fields:[]}
+ ]},
+ {id:'homemeds', sheet:'Home_Medications', title:'Home Meds', icon:'fa-prescription-bottle-medical', color:'#0891b2', groups:[
+   {title:'Antiarrhythmics', tint:'purple', c:'#7c3aed', icon:'fa-bolt', cols:3, fields:[
+     {k:'Amiodarone',type:'ynbtn'},{k:'Disopyramide',type:'ynbtn'},{k:'Flecainide',type:'ynbtn'},
+     {k:'Procainamide',type:'ynbtn'},{k:'Propafenone',type:'ynbtn'},{k:'Sotalol',type:'ynbtn'}]},
+   {title:'Rate Control / Calcium-Channel Blockers', tint:'blue', c:'#2563eb', icon:'fa-gauge', cols:3, fields:[
+     {k:'Verapamil',type:'ynbtn'},{k:'Diltiazem',type:'ynbtn'}]},
+   {title:'Anticoagulants', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:3, fields:[
+     {k:'Warfarin',type:'ynbtn'},{k:'Dabigatran',type:'ynbtn'},{k:'Apixaban',type:'ynbtn'},{k:'Rivaroxaban',type:'ynbtn'},
+     {k:'Edoxaban',type:'ynbtn'},{k:'LMWH',type:'ynbtn'},{k:'Unfractionated_Heparin',type:'ynbtn'}]},
+   {title:'Antiplatelets', tint:'yellow', c:'#d97706', icon:'fa-tablets', cols:3, fields:[
+     {k:'Aspirin',type:'ynbtn'},{k:'Prasugrel',type:'ynbtn'},{k:'Clopidogrel',type:'ynbtn'},{k:'Ticagrelor',type:'ynbtn'},{k:'Cangrelor',type:'ynbtn'}]},
+   {title:'Neurohormonal / Heart-Failure', tint:'green', c:'#059669', icon:'fa-heart', cols:3, fields:[
+     {k:'ACE_I',type:'ynbtn'},{k:'ARB',type:'ynbtn'},{k:'ARNI',type:'ynbtn'},{k:'SGLT_Inhibitor',type:'ynbtn'},
+     {k:'Beta_Blockers',type:'ynbtn'},{k:'MRA',type:'ynbtn'},{k:'Digoxin',type:'ynbtn'},{k:'Loop_Diuretics',type:'ynbtn'},{k:'Ivabradine',type:'ynbtn'}]},
+   {title:'Lipid-Lowering', tint:'gray', c:'#475569', icon:'fa-oil-can', cols:3, fields:[
+     {k:'Statin',type:'ynbtn'},{k:'PCSK9i',type:'ynbtn'},{k:'Ezetimibe',type:'ynbtn'}]}
  ]},
  {id:'echo', sheet:'Echocardiography', title:'Echocardiography', icon:'fa-wave-square', color:'#0d9488', groups:[
    {title:'LV Systolic & Diastolic Function', tint:'teal', c:'#0d9488', icon:'fa-heart', cols:3, fields:[
@@ -484,7 +576,8 @@ const FOLLOWUP = {id:'fu', sheet:'FollowUp_Comprehensive', title:'Comprehensive 
 ]};
 
 const ALL_STEPS = [...SECTIONS, FOLLOWUP];
-const secFields = s => s.groups.reduce((a,g)=>a.concat(g.fields),[]);
+const secFields = s => s.groups.reduce((a,g)=>{ if(g.gate) a.push({k:g.gate,type:'ynbtn',sheet:g.gateSheet}); return a.concat(g.fields||[]); },[]);
+const fkey = (s,f) => `${f.sheet||s.sheet}.${f.k}`;
 const pretty = k => k.replace(/_FU\b/,' (F/U)').replace(/_FollowUp\b/,' (F/U)').replace(/_/g,' ');
 
 /* ════════════════════════ FIREBASE INIT ════════════════════════ */
@@ -615,6 +708,7 @@ function buildStepper(){
   });
 }
 function showAttr(o){ if(!o.showIf) return ''; const arr=Array.isArray(o.showIf)?o.showIf:[o.showIf]; return ` data-showif='${JSON.stringify(arr)}'`; }
+function flabel(f){ return (f.label||pretty(f.k))+(f.info?`<button type="button" class="fn-btn" onclick="openInfo('${f.info}')" title="More info">i</button>`:''); }
 function fieldHtml(secId,f){
   const fid=`f_${secId}__${f.k}`;
   const star=f.req?'<span class="req-star">*</span>':'';
@@ -622,24 +716,35 @@ function fieldHtml(secId,f){
   let inner, full=false;
   if(f.type==='ynbtn'){
     inner=`<div class="yn-group" id="${fid}_grp"><button type="button" class="yn-btn yn-yes" onclick="setYN('${fid}','Yes')">Yes</button><button type="button" class="yn-btn yn-no" onclick="setYN('${fid}','No')">No</button><input type="hidden" id="${fid}" data-k="${f.k}" data-type="ynbtn"></div>`;
+  } else if(f.type==='radio'){
+    inner=`<div class="radio-row" id="${fid}_grp">${f.opts.map(o=>`<div class="radio-pill" data-val="${o}" onclick="setRadio('${fid}','${o.replace(/'/g,"\\'")}')"><span class="dot"></span>${o}</div>`).join('')}<input type="hidden" id="${fid}" data-k="${f.k}" data-type="radio"></div>`;
   } else if(f.type==='select'){
     inner=`<select class="inp" id="${fid}" data-k="${f.k}" data-type="select"><option value="">— select —</option>${f.opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
   } else if(f.type==='textarea'){
     inner=`<textarea class="inp" id="${fid}" data-k="${f.k}" data-type="textarea"></textarea>`; full=true;
   } else if(f.type==='dt24'){
     inner=`<div style="display:flex;gap:6px;"><input type="date" class="inp" id="${fid}" data-k="${f.k}" data-type="dt24" style="flex:1;"><input type="text" id="${fid}__t" class="inp" style="width:88px;text-align:center;font-family:'DM Mono',monospace;" maxlength="5" inputmode="numeric" placeholder="HH:MM" oninput="timeMask(this)" onblur="timeClamp(this)"></div>`;
+  } else if(f.type==='numu'){
+    inner=`<input type="number" step="any" class="inp" id="${fid}" data-k="${f.k}" data-type="numu"><label class="ur-line"><input type="checkbox" id="${fid}__urc" onchange="urToggle('${fid}')">Unrecordable</label>`;
   } else {
     const t=f.type==='num'?'number':(f.type==='date'?'date':(f.type==='datetime'?'datetime-local':(f.type==='tel'?'tel':'text')));
     const step=f.type==='num'?' step="any"':'';
     const dig=f.digits?` maxlength="${f.digits}" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')"`:'';
-    const ro=f.ro?' readonly':''; const ph=f.ro?' placeholder="auto on save"':(f.type==='tel'?' placeholder="+965 …"':'');
+    const ro=f.ro?' readonly':''; const ph=f.ro?' placeholder="auto on save"':(f.ph?` placeholder="${f.ph}"`:(f.type==='tel'?' placeholder="8 digits"':''));
     inner=`<input type="${t}"${step}${dig}${ro}${ph} class="inp" id="${fid}" data-k="${f.k}" data-type="${f.type}">`;
   }
-  return `<div class="fld"${full?' style="grid-column:1/-1;"':''}${showAttr(f)}><div class="fld-main"><label class="lbl">${pretty(f.k)}${star}${hint}</label>${inner}</div><span class="fi-badge" id="${fid}_ind"></span></div>`;
+  return `<div class="fld"${full?' style="grid-column:1/-1;"':''}${showAttr(f)}><div class="fld-main"><label class="lbl">${flabel(f)}${star}${hint}</label>${inner}</div><span class="fi-badge" id="${fid}_ind"></span></div>`;
 }
 function groupCard(secId,g){
   const grid=g.cols===1?'g1':(g.cols===2?'g2':(g.cols===4?'g4':'g3'));
-  return `<div class="grp card-${g.tint}"${showAttr(g)}><div class="grp-head"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}</span></div>
+  const gInfo=g.info?`<button type="button" class="fn-btn" onclick="openInfo('${g.info}')" title="More info">i</button>`:'';
+  if(g.gate){
+    const fid=`f_${secId}__${g.gate}`;
+    const sub=(g.fields&&g.fields.length)?`<div class="sub-reveal"${showAttr({showIf:{sec:secId,k:g.gate,eq:'Yes'}})}><div class="${grid}" style="gap:12px;">${g.fields.map(f=>fieldHtml(secId,f)).join('')}</div></div>`:'';
+    return `<div class="grp card-${g.tint}"><div class="gate-head"><span class="gate-title"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span>${g.title}${gInfo}<span class="fi-badge" id="${fid}_ind"></span></span>
+      <div class="yn-group" id="${fid}_grp"><button type="button" class="yn-btn yn-no" onclick="setYN('${fid}','No')">No</button><button type="button" class="yn-btn yn-yes" onclick="setYN('${fid}','Yes')">Yes</button><input type="hidden" id="${fid}" data-k="${g.gate}" data-type="ynbtn"></div></div>${sub}</div>`;
+  }
+  return `<div class="grp card-${g.tint}"${showAttr(g)}><div class="grp-head"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}${gInfo}</span></div>
     <div class="${grid}" style="gap:12px;">${g.fields.map(f=>fieldHtml(secId,f)).join('')}</div></div>`;
 }
 function buildForm(){
@@ -681,8 +786,8 @@ function updateIndicators(){
   const pf=document.getElementById('progressFill'); if(pf) pf.style.width=Math.round(filledSecs/ALL_STEPS.length*100)+'%';
 }
 function recalcBMI(){
-  const h=parseFloat(_v('f_master__Height_cm')), w=parseFloat(_v('f_master__Weight_kg'));
-  if(h>0 && w>0) _set('f_master__BMI',(w/Math.pow(h/100,2)).toFixed(1));
+  const h=parseFloat(_v('f_history__Height_cm')), w=parseFloat(_v('f_history__Weight_kg'));
+  if(h>0 && w>0) _set('f_history__BMI',(w/Math.pow(h/100,2)).toFixed(1));
   updateIndicators();
 }
 function recalcEGFR(){
@@ -701,18 +806,18 @@ function wireCalc(){
   const onChange=()=>{ updateIndicators(); reactors(); applyConditionals(); };
   form.addEventListener('input',onChange);
   form.addEventListener('change',onChange);
-  ['f_master__Height_cm','f_master__Weight_kg'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',recalcBMI);});
+  ['f_history__Height_cm','f_history__Weight_kg'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',recalcBMI);});
   ['f_blood__Creatinine','f_blood__Creatinine_Unit','f_master__Age','f_master__Sex'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcEGFR);e.addEventListener('change',recalcEGFR);}});
-  ['Symptom_Onset_Time','Hospital_Arrival_Time','Balloon_Time_First_Device'].forEach(k=>{['f_present__'+k,'f_present__'+k+'__t'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcTiming);e.addEventListener('change',recalcTiming);}});});
+  ['Symptom_Onset_Time','Hospital_Arrival_Time','Balloon_Time_First_Device'].forEach(k=>{['f_history__'+k,'f_history__'+k+'__t'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcTiming);e.addEventListener('change',recalcTiming);}});});
 }
 function applyDefaults(){ SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.def){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && !el.value) el.value=f.def; } })); }
 window.timeMask=function(el){ let d=el.value.replace(/\D/g,'').slice(0,4); el.value = d.length>=3 ? d.slice(0,2)+':'+d.slice(2) : d; };
 window.timeClamp=function(el){ const m=el.value.match(/^(\d{1,2}):?(\d{0,2})$/); if(!m){ if(el.value)el.value=''; return; } let h=Math.min(23,parseInt(m[1]||'0',10)), mi=Math.min(59,parseInt(m[2]||'0',10)); el.value=String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0'); recalcTiming(); };
 function tval(secId,k){ const d=_v(`f_${secId}__${k}`); if(!d)return null; const t=_v(`f_${secId}__${k}__t`); return new Date(d+'T'+(/^\d{2}:\d{2}$/.test(t)?t:'00:00')); }
 function recalcTiming(){
-  const onset=tval('present','Symptom_Onset_Time'), arr=tval('present','Hospital_Arrival_Time'), bal=tval('present','Balloon_Time_First_Device');
-  if(arr&&bal){ const m=Math.round((bal-arr)/60000); if(m>=0)_set('f_present__Door_to_Balloon_Min',m); }
-  if(onset&&bal){ const m=Math.round((bal-onset)/60000); if(m>=0)_set('f_present__Symptom_to_Balloon_Min',m); }
+  const onset=tval('history','Symptom_Onset_Time'), arr=tval('history','Hospital_Arrival_Time'), bal=tval('history','Balloon_Time_First_Device');
+  if(arr&&bal){ const m=Math.round((bal-arr)/60000); if(m>=0)_set('f_history__Door_to_Balloon_Min',m); }
+  if(onset&&bal){ const m=Math.round((bal-onset)/60000); if(m>=0)_set('f_history__Symptom_to_Balloon_Min',m); }
   updateIndicators();
 }
 function ctrlVal(sec,k){ const el=document.getElementById(`f_${sec}__${k}`); return el?(el.value||'').trim():''; }
@@ -723,6 +828,9 @@ function applyConditionals(){
 }
 function setYNsilent(fid,val){ const inp=document.getElementById(fid); if(!inp||inp.value===val)return; inp.value=val; const grp=document.getElementById(fid+'_grp'); if(grp){grp.querySelector('.yn-yes').classList.toggle('selected',val==='Yes');grp.querySelector('.yn-no').classList.toggle('selected',val==='No');} }
 function reactors(){
+  // Year of birth → estimated age (only fills when Age is empty)
+  const yob=document.getElementById('f_master__Year_of_Birth'), ageEl=document.getElementById('f_master__Age');
+  if(yob && ageEl && /^\d{4}$/.test(yob.value)){ const a=new Date().getFullYear()-parseInt(yob.value,10); if(a>0&&a<130&&!ageEl.value) ageEl.value=a; }
   const dapt=document.getElementById('f_dc_meds__Dual_Antiplatelet_Therapy');
   const p2=document.getElementById('f_dc_meds__P2Y12_Inhibitor');
   if(dapt && dapt.value==='Yes'){
@@ -744,6 +852,33 @@ window.setYN=function(fid,val){
   grp.querySelector('.yn-no').classList.toggle('selected',inp.value==='No');
   updateIndicators(); reactors(); applyConditionals();
 };
+const INFO={
+  KILLIP:{t:'Killip Classification (acute MI)',h:`Bedside clinical severity of heart failure in acute myocardial infarction; higher class = higher mortality.<table><tr><th>Class</th><th>Findings</th></tr><tr><td>I</td><td>No clinical signs of heart failure</td></tr><tr><td>II</td><td>Basal crackles, S3 gallop, raised JVP</td></tr><tr><td>III</td><td>Frank acute pulmonary edema</td></tr><tr><td>IV</td><td>Cardiogenic shock (hypotension, peripheral hypoperfusion)</td></tr></table>`},
+  CCS:{t:'CCS Angina Grading',h:`Canadian Cardiovascular Society grading of angina severity.<table><tr><th>Grade</th><th>Description</th></tr><tr><td>I</td><td>Angina only with strenuous/prolonged exertion</td></tr><tr><td>II</td><td>Slight limitation — angina on walking &gt;2 blocks or climbing &gt;1 flight</td></tr><tr><td>III</td><td>Marked limitation — angina on 1–2 blocks / 1 flight</td></tr><tr><td>IV</td><td>Angina at rest or with any activity</td></tr></table>`},
+  NYHA:{t:'NYHA Functional Class',h:`New York Heart Association functional limitation due to heart failure symptoms.<table><tr><th>Class</th><th>Description</th></tr><tr><td>I</td><td>No limitation of physical activity</td></tr><tr><td>II</td><td>Slight limitation; comfortable at rest</td></tr><tr><td>III</td><td>Marked limitation; comfortable only at rest</td></tr><tr><td>IV</td><td>Symptoms at rest; any activity worsens</td></tr></table>`},
+  SCAI:{t:'SCAI Shock Stages',h:`Society for Cardiovascular Angiography &amp; Interventions cardiogenic-shock classification.<table><tr><th>Stage</th><th>Description</th></tr><tr><td>A — At risk</td><td>No current signs/symptoms of shock</td></tr><tr><td>B — Beginning</td><td>Relative hypotension or tachycardia, no hypoperfusion</td></tr><tr><td>C — Classic</td><td>Hypoperfusion needing inotrope/pressor or mechanical support</td></tr><tr><td>D — Deteriorating</td><td>Not responding; escalating support</td></tr><tr><td>E — Extremis</td><td>Refractory collapse, often with CPR/ECMO</td></tr></table>`},
+  CRF:{t:'CRF Number',h:`Auto-generated when the patient is first saved, in the format <b>01-&lt;doctor PIN&gt;-&lt;serial&gt;</b>. Hospital code <b>01</b> = Sabah Al-Ahmad Cardiac Center. The serial is gap-filled across the registry.`},
+  NATIONALITY:{t:'Nationality',h:`Select the patient's nationality. Kuwaiti and regional nationalities are listed first.`},
+  YOB:{t:'Year of Birth',h:`Enter the 4-digit year of birth. Estimated age is filled automatically; you can override it.`},
+  BP:{t:'Blood Pressure',h:`Record the first measured value on presentation (mmHg). Tick <b>Unrecordable</b> if it could not be obtained.`},
+  HR:{t:'Heart Rate',h:`First measured heart rate on presentation (beats/min). Tick <b>Unrecordable</b> if not obtained.`},
+  SUDDEN_DEATH:{t:'Inherited Sudden-Death Syndromes',h:`Channelopathies / inherited arrhythmia syndromes associated with sudden cardiac death (e.g. Long-QT, Brugada, CPVT, short-QT).`}
+};
+window.openInfo=function(k){ const i=INFO[k]; if(!i)return; document.getElementById('infoTitle').innerHTML='<span class="fn-btn" style="cursor:default;">i</span>'+i.t; document.getElementById('infoBody').innerHTML=i.h; document.getElementById('infoModal').classList.add('show'); };
+window.closeInfo=function(){ document.getElementById('infoModal').classList.remove('show'); };
+window.setRadio=function(fid,val){
+  const inp=document.getElementById(fid); if(!inp)return;
+  inp.value=(inp.value===val)?'':val;
+  const grp=document.getElementById(fid+'_grp');
+  if(grp) grp.querySelectorAll('.radio-pill').forEach(p=>p.classList.toggle('selected',p.dataset.val===inp.value));
+  updateIndicators(); reactors(); applyConditionals();
+};
+window.urToggle=function(fid){
+  const n=document.getElementById(fid), c=document.getElementById(fid+'__urc'); if(!n||!c)return;
+  if(c.checked){ n.value='Unrecordable'; n.readOnly=true; } else { if(n.value==='Unrecordable')n.value=''; n.readOnly=false; }
+  if(fid==='f_history__Height_cm'||fid==='f_history__Weight_kg') recalcBMI();
+  updateIndicators();
+};
 let _fuSeq=0;
 window.addFollowupCard=function(data){
   _fuSeq++; const idx=_fuSeq;
@@ -764,6 +899,8 @@ function setFieldVal(fid,f,val){
   if(f.type==='dt24'){ const el=document.getElementById(fid), te=document.getElementById(fid+'__t'); const p=(val||'').split('T'); if(el)el.value=p[0]||''; if(te)te.value=p[1]||''; return; }
   const el=document.getElementById(fid); if(!el)return;
   if(f.type==='ynbtn'){ el.value=val||''; const grp=document.getElementById(fid+'_grp'); if(grp){grp.querySelector('.yn-yes').classList.toggle('selected',val==='Yes');grp.querySelector('.yn-no').classList.toggle('selected',val==='No');} }
+  else if(f.type==='radio'){ el.value=val||''; const grp=document.getElementById(fid+'_grp'); if(grp) grp.querySelectorAll('.radio-pill').forEach(p=>p.classList.toggle('selected',p.dataset.val===val)); }
+  else if(f.type==='numu'){ const c=document.getElementById(fid+'__urc'); if(val==='Unrecordable'){ if(c)c.checked=true; el.value='Unrecordable'; el.readOnly=true; } else { if(c)c.checked=false; el.readOnly=false; el.value=(val==null)?'':val; } }
   else { el.value=(val===undefined||val===null)?'':val; }
 }
 
@@ -799,8 +936,8 @@ window.newRecord=function(){
 function collectData(){
   const data={};
   SECTIONS.forEach(s=>secFields(s).forEach(f=>{
-    if(f.type==='dt24'){ const d=_v(`f_${s.id}__${f.k}`), t=_v(`f_${s.id}__${f.k}__t`); data[`${s.sheet}.${f.k}`]= d?(d+(t?('T'+t):'')):''; }
-    else { const el=document.getElementById(`f_${s.id}__${f.k}`); if(el) data[`${s.sheet}.${f.k}`]=el.value; }
+    if(f.type==='dt24'){ const d=_v(`f_${s.id}__${f.k}`), t=_v(`f_${s.id}__${f.k}__t`); data[`${f.sheet||s.sheet}.${f.k}`]= d?(d+(t?('T'+t):'')):''; }
+    else { const el=document.getElementById(`f_${s.id}__${f.k}`); if(el) data[`${f.sheet||s.sheet}.${f.k}`]=el.value; }
   }));
   const followups=[];
   document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{
@@ -819,7 +956,7 @@ async function nextPatientId(pin){
 /* ════════════════════════ MEDICAL & TEMPORAL LOGIC ════════════════════════ */
 function validateLogic(data){
   const errors=[], warnings=[];
-  SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.req){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && el.offsetParent!==null && !((data[`${s.sheet}.${f.k}`]||'').trim())) errors.push(`${pretty(f.k)} is required.`); } }));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.req){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && el.offsetParent!==null && !((data[`${f.sheet||s.sheet}.${f.k}`]||'').trim())) errors.push(`${pretty(f.k)} is required.`); } }));
   const today=new Date(); today.setHours(23,59,59,999);
   const D=key=>{ const v=data[key]; if(!v) return null; const d=new Date(v); return isNaN(d.getTime())?null:d; };
   const adm=D('Patient_Master.Index_Admission_Date'), dis=D('Patient_Master.Discharge_Date');
@@ -951,7 +1088,7 @@ window.editRecord=function(id){
   const r=RECORDS.find(x=>x.id===id); if(!r)return;
   newRecord();
   document.getElementById('editRecordId').value=id;
-  SECTIONS.forEach(s=>secFields(s).forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${s.sheet}.${f.k}`])));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${f.sheet||s.sheet}.${f.k}`])));
   (r.followups||[]).forEach(fu=>addFollowupCard(fu));
   recalcBMI(); recalcEGFR(); updateIndicators(); reactors(); applyConditionals();
   _set('f_master__CRF_Number', r.patientId||r.data?.['Patient_Master.CRF_Number']||'');
@@ -1010,9 +1147,9 @@ window.changeAdminPin=async function(){
 function codeValue(f,val){
   if(val===undefined||val===null||val==='') return '';
   switch(f.type){
-    case 'num':{const n=parseFloat(val);return isNaN(n)?'':n;}
+    case 'num':case 'numu':{const n=parseFloat(val);return isNaN(n)?'':n;}
     case 'ynbtn':return val==='Yes'?1:(val==='No'?0:'');
-    case 'select':{const i=f.opts.indexOf(val);return i<0?'':i+1;}
+    case 'select':case 'radio':{const i=f.opts.indexOf(val);return i<0?'':i+1;}
     case 'date':case 'datetime':case 'dt24':return val;
     default:return '';
   }
@@ -1020,8 +1157,9 @@ function codeValue(f,val){
 function codebookFor(f){
   switch(f.type){
     case 'ynbtn':return '1=Yes; 0=No';
-    case 'select':return f.opts.map((o,i)=>`${i+1}=${o}`).join('; ');
+    case 'select':case 'radio':return f.opts.map((o,i)=>`${i+1}=${o}`).join('; ');
     case 'num':return 'numeric';
+    case 'numu':return 'numeric (blank if Unrecordable)';
     case 'date':return 'date (YYYY-MM-DD)';
     case 'datetime':return 'datetime';
     case 'dt24':return 'datetime (YYYY-MM-DDTHH:MM, 24h)';
@@ -1032,12 +1170,12 @@ function buildWorkbook(coded){
   const wb=XLSX.utils.book_new();
   // Patients sheet (single-occurrence sections)
   const pHeader=['Patient_ID','Entered_By','Doctor_PIN','Record_Status'];
-  SECTIONS.forEach(s=>secFields(s).forEach(f=>pHeader.push(`${s.sheet}.${f.k}`)));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>pHeader.push(`${f.sheet||s.sheet}.${f.k}`)));
   const pRows=[pHeader];
   RECORDS.forEach(r=>{
     const row=[r.patientId||'', r.enteredByName||'', r.enteredByPin||'', r.recordStatus||'draft'];
     SECTIONS.forEach(s=>secFields(s).forEach(f=>{
-      const raw=r.data?.[`${s.sheet}.${f.k}`];
+      const raw=r.data?.[`${f.sheet||s.sheet}.${f.k}`];
       row.push(coded?codeValue(f,raw):(raw||''));
     }));
     pRows.push(row);
@@ -1058,7 +1196,7 @@ function buildWorkbook(coded){
 }
 function appendCodebook(wb){
   const rows=[['Sheet','Variable','Label','Type','Value_Labels']];
-  SECTIONS.forEach(s=>secFields(s).forEach(f=>rows.push([s.sheet,`${s.sheet}.${f.k}`,pretty(f.k),f.type,codebookFor(f)])));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>rows.push([f.sheet||s.sheet,`${f.sheet||s.sheet}.${f.k}`,pretty(f.k),f.type,codebookFor(f)])));
   secFields(FOLLOWUP).forEach(f=>rows.push([FOLLOWUP.sheet,f.k,pretty(f.k),f.type,codebookFor(f)]));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Codebook');
 }
