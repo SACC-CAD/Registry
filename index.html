@@ -399,10 +399,6 @@ const SECTIONS = [
      {k:'Systolic_BP',type:'numu',label:'Systolic BP (mmHg)',info:'BP'},{k:'Diastolic_BP',type:'numu',label:'Diastolic BP (mmHg)',info:'BP'},
      {k:'Presenting_HR',type:'numu',label:'Presenting HR (/min)',info:'HR'},{k:'Weight_kg',type:'numu',label:'Weight (kg)'},
      {k:'Height_cm',type:'numu',label:'Height (cm)'},{k:'BMI',type:'num',hint:'auto'}]},
-   {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
-     {k:'ECG_Rhythm',type:'select',opts:RHYTHM,sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation_Leads',type:'text',sheet:'Presentation_ECG_Timing'},
-     {k:'ST_Depression',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'T_Wave_Inversion',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Pathologic_Q_Waves',type:'ynbtn',sheet:'Presentation_ECG_Timing'},
-     {k:'New_LBBB',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Posterior_MI_Suspected',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ECG_Notes',type:'textarea',sheet:'Presentation_ECG_Timing'}]},
    {title:'Cardiovascular Risk Factors', tint:'yellow', c:'#d97706', icon:'fa-triangle-exclamation', cols:3, fields:[
      {k:'Smoking_Status',type:'select',opts:['Never','Former','Current'],sheet:'Patient_Master'},{k:'Diabetes',type:'ynbtn',sheet:'Patient_Master'},
      {k:'Hypertension',type:'ynbtn',sheet:'Patient_Master'},{k:'Dyslipidemia',type:'ynbtn',sheet:'Patient_Master'},
@@ -456,27 +452,29 @@ const SECTIONS = [
      {k:'Amiodarone',type:'ynbtn'},{k:'Disopyramide',type:'ynbtn'},{k:'Flecainide',type:'ynbtn'},
      {k:'Procainamide',type:'ynbtn'},{k:'Propafenone',type:'ynbtn'},{k:'Sotalol',type:'ynbtn'}]}
  ]},
- {id:'echo', sheet:'Echocardiography', title:'Echocardiography', icon:'fa-wave-square', color:'#0d9488', groups:[
-   {title:'LV Systolic & Diastolic Function', tint:'teal', c:'#0d9488', icon:'fa-heart', cols:3, fields:[
-     {k:'Echo_Date',type:'date'},{k:'LVEF',type:'num'},{k:'Regional_Wall_Motion_Abnormality',type:'ynbtn'},
-     {k:'Diastolic_Dysfunction',type:'select',opts:['None','Grade I','Grade II','Grade III']},{k:'LVH',type:'ynbtn'}]},
-   {title:'Chambers, Valves & Pericardium', tint:'gray', c:'#475569', icon:'fa-diagram-project', cols:3, fields:[
-     {k:'LA_Size',type:'select',opts:['Normal','Mildly dilated','Moderately dilated','Severely dilated']},
-     {k:'RV_Function',type:'select',opts:RV},{k:'Pulmonary_Pressure',type:'num'},{k:'Valvular_Disease',type:'select',opts:VALVE},
-     {k:'Pericardial_Effusion',type:'ynbtn'},{k:'Echo_Notes',type:'textarea'}]}
- ]},
- {id:'blood', sheet:'Blood_Work', title:'Blood Work', icon:'fa-vial', color:'#d97706', groups:[
-   {title:'Hematology', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
-     {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'num'},{k:'WBC',type:'num'},{k:'Platelets',type:'num'}]},
-   {title:'Renal Function & Electrolytes', tint:'blue', c:'#2563eb', icon:'fa-flask', cols:3, fields:[
-     {k:'Creatinine',type:'num'},{k:'Creatinine_Unit',type:'select',opts:['µmol/L','mg/dL'],def:'µmol/L'},{k:'eGFR',type:'num',hint:'auto CKD-EPI'},
-     {k:'Sodium',type:'num'},{k:'Potassium',type:'num'}]},
-   {title:'Metabolic', tint:'yellow', c:'#d97706', icon:'fa-cubes', cols:2, fields:[
-     {k:'Glucose',type:'num'},{k:'HbA1c',type:'num'}]},
-   {title:'Lipid Profile', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:4, fields:[
-     {k:'Total_Cholesterol',type:'num'},{k:'LDL',type:'num'},{k:'HDL',type:'num'},{k:'Triglycerides',type:'num'}]},
-   {title:'Cardiac & Inflammatory Markers', tint:'gray', c:'#475569', icon:'fa-heart-pulse', cols:3, fields:[
-     {k:'Troponin',type:'num'},{k:'BNP',type:'num'},{k:'CRP',type:'num'}]}
+ {id:'blood', sheet:'Blood_Work', title:'Investigations', icon:'fa-microscope', color:'#0d9488', groups:[
+   {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
+     {k:'ECG_Rhythm',type:'select',opts:RHYTHM,sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation_Leads',type:'text',sheet:'Presentation_ECG_Timing'},
+     {k:'ST_Depression',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'T_Wave_Inversion',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Pathologic_Q_Waves',type:'ynbtn',sheet:'Presentation_ECG_Timing'},
+     {k:'New_LBBB',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Posterior_MI_Suspected',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ECG_Notes',type:'textarea',sheet:'Presentation_ECG_Timing'}]},
+   {title:'Echocardiography — LV Function', tint:'teal', c:'#0d9488', icon:'fa-heart', cols:3, fields:[
+     {k:'Echo_Date',type:'date',sheet:'Echocardiography'},{k:'LVEF',type:'num',label:'LVEF (%)',sheet:'Echocardiography'},{k:'Regional_Wall_Motion_Abnormality',type:'ynbtn',sheet:'Echocardiography'},
+     {k:'Diastolic_Dysfunction',type:'select',opts:['None','Grade I','Grade II','Grade III'],sheet:'Echocardiography'},{k:'LVH',type:'ynbtn',sheet:'Echocardiography'}]},
+   {title:'Echocardiography — Chambers, Valves & Pericardium', tint:'gray', c:'#475569', icon:'fa-diagram-project', cols:3, fields:[
+     {k:'LA_Size',type:'select',opts:['Normal','Mildly dilated','Moderately dilated','Severely dilated'],sheet:'Echocardiography'},
+     {k:'RV_Function',type:'select',opts:RV,sheet:'Echocardiography'},{k:'Pulmonary_Pressure',type:'num',label:'Pulmonary Pressure (mmHg)',sheet:'Echocardiography'},{k:'Valvular_Disease',type:'select',opts:VALVE,sheet:'Echocardiography'},
+     {k:'Pericardial_Effusion',type:'ynbtn',sheet:'Echocardiography'},{k:'Echo_Notes',type:'textarea',sheet:'Echocardiography'}]},
+   {title:'Labs — Hematology', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
+     {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'num',label:'Hemoglobin (g/L)'},{k:'WBC',type:'num',label:'WBC (×10⁹/L)'},{k:'Platelets',type:'num',label:'Platelets (×10⁹/L)'}]},
+   {title:'Labs — Renal Function & Electrolytes', tint:'blue', c:'#2563eb', icon:'fa-flask', cols:4, fields:[
+     {k:'Creatinine',type:'num',label:'Creatinine (µmol/L)'},{k:'eGFR',type:'num',label:'eGFR (mL/min/1.73m²)',hint:'auto CKD-EPI'},
+     {k:'Sodium',type:'num',label:'Sodium (mmol/L)'},{k:'Potassium',type:'num',label:'Potassium (mmol/L)'}]},
+   {title:'Labs — Metabolic', tint:'yellow', c:'#d97706', icon:'fa-cubes', cols:2, fields:[
+     {k:'Glucose',type:'num',label:'Glucose (mmol/L)'},{k:'HbA1c',type:'num',label:'HbA1c (%)'}]},
+   {title:'Labs — Lipid Profile', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:4, fields:[
+     {k:'Total_Cholesterol',type:'num',label:'Total Cholesterol (mmol/L)'},{k:'LDL',type:'num',label:'LDL (mmol/L)'},{k:'HDL',type:'num',label:'HDL (mmol/L)'},{k:'Triglycerides',type:'num',label:'Triglycerides (mmol/L)'}]},
+   {title:'Labs — Cardiac & Inflammatory Markers', tint:'gray', c:'#475569', icon:'fa-heart-pulse', cols:3, fields:[
+     {k:'Troponin',type:'num',label:'hs-Troponin (ng/L)'},{k:'BNP',type:'num',label:'BNP / NT-proBNP (pg/mL)'},{k:'CRP',type:'num',label:'CRP (mg/L)'}]}
  ]},
  {id:'pci', sheet:'PCI_Details', title:'Procedure', icon:'fa-syringe', color:'#0891b2', groups:[
    {title:'Reperfusion Timing', tint:'yellow', c:'#d97706', icon:'fa-clock', cols:2,
@@ -501,21 +499,19 @@ const SECTIONS = [
      {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']}]}
  ]},
  {id:'complications', sheet:'Reintervention_FollowUp', title:'Complications', icon:'fa-triangle-exclamation', color:'#e11d48', groups:[
-   {gate:'Procedural_Complications_Present', gateSheet:'PCI_Details', title:'Any procedural complication?', tint:'red', c:'#e11d48', icon:'fa-triangle-exclamation', cols:3, fields:[
+   {gate:'Procedural_Complications_Present', gateSheet:'PCI_Details', title:'Any procedural (cath-lab) complication?', tint:'red', c:'#e11d48', icon:'fa-triangle-exclamation', cols:3, fields:[
      {k:'Access_Site_Bleeding',type:'ynbtn',sheet:'PCI_Details'},{k:'Access_Hematoma',type:'ynbtn',sheet:'PCI_Details'},{k:'Pseudoaneurysm',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Retroperitoneal_Bleed',type:'ynbtn',sheet:'PCI_Details'},{k:'Access_Limb_Ischemia',type:'ynbtn',sheet:'PCI_Details'},{k:'Coronary_Dissection',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Coronary_Perforation',type:'ynbtn',sheet:'PCI_Details'},{k:'No_Reflow_Slow_Flow',type:'ynbtn',sheet:'PCI_Details'},{k:'Side_Branch_Occlusion',type:'ynbtn',sheet:'PCI_Details'},
-     {k:'Acute_Stent_Thrombosis',type:'ynbtn',sheet:'PCI_Details'},{k:'Abrupt_Vessel_Closure',type:'ynbtn',sheet:'PCI_Details'},{k:'Distal_Embolization',type:'ynbtn',sheet:'PCI_Details'},
+     {k:'Acute_Stent_Thrombosis',type:'ynbtn',sheet:'PCI_Details',label:'Acute Stent Thrombosis (<24h)'},{k:'Abrupt_Vessel_Closure',type:'ynbtn',sheet:'PCI_Details'},{k:'Distal_Embolization',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Periprocedural_MI',type:'ynbtn',sheet:'PCI_Details'},{k:'Contrast_Induced_AKI',type:'ynbtn',sheet:'PCI_Details'},{k:'Contrast_Reaction',type:'ynbtn',sheet:'PCI_Details'},
-     {k:'Periprocedural_Stroke_TIA',type:'ynbtn',sheet:'PCI_Details'},{k:'Ventricular_Arrhythmia',type:'ynbtn',sheet:'PCI_Details'},{k:'Bradyarrhythmia_Heart_Block',type:'ynbtn',sheet:'PCI_Details'},
-     {k:'Cardiac_Tamponade',type:'ynbtn',sheet:'PCI_Details'},{k:'Emergency_CABG',type:'ynbtn',sheet:'PCI_Details'},{k:'Blood_Transfusion',type:'ynbtn',sheet:'PCI_Details'},
-     {k:'Procedural_Death',type:'ynbtn',sheet:'PCI_Details'},{k:'Procedural_Complications',type:'textarea',sheet:'PCI_Details',label:'Other complication details'}]},
+     {k:'Emergency_CABG',type:'ynbtn',sheet:'PCI_Details'},{k:'Procedural_Complications',type:'textarea',sheet:'PCI_Details',label:'Other procedural complication details'}]},
    {gate:'InHospital_Complication_Present', gateSheet:'InHospital_Complications', title:'Any in-hospital complication?', tint:'red', c:'#e11d48', icon:'fa-house-medical', cols:3, fields:[
      {k:'Recurrent_Ischemia_Angina',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Reinfarction',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Acute_Heart_Failure',type:'ynbtn',sheet:'InHospital_Complications'},
      {k:'Cardiogenic_Shock_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Cardiac_Arrest_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Sustained_VT_VF',type:'ynbtn',sheet:'InHospital_Complications'},
      {k:'New_Atrial_Fibrillation',type:'ynbtn',sheet:'InHospital_Complications'},{k:'High_Grade_AV_Block',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Mechanical_Complication',type:'ynbtn',sheet:'InHospital_Complications'},
      {k:'LV_Thrombus',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Pericardial_Effusion_Tamponade',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Stroke_TIA_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},
-     {k:'Major_Bleeding',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Acute_Kidney_Injury',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Subacute_Stent_Thrombosis',type:'ynbtn',sheet:'InHospital_Complications'},
+     {k:'Major_Bleeding',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Blood_Transfusion',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Subacute_Stent_Thrombosis',type:'ynbtn',sheet:'InHospital_Complications',label:'Subacute Stent Thrombosis (>24h)'},
      {k:'Infection_Sepsis',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Death_In_Hospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'InHospital_Complication_Notes',type:'textarea',sheet:'InHospital_Complications',label:'Other in-hospital complication details'}]},
    {gate:'Reintervention_Performed', title:'Reintervention during index stay?', tint:'red', c:'#be123c', icon:'fa-rotate', cols:3, fields:[
      {k:'Recurrent_Angina',type:'ynbtn'},{k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
@@ -797,10 +793,9 @@ function recalcBMI(){
 }
 function recalcEGFR(){
   let scr=parseFloat(_v('f_blood__Creatinine'));
-  const unit=_v('f_blood__Creatinine_Unit')||'µmol/L';
   const age=parseFloat(_v('f_master__Age')), sex=_v('f_master__Sex');
   if(!(scr>0)||!(age>0)||!sex) return;
-  if(unit==='µmol/L') scr=scr/88.42;                       // convert to mg/dL
+  scr=scr/88.42;                       // Kuwait labs report µmol/L → convert to mg/dL for CKD-EPI
   const female=sex==='Female', k=female?0.7:0.9, a=female?-0.241:-0.302;  // CKD-EPI 2021 (race-free)
   const egfr=142*Math.pow(Math.min(scr/k,1),a)*Math.pow(Math.max(scr/k,1),-1.200)*Math.pow(0.9938,age)*(female?1.012:1);
   _set('f_blood__eGFR',Math.round(egfr));
@@ -812,7 +807,7 @@ function wireCalc(){
   form.addEventListener('input',onChange);
   form.addEventListener('change',onChange);
   ['f_history__Height_cm','f_history__Weight_kg'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',recalcBMI);});
-  ['f_blood__Creatinine','f_blood__Creatinine_Unit','f_master__Age','f_master__Sex'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcEGFR);e.addEventListener('change',recalcEGFR);}});
+  ['f_blood__Creatinine','f_master__Age','f_master__Sex'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcEGFR);e.addEventListener('change',recalcEGFR);}});
   ['Symptom_Onset_Time','Hospital_Arrival_Time','Balloon_Time_First_Device'].forEach(k=>{['f_pci__'+k,'f_pci__'+k+'__t'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',recalcTiming);e.addEventListener('change',recalcTiming);}});});
 }
 function applyDefaults(){ SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.def){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && !el.value) el.value=f.def; } })); }
