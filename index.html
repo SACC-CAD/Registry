@@ -487,18 +487,18 @@ const SECTIONS = [
    {title:'Coronary Angiography — Vessel Disease', tint:'purple', c:'#7c3aed', icon:'fa-x-ray', cols:3, fields:[
      {k:'Angio_Date',type:'date',sheet:'Coronary_Anatomy'},{k:'Left_Main_Disease',type:'ynbtn',sheet:'Coronary_Anatomy'},{k:'LAD_Disease',type:'ynbtn',sheet:'Coronary_Anatomy'},
      {k:'LCX_Disease',type:'ynbtn',sheet:'Coronary_Anatomy'},{k:'RCA_Disease',type:'ynbtn',sheet:'Coronary_Anatomy'},{k:'Number_Diseased_Vessels',type:'select',opts:['0','1','2','3'],sheet:'Coronary_Anatomy'}]},
-   {title:'Culprit & Lesion Morphology', tint:'red', c:'#e11d48', icon:'fa-bullseye', cols:3, fields:[
+   {title:'Culprit & Lesion Morphology', tint:'red', c:'#e11d48', icon:'fa-bullseye', cols:3,
+     showIf:{sec:'careason',k:'CA_Reason',eq:'Primary PCI (STEMI)'}, fields:[
      {k:'Culprit_Vessel',type:'select',opts:['Left Main','LAD','LCX','RCA','Ramus','Graft','None'],sheet:'Coronary_Anatomy'},
      {k:'CTO',type:'ynbtn',sheet:'Coronary_Anatomy'},{k:'Thrombus',type:'ynbtn',sheet:'Coronary_Anatomy'},{k:'Notes',type:'textarea',sheet:'Coronary_Anatomy'}]},
    {title:'Management After Angiography', tint:'blue', c:'#2563eb', icon:'fa-route', cols:1,
      showIf:{sec:'careason',k:'CA_Reason',ne:'Primary PCI (STEMI)'}, fields:[
      {k:'Management_Decision',type:'select',opts:['Medical therapy only','PCI','CABG','Hybrid (PCI + CABG)','Deferred / no intervention'],label:'Result of coronary angiography — management'}]},
-   {title:'PCI — Procedure', tint:'cyan', c:'#0891b2', icon:'fa-syringe', cols:3,
+   {title:'PCI Details', tint:'cyan', c:'#0891b2', icon:'fa-syringe', cols:3,
      showIf:{any:[{sec:'careason',k:'CA_Reason',eq:'Primary PCI (STEMI)'},{sec:'pci',k:'Management_Decision',eq:'PCI'},{sec:'pci',k:'Management_Decision',eq:'Hybrid (PCI + CABG)'}]}, fields:[
-     {k:'PCI_Date',type:'date'},{k:'Vessel_Treated',type:'text'},{k:'Number_Stents',type:'num'}]},
-   {title:'Stent & Intracoronary Imaging', tint:'gray', c:'#475569', icon:'fa-layer-group', cols:3,
-     showIf:{any:[{sec:'careason',k:'CA_Reason',eq:'Primary PCI (STEMI)'},{sec:'pci',k:'Management_Decision',eq:'PCI'},{sec:'pci',k:'Management_Decision',eq:'Hybrid (PCI + CABG)'}]}, fields:[
-     {k:'Stent_Type',type:'select',opts:['DES','BMS','DCB','None']},{k:'Total_Stent_Length',type:'num'},{k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']}]}
+     {k:'PCI_Date',type:'date'},{k:'Vessel_Treated',type:'text'},{k:'Stent_Type',type:'select',opts:['DES','BMS','DCB','None']},
+     {k:'Number_Stents',type:'num',showIf:{sec:'pci',k:'Stent_Type',in:['DES','BMS']}},{k:'Total_Stent_Length',type:'num',showIf:{sec:'pci',k:'Stent_Type',in:['DES','BMS']}},
+     {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']}]}
  ]},
  {id:'complications', sheet:'Reintervention_FollowUp', title:'Complications', icon:'fa-triangle-exclamation', color:'#e11d48', groups:[
    {gate:'Procedural_Complications_Present', gateSheet:'PCI_Details', title:'Any procedural complication?', tint:'red', c:'#e11d48', icon:'fa-triangle-exclamation', cols:3, fields:[
@@ -510,12 +510,16 @@ const SECTIONS = [
      {k:'Periprocedural_Stroke_TIA',type:'ynbtn',sheet:'PCI_Details'},{k:'Ventricular_Arrhythmia',type:'ynbtn',sheet:'PCI_Details'},{k:'Bradyarrhythmia_Heart_Block',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Cardiac_Tamponade',type:'ynbtn',sheet:'PCI_Details'},{k:'Emergency_CABG',type:'ynbtn',sheet:'PCI_Details'},{k:'Blood_Transfusion',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Procedural_Death',type:'ynbtn',sheet:'PCI_Details'},{k:'Procedural_Complications',type:'textarea',sheet:'PCI_Details',label:'Other complication details'}]},
+   {gate:'InHospital_Complication_Present', gateSheet:'InHospital_Complications', title:'Any in-hospital complication?', tint:'red', c:'#e11d48', icon:'fa-house-medical', cols:3, fields:[
+     {k:'Recurrent_Ischemia_Angina',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Reinfarction',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Acute_Heart_Failure',type:'ynbtn',sheet:'InHospital_Complications'},
+     {k:'Cardiogenic_Shock_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Cardiac_Arrest_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Sustained_VT_VF',type:'ynbtn',sheet:'InHospital_Complications'},
+     {k:'New_Atrial_Fibrillation',type:'ynbtn',sheet:'InHospital_Complications'},{k:'High_Grade_AV_Block',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Mechanical_Complication',type:'ynbtn',sheet:'InHospital_Complications'},
+     {k:'LV_Thrombus',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Pericardial_Effusion_Tamponade',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Stroke_TIA_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},
+     {k:'Major_Bleeding',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Acute_Kidney_Injury',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Subacute_Stent_Thrombosis',type:'ynbtn',sheet:'InHospital_Complications'},
+     {k:'Infection_Sepsis',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Death_In_Hospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'InHospital_Complication_Notes',type:'textarea',sheet:'InHospital_Complications',label:'Other in-hospital complication details'}]},
    {gate:'Reintervention_Performed', title:'Reintervention during index stay?', tint:'red', c:'#be123c', icon:'fa-rotate', cols:3, fields:[
      {k:'Recurrent_Angina',type:'ynbtn'},{k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
-     {k:'Type_Reintervention_PCI_or_CABG',type:'select',opts:['PCI','CABG','None']}]},
-   {title:'In-Hospital Events / Early Outcome', tint:'gray', c:'#334155', icon:'fa-flag-checkered', cols:3, fields:[
-     {k:'FollowUp_Date',type:'date'},{k:'MI',type:'ynbtn'},{k:'Stroke',type:'ynbtn'},{k:'Heart_Failure_Hospitalization',type:'ynbtn'},
-     {k:'Death',type:'ynbtn'},{k:'Outcome_Status',type:'select',opts:['Alive','Deceased','Lost to follow-up']},{k:'Notes',type:'textarea'}]}
+     {k:'Type_Reintervention_PCI_or_CABG',type:'select',opts:['PCI','CABG','None']}]}
  ]},
  {id:'dc_meds', sheet:'Discharge_Medications', title:'Discharge & Medications', icon:'fa-pills', color:'#059669', groups:[
    {title:'In-Hospital Outcome & Discharge', tint:'gray', c:'#334155', icon:'fa-flag-checkered', cols:2, fields:[
@@ -840,11 +844,12 @@ function reactors(){
   } else if(p2){ p2.style.borderColor=''; p2.style.boxShadow=''; }
   const out=document.getElementById('f_dc_meds__In_Hospital_Outcome');
   if(out && out.value==='In-hospital death'){
-    setYNsilent('f_complications__Death','Yes');
-    const os=document.getElementById('f_complications__Outcome_Status'); if(os && os.value!=='Deceased') os.value='Deceased';
+    setYNsilent('f_complications__InHospital_Complication_Present','Yes');
+    setYNsilent('f_complications__Death_In_Hospital','Yes');
   }
-  const os2=document.getElementById('f_complications__Outcome_Status');
-  if(os2 && os2.value==='Deceased') setYNsilent('f_complications__Death','Yes');
+  // clear stent count/length when no stent implanted (DCB or none)
+  const st=document.getElementById('f_pci__Stent_Type');
+  if(st && (st.value==='DCB'||st.value==='None')){ const ns=document.getElementById('f_pci__Number_Stents'),tl=document.getElementById('f_pci__Total_Stent_Length'); if(ns)ns.value=''; if(tl)tl.value=''; }
 }
 window.setYN=function(fid,val){
   const inp=document.getElementById(fid); const grp=document.getElementById(fid+'_grp');
@@ -1217,7 +1222,7 @@ function renderAnalytics(){
   document.getElementById('stTotal').textContent=RECORDS.length;
   document.getElementById('stPci').textContent=RECORDS.filter(r=>{const cr=r.data?.['Admission_Reason.CA_Reason'],md=r.data?.['PCI_Details.Management_Decision'];return cr==='Primary PCI (STEMI)'||md==='PCI'||md==='Hybrid (PCI + CABG)';}).length;
   let mace=0,death=0;
-  RECORDS.forEach(r=>{ (r.followups||[]).forEach(fu=>{ if(fu.MACE==='Yes')mace++; if(fu.Death==='Yes')death++; }); if(r.data?.['Reintervention_FollowUp.Death']==='Yes')death++; });
+  RECORDS.forEach(r=>{ (r.followups||[]).forEach(fu=>{ if(fu.MACE==='Yes')mace++; if(fu.Death==='Yes')death++; }); if(r.data?.['Discharge_Medications.In_Hospital_Outcome']==='In-hospital death' || r.data?.['InHospital_Complications.Death_In_Hospital']==='Yes')death++; });
   document.getElementById('stMace').textContent=mace;
   document.getElementById('stDeath').textContent=death;
   const C=['#2563eb','#059669','#d97706','#e11d48','#7c3aed','#0d9488','#0891b2'];
