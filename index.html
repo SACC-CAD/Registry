@@ -67,6 +67,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .badge-blue{background:#dbeafe;color:#1d4ed8;}.badge-green{background:#d1fae5;color:#065f46;}.badge-red{background:#ffe4e6;color:#9f1239;}.badge-gray{background:#f1f5f9;color:#475569;}.badge-amber{background:#fef3c7;color:#92400e;}.badge-purple{background:#ede9fe;color:#6d28d9;}
 .step-footer{position:sticky;bottom:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1.5px solid #e2e8f0;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;z-index:30;border-radius:0 0 14px 14px;}
 .fu-card{border:1.5px solid #c7d2fe;background:#f5f7ff;border-radius:12px;padding:16px;margin-bottom:14px;position:relative;}
+.lesion-card{border:1.5px solid #99f6e4;background:#f0fdfa;border-radius:12px;padding:16px;margin-bottom:14px;position:relative;}
 .pin-dot{width:14px;height:14px;border-radius:50%;background:#e2e8f0;display:inline-block;transition:background .15s;}
 .pin-dot.filled{background:var(--blue-primary);}
 .overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;padding:18px;}
@@ -447,7 +448,7 @@ function medGroups(){return [
    {title:'Oral Anticoagulants', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
      {k:'Warfarin',type:'ynbtn'},{k:'Dabigatran',type:'ynbtn'},{k:'Apixaban',type:'ynbtn'},{k:'Rivaroxaban',type:'ynbtn'},{k:'Edoxaban',type:'ynbtn'},{k:'LMWH',type:'ynbtn'}]},
    {title:'Lipid-Lowering', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:4, fields:[
-     {k:'Statin',type:'ynbtn'},{k:'Ezetimibe',type:'ynbtn'},{k:'PCSK9i',type:'ynbtn',label:'PCSK9 Inhibitor'},{k:'Icosapent_Ethyl_Omega3',type:'ynbtn',label:'Icosapent Ethyl (Omega-3)'},{k:'Fibrates',type:'ynbtn'}]},
+     {k:'Statin',type:'select',opts:['None','Low intensity','Moderate intensity','High intensity'],label:'Statin intensity'},{k:'Ezetimibe',type:'ynbtn'},{k:'PCSK9i',type:'ynbtn',label:'PCSK9 Inhibitor'},{k:'Icosapent_Ethyl_Omega3',type:'ynbtn',label:'Icosapent Ethyl (Omega-3)'},{k:'Fibrates',type:'ynbtn'}]},
    {title:'Beta-Blocker & Renin-Angiotensin', tint:'green', c:'#059669', icon:'fa-heart', cols:4, fields:[
      {k:'Beta_Blockers',type:'ynbtn',label:'Beta-Blocker'},{k:'ACE_I',type:'ynbtn',label:'ACE Inhibitor'},{k:'ARB',type:'ynbtn'},{k:'ARNI',type:'ynbtn'},{k:'MRA',type:'ynbtn'}]},
    {title:'Heart-Failure / Other Neurohormonal', tint:'blue', c:'#2563eb', icon:'fa-heart-pulse', cols:4, fields:[
@@ -484,7 +485,7 @@ const SECTIONS = [
  ]},
  {id:'history', sheet:'History_Presentation', title:'History & Presentation', icon:'fa-heart-pulse', color:'#e11d48', groups:[
    {title:'Clinical Presentation', tint:'red', c:'#e11d48', icon:'fa-notes-medical', cols:2, fields:[
-     {k:'Presentation_Type',type:'select',opts:['STEMI','NSTEMI','Unstable Angina','Stable Angina','Silent Ischemia','Other'],sheet:'Presentation_ECG_Timing'},
+     {k:'Presentation_Type',type:'select',opts:['STEMI','NSTEMI','Unstable Angina','Stable Angina','Silent Ischemia','MINOCA','Out-of-hospital cardiac arrest','Other'],sheet:'Presentation_ECG_Timing'},
      {k:'Killip_Class',type:'select',opts:KILLIP,info:'KILLIP',sheet:'Presentation_ECG_Timing'},
      {k:'Chest_Pain_CCS_Class',type:'select',opts:CCS,info:'CCS',label:'Chest Pain (CCS class)'},
      {k:'Dyspnea_NYHA_Class',type:'select',opts:NYHA,info:'NYHA',label:'Dyspnea (NYHA class)'},
@@ -498,7 +499,8 @@ const SECTIONS = [
    {title:'Cardiovascular Risk Factors', tint:'gray', c:'#475569', icon:'fa-triangle-exclamation', cols:3, fields:[
      {k:'Smoking_Status',type:'select',opts:['Never','Former','Current'],sheet:'Patient_Master'},{k:'Diabetes',type:'ynbtn',sheet:'Patient_Master'},
      {k:'Hypertension',type:'ynbtn',sheet:'Patient_Master'},{k:'Dyslipidemia',type:'ynbtn',sheet:'Patient_Master'},
-     {k:'Family_History_CAD',type:'ynbtn',sheet:'Patient_Master'},{k:'Chronic_Kidney_Disease',type:'ynbtn',sheet:'Patient_Master'}]},
+     {k:'Family_History_CAD',type:'ynbtn',sheet:'Patient_Master'},{k:'Chronic_Kidney_Disease',type:'ynbtn',sheet:'Patient_Master'},
+     {k:'Dialysis_Dependent',type:'ynbtn',label:'Dialysis dependent?',sheet:'Patient_Master',showIf:{sec:'history',k:'Chronic_Kidney_Disease',eq:'Yes'}}]},
    {title:'Coronary Disease & Prior Revascularization', tint:'gray', c:'#475569', icon:'fa-heart-circle-exclamation', cols:3, fields:[
      {k:'Coronary_Artery_Disease',type:'ynbtn',label:'Coronary Artery Disease'},{k:'Myocardial_Infarction',type:'ynbtn',label:'Myocardial Infarction'},
      {k:'Prior_PCI',type:'ynbtn',label:'Prior PCI',sheet:'Patient_Master'},
@@ -516,9 +518,10 @@ const SECTIONS = [
      {k:'HF_Type',type:'select',opts:['HFrEF','HFpEF','HFmrEF'],label:'HF phenotype',showIf:{sec:'history',k:'Heart_Failure',eq:'Yes'}}]},
    {title:'Other Comorbidities', tint:'gray', c:'#475569', icon:'fa-list-check', cols:3, fields:[
      {k:'Valvular_Heart_Disease',type:'ynbtn',label:'Valvular Heart Disease'},{k:'Cerebrovascular_Disease',type:'ynbtn',label:'Cerebrovascular Disease'},
-     {k:'Chronic_Lung_Disease',type:'ynbtn',label:'Chronic Lung Disease'},{k:'Currently_On_Dialysis',type:'ynbtn',label:'Currently on Dialysis'},
-     {k:'Peripheral_Artery_Disease',type:'ynbtn',label:'Peripheral Artery Disease',sheet:'Patient_Master'},{k:'Prior_Stroke_TIA',type:'ynbtn',label:'Prior Stroke / TIA',sheet:'Patient_Master'},
-     {k:'Familial_Syndrome',type:'ynbtn',label:'Familial Syndrome'}]},
+     {k:'Chronic_Lung_Disease',type:'ynbtn',label:'Chronic Lung Disease / COPD'},{k:'Peripheral_Artery_Disease',type:'ynbtn',label:'Peripheral Artery Disease',sheet:'Patient_Master'},
+     {k:'Prior_Stroke_TIA',type:'ynbtn',label:'Prior Stroke / TIA',sheet:'Patient_Master'},{k:'Prior_Major_Bleeding',type:'ynbtn',label:'Prior Major Bleeding',sheet:'Patient_Master'},
+     {k:'Contrast_Allergy',type:'ynbtn',label:'Contrast Allergy',sheet:'Patient_Master'},{k:'Familial_Syndrome',type:'ynbtn',label:'Familial Syndrome'},
+     {k:'Frailty',type:'select',opts:['Not assessed','Fit / Robust','Vulnerable','Frail','Severely frail'],label:'Frailty (CFS category)',sheet:'Patient_Master'}]},
    {title:'Arrhythmia & Other Cardiac History', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
      {k:'Atrial_Fibrillation',type:'ynbtn',label:'Atrial Fibrillation',sheet:'Patient_Master'},{k:'Prior_Cardiac_Arrest',type:'ynbtn',label:'Prior Cardiac Arrest'},
      {k:'Paroxysmal_SVT',type:'ynbtn',label:'Paroxysmal SVT'},{k:'Ventricular_Fibrillation',type:'ynbtn',label:'Ventricular Fibrillation'},
@@ -538,7 +541,9 @@ const SECTIONS = [
    {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
      {k:'ECG_Rhythm',type:'select',opts:RHYTHM,sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation_Leads',type:'text',sheet:'Presentation_ECG_Timing'},
      {k:'ST_Depression',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'T_Wave_Inversion',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Pathologic_Q_Waves',type:'ynbtn',sheet:'Presentation_ECG_Timing'},
-     {k:'New_LBBB',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Posterior_MI_Suspected',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ECG_Notes',type:'textarea',sheet:'Presentation_ECG_Timing'}]},
+     {k:'New_LBBB',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Posterior_MI_Suspected',type:'ynbtn',sheet:'Presentation_ECG_Timing'},
+     {k:'STEMI_Territory',type:'select',opts:['None / not STEMI','Anterior','Inferior','Lateral','Posterior','RV infarction','Multiterritory'],label:'STEMI territory (ECG)',sheet:'Presentation_ECG_Timing'},
+     {k:'ECG_Notes',type:'textarea',sheet:'Presentation_ECG_Timing'}]},
    {title:'Echocardiography — LV Function', tint:'teal', c:'#0d9488', icon:'fa-heart', cols:3, fields:[
      {k:'Echo_Date',type:'date',sheet:'Echocardiography'},{k:'LVEF',type:'num',label:'LVEF (%)',sheet:'Echocardiography'},{k:'Regional_Wall_Motion_Abnormality',type:'ynbtn',sheet:'Echocardiography'},
      {k:'Diastolic_Dysfunction',type:'select',opts:['None','Grade I','Grade II','Grade III'],sheet:'Echocardiography'},{k:'LVH',type:'ynbtn',sheet:'Echocardiography'}]},
@@ -546,8 +551,10 @@ const SECTIONS = [
      {k:'LA_Size',type:'select',opts:['Normal','Mildly dilated','Moderately dilated','Severely dilated'],sheet:'Echocardiography'},
      {k:'RV_Function',type:'select',opts:RV,sheet:'Echocardiography'},{k:'Pulmonary_Pressure',type:'num',label:'Pulmonary Pressure (mmHg)',sheet:'Echocardiography'},{k:'Valvular_Disease',type:'select',opts:VALVE,sheet:'Echocardiography'},
      {k:'Pericardial_Effusion',type:'ynbtn',sheet:'Echocardiography'},{k:'Echo_Notes',type:'textarea',sheet:'Echocardiography'}]},
+   {title:'Other Non-invasive Imaging', tint:'teal', c:'#0d9488', icon:'fa-display', cols:2, fields:[
+     {k:'Stress_Test_Performed',type:'ynbtn',label:'Stress / functional test performed',sheet:'Echocardiography'},{k:'CTCA_Performed',type:'ynbtn',label:'CT coronary angiography performed',sheet:'Echocardiography'}]},
    {title:'Labs — Hematology', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
-     {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'labnum',label:'Hemoglobin (g/L)'},{k:'WBC',type:'labnum',label:'WBC (×10⁹/L)'},{k:'Platelets',type:'labnum',label:'Platelets (×10⁹/L)'}]},
+     {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'labnum',label:'Hemoglobin (g/dL)'},{k:'WBC',type:'labnum',label:'WBC (×10⁹/L)'},{k:'Platelets',type:'labnum',label:'Platelets (×10⁹/L)'}]},
    {title:'Labs — Renal Function & Electrolytes', tint:'blue', c:'#2563eb', icon:'fa-flask', cols:4, fields:[
      {k:'Creatinine',type:'labnum',label:'Creatinine (µmol/L)'},{k:'eGFR',type:'num',label:'eGFR (mL/min/1.73m²)',hint:'auto',ro:true},
      {k:'Sodium',type:'labnum',label:'Sodium (mmol/L)'},{k:'Potassium',type:'labnum',label:'Potassium (mmol/L)'}]},
@@ -567,6 +574,13 @@ const SECTIONS = [
    {title:'Coronary Angiography — Vessel Disease', tint:'purple', c:'#7c3aed', icon:'fa-x-ray', cols:3, fields:[
      {k:'Angio_Date',type:'date',sheet:'Coronary_Anatomy'},{k:'Left_Main_Disease',type:'ynbtn',sheet:'Coronary_Anatomy'},{k:'LAD_Disease',type:'ynbtn',sheet:'Coronary_Anatomy'},
      {k:'LCX_Disease',type:'ynbtn',sheet:'Coronary_Anatomy'},{k:'RCA_Disease',type:'ynbtn',sheet:'Coronary_Anatomy'},{k:'Number_Diseased_Vessels',type:'select',opts:['0','1','2','3'],sheet:'Coronary_Anatomy'}]},
+   {title:'Quantitative Angiography, Access & Dominance', tint:'blue', c:'#2563eb', icon:'fa-percent', cols:3, fields:[
+     {k:'Coronary_Dominance',type:'select',opts:['Right dominant','Left dominant','Co-dominant'],sheet:'Coronary_Anatomy'},
+     {k:'Procedure_Urgency',type:'select',opts:['Elective','Urgent','Emergent / salvage'],sheet:'PCI_Details'},
+     {k:'Access_Site',type:'select',opts:['Right radial','Left radial','Right femoral','Left femoral','Brachial','Other'],sheet:'PCI_Details'},
+     {k:'LM_Stenosis_Pct',type:'num',label:'Left Main stenosis (%)',sheet:'Coronary_Anatomy'},{k:'LAD_Stenosis_Pct',type:'num',label:'LAD stenosis (%)',sheet:'Coronary_Anatomy'},
+     {k:'LCX_Stenosis_Pct',type:'num',label:'LCx stenosis (%)',sheet:'Coronary_Anatomy'},{k:'RCA_Stenosis_Pct',type:'num',label:'RCA stenosis (%)',sheet:'Coronary_Anatomy'},
+     {k:'Num_Vessels_GE70',type:'num',label:'Vessels with ≥70% stenosis',sheet:'Coronary_Anatomy'}]},
    {title:'Culprit & Lesion Morphology', tint:'red', c:'#e11d48', icon:'fa-bullseye', cols:3,
      showIf:{sec:'careason',k:'CA_Reason',eq:'Primary PCI (STEMI)'}, fields:[
      {k:'Culprit_Vessel',type:'select',opts:['Left Main','LAD','LCX','RCA','Ramus','Graft','None'],sheet:'Coronary_Anatomy'},
@@ -578,7 +592,12 @@ const SECTIONS = [
      showIf:{any:[{sec:'careason',k:'CA_Reason',eq:'Primary PCI (STEMI)'},{sec:'pci',k:'Management_Decision',eq:'PCI'},{sec:'pci',k:'Management_Decision',eq:'Hybrid (PCI + CABG)'}]}, fields:[
      {k:'PCI_Date',type:'date'},{k:'Vessel_Treated',type:'text'},{k:'Stent_Type',type:'select',opts:['DES','BMS','DCB','None']},
      {k:'Number_Stents',type:'num',showIf:{sec:'pci',k:'Stent_Type',in:['DES','BMS']}},{k:'Total_Stent_Length',type:'num',showIf:{sec:'pci',k:'Stent_Type',in:['DES','BMS']}},
-     {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']}]}
+     {k:'Imaging_Used',type:'select',opts:['None','IVUS','OCT','IVUS+OCT']},
+     {k:'GP_IIbIIIa_Used',type:'ynbtn',label:'GP IIb/IIIa inhibitor used'},
+     {k:'Procedural_Anticoagulation',type:'select',opts:['None','UFH','LMWH','Bivalirudin','Other'],label:'Procedural anticoagulation'},
+     {k:'Vascular_Closure_Device',type:'ynbtn',label:'Vascular closure device used'},
+     {k:'Procedure_Success',type:'select',opts:['Successful','Partially successful','Failed','Aborted'],label:'Overall procedure success'},
+     {k:'Complete_Revascularization',type:'ynbtn',label:'Complete revascularization achieved'}]}
  ]},
  {id:'complications', sheet:'Reintervention_FollowUp', title:'Complications', icon:'fa-triangle-exclamation', color:'#e11d48', groups:[
    {gate:'Procedural_Complications_Present', gateSheet:'PCI_Details', title:'Any procedural (cath-lab) complication?', tint:'red', c:'#e11d48', icon:'fa-triangle-exclamation', cols:3, fields:[
@@ -593,7 +612,9 @@ const SECTIONS = [
      {k:'Cardiogenic_Shock_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Cardiac_Arrest_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Sustained_VT_VF',type:'ynbtn',sheet:'InHospital_Complications'},
      {k:'New_Atrial_Fibrillation',type:'ynbtn',sheet:'InHospital_Complications'},{k:'High_Grade_AV_Block',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Mechanical_Complication',type:'ynbtn',sheet:'InHospital_Complications'},
      {k:'LV_Thrombus',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Pericardial_Effusion_Tamponade',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Stroke_TIA_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},
-     {k:'Major_Bleeding',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Blood_Transfusion',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Subacute_Stent_Thrombosis',type:'ynbtn',sheet:'InHospital_Complications',label:'Subacute Stent Thrombosis (>24h)'},
+     {k:'Major_Bleeding',type:'ynbtn',sheet:'InHospital_Complications'},{k:'BARC_Bleeding_Grade',type:'select',opts:['None','BARC 1','BARC 2','BARC 3a','BARC 3b','BARC 3c','BARC 4','BARC 5'],label:'Max BARC bleeding grade',info:'BARC',sheet:'InHospital_Complications'},
+     {k:'Blood_Transfusion',type:'ynbtn',sheet:'InHospital_Complications'},{k:'New_Dialysis',type:'ynbtn',label:'New dialysis requirement',sheet:'InHospital_Complications'},
+     {k:'Subacute_Stent_Thrombosis',type:'ynbtn',sheet:'InHospital_Complications',label:'Subacute Stent Thrombosis (>24h)'},
      {k:'Infection_Sepsis',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Death_In_Hospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'InHospital_Complication_Notes',type:'textarea',sheet:'InHospital_Complications',label:'Other in-hospital complication details'}]},
    {gate:'Reintervention_Performed', title:'Reintervention during index stay?', tint:'red', c:'#be123c', icon:'fa-rotate', cols:3, fields:[
      {k:'Recurrent_Angina',type:'ynbtn'},{k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
@@ -618,7 +639,7 @@ const FOLLOWUP = {id:'fu', sheet:'FollowUp_Comprehensive', title:'Comprehensive 
    {title:'Symptoms & Clinical Events', tint:'red', c:'#e11d48', icon:'fa-notes-medical', cols:3, fields:[
      {k:'Rehospitalization',type:'ynbtn'},{k:'Recurrent_Chest_Pain',type:'ynbtn'},{k:'Dyspnea',type:'ynbtn'},
      {k:'NYHA_Class',type:'select',opts:['I','II','III','IV']},{k:'Heart_Failure_Hospitalization',type:'ynbtn'},
-     {k:'Stroke',type:'ynbtn'},{k:'MI',type:'ynbtn'}]},
+     {k:'Stroke',type:'ynbtn'},{k:'MI',type:'ynbtn'},{k:'Unplanned_Revascularization',type:'ynbtn'},{k:'Stent_Thrombosis',type:'ynbtn'}]},
    {title:'ECG', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
      {k:'ECG_Performed',type:'ynbtn'},{k:'ECG_Rhythm',type:'select',opts:RHYTHM},{k:'ST_Changes',type:'ynbtn'},
      {k:'New_Q_Waves',type:'ynbtn'},{k:'Arrhythmia',type:'ynbtn'}]},
@@ -635,11 +656,34 @@ const FOLLOWUP = {id:'fu', sheet:'FollowUp_Comprehensive', title:'Comprehensive 
      {k:'Reintervention_At_FollowUp',type:'ynbtn'}]},
    {title:'Reintervention Details', tint:'gray', c:'#475569', icon:'fa-screwdriver-wrench', cols:3, fudetail:true, fields:[
      {k:'Repeat_Angiography',type:'ynbtn'},{k:'Repeat_PCI',type:'ynbtn'},{k:'CABG',type:'ynbtn'},
+     {k:'Target_Lesion_Revascularization',type:'ynbtn',label:'TLR',info:'TLRTVR'},{k:'Target_Vessel_Revascularization',type:'ynbtn',label:'TVR',info:'TLRTVR'},
      {k:'Time_to_Reintervention_Months',type:'num'},{k:'Same_Vessel_Reintervention',type:'ynbtn'}]},
    {title:'MACE & Vital Status', tint:'red', c:'#e11d48', icon:'fa-flag-checkered', cols:3, fields:[
-     {k:'MACE',type:'ynbtn'},{k:'Death',type:'ynbtn'},{k:'Notes',type:'textarea'}]}
+     {k:'MACE',type:'ynbtn'},{k:'Death',type:'ynbtn'},{k:'Cardiac_Death',type:'ynbtn'},{k:'Notes',type:'textarea'}]}
 ]};
 
+// Repeating lesion-level PCI form (embedded inside the Procedure step; one card per treated lesion)
+const LESIONS = {id:'les', sheet:'Lesion_PCI_Details', title:'Lesion / PCI Details', icon:'fa-bezier-curve', color:'#0891b2', groups:[
+   {title:'Lesion & Morphology', tint:'purple', c:'#7c3aed', icon:'fa-bullseye', cols:3, fields:[
+     {k:'Target_Vessel',type:'select',opts:['Left main','LAD','LCx','RCA','Ramus / intermediate','Graft','Other']},
+     {k:'Target_Segment',type:'select',opts:['Ostial','Proximal','Mid','Distal','Branch','Graft body','Anastomosis','Other']},
+     {k:'Culprit_Lesion',type:'ynbtn'},
+     {k:'Lesion_Type',type:'select',opts:['De novo','In-stent restenosis','Stent thrombosis','CTO','Bifurcation','Ostial','Graft lesion','Other']},
+     {k:'Calcification_Grade',type:'select',opts:['None','Mild','Moderate','Severe']},
+     {k:'Bifurcation_Lesion',type:'ynbtn'},{k:'CTO_Lesion',type:'ynbtn',label:'CTO lesion'},{k:'Thrombus_Present',type:'ynbtn'}]},
+   {title:'Quantitative', tint:'blue', c:'#2563eb', icon:'fa-ruler', cols:4, fields:[
+     {k:'Pre_Stenosis_Pct',type:'num',label:'Pre-PCI stenosis (%)'},{k:'Lesion_Length_mm',type:'num',label:'Lesion length (mm)'},
+     {k:'Reference_Vessel_Diameter_mm',type:'num',label:'Reference vessel diameter (mm)'},{k:'Pre_TIMI_Flow',type:'select',opts:['TIMI 0','TIMI 1','TIMI 2','TIMI 3','Not assessed'],label:'Pre-PCI TIMI flow'}]},
+   {title:'Technique & Devices', tint:'cyan', c:'#0891b2', icon:'fa-screwdriver-wrench', cols:3, fields:[
+     {k:'Intravascular_Imaging_Physiology',type:'select',opts:['None','IVUS','OCT','FFR','iFR / RFR / DFR','IVUS + physiology','OCT + physiology'],label:'Imaging / physiology'},
+     {k:'Pre_Dilatation',type:'ynbtn'},{k:'Atherectomy_Used',type:'ynbtn',label:'Atherectomy / lithotripsy'},{k:'Thrombectomy_Used',type:'ynbtn'},
+     {k:'Primary_Device',type:'select',opts:['None','Balloon angioplasty only','DES','BMS','Drug-coated balloon','Bioabsorbable scaffold','Atherectomy','Thrombectomy','Other']},
+     {k:'Post_Dilatation',type:'ynbtn'}]},
+   {title:'Stent & Result', tint:'green', c:'#059669', icon:'fa-flag-checkered', cols:3, fields:[
+     {k:'Stent_Count',type:'num',label:'Number of stents'},{k:'Total_Stent_Length_mm',type:'num',label:'Total stent length (mm)'},{k:'Max_Stent_Diameter_mm',type:'num',label:'Max stent diameter (mm)'},
+     {k:'Post_Stenosis_Pct',type:'num',label:'Post-PCI residual stenosis (%)'},{k:'Post_TIMI_Flow',type:'select',opts:['TIMI 0','TIMI 1','TIMI 2','TIMI 3','Not assessed'],label:'Post-PCI TIMI flow'},
+     {k:'Lesion_Success',type:'select',opts:['Successful','Partially successful','Failed','Aborted']}]}
+]};
 const ALL_STEPS = [...SECTIONS, FOLLOWUP];
 const secFields = s => s.groups.reduce((a,g)=>{ if(g.gate) a.push({k:g.gate,type:'ynbtn',sheet:g.gateSheet}); return a.concat(g.fields||[]); },[]);
 const fkey = (s,f) => `${f.sheet||s.sheet}.${f.k}`;
@@ -820,6 +864,9 @@ function buildForm(){
   SECTIONS.forEach((s,i)=>{
     const div=document.createElement('div'); div.className='form-step'+(i===0?' active':''); div.dataset.step=i;
     div.innerHTML=`<div class="sec-title"><div class="icon-wrap" style="background:${s.color};color:#fff;"><i class="fas ${s.icon}"></i></div>${s.title}</div>${s.groups.map(g=>groupCard(s.id,g)).join('')}`;
+    if(s.id==='pci'){
+      div.innerHTML+=`<div class="grp card-gray" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;"><div style="font-size:13px;color:#475569;"><b>Lesion-level PCI details</b> — add one card per treated lesion. Each lesion exports as its own row.</div><button type="button" class="btn btn-teal" onclick="addLesionCard()"><i class="fas fa-plus"></i> Add Lesion</button></div><div id="lesionContainer"></div>`;
+    }
     cont.appendChild(div);
   });
   const fuStep=document.createElement('div'); fuStep.className='form-step'; fuStep.dataset.step=SECTIONS.length;
@@ -925,7 +972,9 @@ const INFO={
   YOB:{t:'Year of Birth',h:`Enter the 4-digit year of birth. Estimated age is filled automatically; you can override it.`},
   BP:{t:'Blood Pressure',h:`Record the first measured value on presentation (mmHg). Tick <b>Unrecordable</b> if it could not be obtained.`},
   HR:{t:'Heart Rate',h:`First measured heart rate on presentation (beats/min). Tick <b>Unrecordable</b> if not obtained.`},
-  SUDDEN_DEATH:{t:'Inherited Sudden-Death Syndromes',h:`Channelopathies / inherited arrhythmia syndromes associated with sudden cardiac death (e.g. Long-QT, Brugada, CPVT, short-QT).`}
+  SUDDEN_DEATH:{t:'Inherited Sudden-Death Syndromes',h:`Channelopathies / inherited arrhythmia syndromes associated with sudden cardiac death (e.g. Long-QT, Brugada, CPVT, short-QT).`},
+  BARC:{t:'BARC Bleeding Classification',h:`Bleeding Academic Research Consortium grade — record the most severe during admission.<br><b>0</b> none · <b>1</b> nuisance, no action · <b>2</b> overt, needs action/evaluation · <b>3a</b> overt + Hb drop 3–&lt;5 g/dL or transfusion · <b>3b</b> Hb drop ≥5 g/dL, tamponade, surgery, or vasoactive agents · <b>3c</b> intracranial/intraocular · <b>4</b> CABG-related · <b>5</b> fatal.`},
+  TLRTVR:{t:'TLR vs TVR',h:`<b>TLR (Target-Lesion Revascularization):</b> repeat PCI/CABG of the treated lesion segment (incl. 5 mm margins).<br><b>TVR (Target-Vessel Revascularization):</b> repeat revascularization anywhere in the treated epicardial vessel, including the target lesion. Every TLR is also a TVR; a TVR outside the lesion is not a TLR.`}
 };
 window.openInfo=function(k){ const i=INFO[k]; if(!i)return; document.getElementById('infoTitle').innerHTML='<span class="fn-btn" style="cursor:default;">i</span>'+i.t; document.getElementById('infoBody').innerHTML=i.h; document.getElementById('infoModal').classList.add('show'); };
 window.closeInfo=function(){ document.getElementById('infoModal').classList.remove('show'); };
@@ -964,6 +1013,21 @@ window.addFollowupCard=function(data){
   applyConditionals();
   return idx;
 };
+let _lesSeq=0;
+window.addLesionCard=function(data){
+  _lesSeq++; const idx=_lesSeq;
+  const card=document.createElement('div'); card.className='lesion-card'; card.dataset.les=idx;
+  const groups=LESIONS.groups.map(g=>{
+    const grid=g.cols===1?'g1':(g.cols===2?'g2':(g.cols===4?'g4':'g3'));
+    return `<div style="margin-bottom:12px;"><div class="grp-head" style="font-size:12px;margin-bottom:9px;"><span class="gi" style="width:22px;height:22px;font-size:11px;background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}</span></div><div class="${grid}" style="gap:10px;">${g.fields.map(f=>fieldHtml('les'+idx,f)).join('')}</div></div>`;
+  }).join('');
+  card.innerHTML=`<button type="button" class="btn btn-red" style="position:absolute;top:12px;right:12px;padding:4px 9px;font-size:11px;" onclick="this.closest('.lesion-card').remove();updateIndicators();"><i class="fas fa-trash"></i></button>
+    <div style="font-weight:800;font-size:14px;color:#0891b2;margin-bottom:14px;"><i class="fas fa-bezier-curve mr-1"></i> Treated Lesion</div>${groups}`;
+  document.getElementById('lesionContainer').appendChild(card);
+  if(data){ secFields(LESIONS).forEach(f=>setFieldVal(`f_les${idx}__${f.k}`,f,data[f.k])); }
+  applyConditionals();
+  return idx;
+};
 function setFieldVal(fid,f,val){
   if(f.type==='dt24'){ const el=document.getElementById(fid), te=document.getElementById(fid+'__t'); const p=(val||'').split('T'); if(el)el.value=p[0]||''; if(te)te.value=p[1]||''; return; }
   const el=document.getElementById(fid); if(!el)return;
@@ -996,6 +1060,7 @@ window.newRecord=function(){
   });
   document.getElementById('cadForm').querySelectorAll('input[id$="__t"]').forEach(e=>e.value='');
   document.getElementById('fuContainer').innerHTML='';
+  const _lc=document.getElementById('lesionContainer'); if(_lc)_lc.innerHTML='';
   document.getElementById('entryTitle').textContent='New CAD Patient Record';
   document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
   document.getElementById('entryStatusBadge').textContent='Draft';
@@ -1016,7 +1081,13 @@ function collectData(){
     secFields(FOLLOWUP).forEach(f=>{ const el=document.getElementById(`f_fu${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } });
     if(any) followups.push(v);
   });
-  return {data,followups};
+  const lesions=[];
+  document.querySelectorAll('#lesionContainer .lesion-card').forEach(card=>{
+    const idx=card.dataset.les; const v={}; let any=false;
+    secFields(LESIONS).forEach(f=>{ const el=document.getElementById(`f_les${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } });
+    if(any) lesions.push(v);
+  });
+  return {data,followups,lesions};
 }
 async function nextPatientId(code){
   const used=new Set();
@@ -1090,7 +1161,7 @@ window.saveRecord=async function(status, closeAfter, finalize){
   if(!sexEl.value){ goToStep(0); sexEl.focus(); toast('Sex is required','#e11d48'); return; }
   const civEl=document.getElementById('f_master__Civil_ID_Optional');
   if(civEl && civEl.value && civEl.value.length!==12){ goToStep(0); civEl.focus(); toast('Civil ID must be exactly 12 digits, or left blank','#e11d48'); return; }
-  const {data,followups}=collectData();
+  const {data,followups,lesions}=collectData();
   const vr=validateLogic(data);
   renderValSummary(vr.errors, vr.warnings);
   if(finalize && vr.errors.length){
@@ -1102,7 +1173,7 @@ window.saveRecord=async function(status, closeAfter, finalize){
   const btns=['btnSave','btnSaveClose','btnFinal'].map(id=>document.getElementById(id));
   btns.forEach(b=>b&&(b.disabled=true));
   try{
-    let obj={ data, followups, recordStatus:status, locked:!!finalize, updatedAt:new Date(), updatedByName:currentDoctor.name, updatedByCode:dcode(currentDoctor) };
+    let obj={ data, followups, lesions, recordStatus:status, locked:!!finalize, updatedAt:new Date(), updatedByName:currentDoctor.name, updatedByCode:dcode(currentDoctor) };
     if(recId){
       await db.collection(COL_PATIENTS).doc(recId).set(obj,{merge:true});
       if(finalize) await db.collection(COL_PATIENTS).doc(recId).update({submittedAt:new Date()});
@@ -1231,6 +1302,7 @@ window.editRecord=function(id){
   document.getElementById('editRecordId').value=id;
   SECTIONS.forEach(s=>secFields(s).forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${f.sheet||s.sheet}.${f.k}`])));
   (r.followups||[]).forEach(fu=>addFollowupCard(fu));
+  (r.lesions||[]).forEach(les=>addLesionCard(les));
   recalcBMI(); recalcEGFR(); updateIndicators(); reactors(); applyConditionals();
   _set('f_master__CRF_Number', r.patientId||r.data?.['Patient_Master.CRF_Number']||'');
   document.getElementById('entryTitle').textContent=r.patientId||'Edit Record';
@@ -1407,6 +1479,15 @@ function buildWorkbook(coded){
     fRows.push(row);
   }); });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(fRows),'FollowUp');
+  // Lesion long sheet
+  const lHeader=['Patient_ID','Lesion_No']; secFields(LESIONS).forEach(f=>lHeader.push(f.k));
+  const lRows=[lHeader];
+  RECORDS.forEach(r=>{ (r.lesions||[]).forEach((les,i)=>{
+    const row=[r.patientId||'', i+1];
+    secFields(LESIONS).forEach(f=>row.push(coded?codeValue(f,les[f.k]):(les[f.k]||'')));
+    lRows.push(row);
+  }); });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(lRows),'Lesions');
   // Codebook
   appendCodebook(wb);
   return wb;
@@ -1415,6 +1496,7 @@ function appendCodebook(wb){
   const rows=[['Sheet','Variable','Label','Type','Value_Labels']];
   SECTIONS.forEach(s=>secFields(s).forEach(f=>rows.push([f.sheet||s.sheet,`${f.sheet||s.sheet}.${f.k}`,pretty(f.k),f.type,codebookFor(f)])));
   secFields(FOLLOWUP).forEach(f=>rows.push([FOLLOWUP.sheet,f.k,pretty(f.k),f.type,codebookFor(f)]));
+  secFields(LESIONS).forEach(f=>rows.push([LESIONS.sheet,f.k,pretty(f.k),f.type,codebookFor(f)]));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Codebook');
 }
 window.exportCoded=function(){ if(!RECORDS.length){toast('No records to export','#e11d48');return;} XLSX.writeFile(buildWorkbook(true),`SACC_CAD_Coded_${stamp()}.xlsx`); toast('Coded workbook exported ✓','#7c3aed'); };
@@ -1481,7 +1563,7 @@ function renderAnalytics(){
   const sp=[['Aspirin',surv.filter(r=>_dx(r,'Aspirin')).length],
     ['Dual antiplatelet therapy',surv.filter(r=>_dx(r,'Aspirin')&&_p2y12(r)).length],
     ['P2Y12 inhibitor',surv.filter(_p2y12).length],
-    ['Statin',surv.filter(r=>_dx(r,'Statin')).length],
+    ['Statin',surv.filter(r=>{const v=r.data?.['Discharge_Medications.Statin'];return v&&v!=='None';}).length],
     ['Beta-blocker',surv.filter(r=>_dx(r,'Beta_Blockers')).length],
     ['ACEi / ARB / ARNI',surv.filter(r=>_dx(r,'ACE_I')||_dx(r,'ARB')||_dx(r,'ARNI')).length]];
   // ---- complications ----
