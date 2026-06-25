@@ -293,43 +293,90 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 
   <!-- ============ ADMIN TAB ============ -->
   <section id="tab-admin" class="hidden">
-    <div class="g2" style="align-items:start;">
-      <!-- Doctors management -->
-      <div class="card">
-        <div class="sec-title"><div class="icon-wrap" style="background:#0d9488;"><i class="fas fa-user-doctor"></i></div>Doctors & PINs</div>
-        <div id="addDoctorForm" style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:11px;padding:14px;margin-bottom:14px;">
-          <div class="g2" style="gap:10px;">
-            <div><label class="lbl">Doctor Name</label><input id="newDocName" class="inp inp-sm" placeholder="Dr Ahmed Shafie"></div>
-            <div><label class="lbl">PIN (3–6 digits)</label><input id="newDocPin" class="inp inp-sm" maxlength="6" style="font-family:'DM Mono',monospace;" placeholder="1234" oninput="this.value=this.value.replace(/\D/g,'')"></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div class="sec-title" style="border:none;margin:0;padding:0;"><div class="icon-wrap" style="background:#7c3aed;"><i class="fas fa-shield-halved"></i></div>Admin Panel</div>
+        <span class="badge badge-amber" style="font-weight:800;letter-spacing:.04em;">ADMIN ACCESS</span>
+      </div>
+      <div style="display:flex;gap:4px;border-bottom:1.5px solid #e2e8f0;margin:12px 0 18px;overflow-x:auto;">
+        <button class="subtab subtab-active" data-sub="records" onclick="adminSubTab('records')"><i class="fas fa-database mr-1"></i> Patient Records</button>
+        <button class="subtab" data-sub="users" onclick="adminSubTab('users')"><i class="fas fa-users mr-1"></i> Manage Users</button>
+        <button class="subtab" data-sub="codes" onclick="adminSubTab('codes')"><i class="fas fa-id-badge mr-1"></i> Doctor Codes</button>
+      </div>
+
+      <!-- Patient Records -->
+      <div id="adminSub-records">
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:14px;">
+          <div class="g3" style="gap:12px;">
+            <div><label class="lbl">Civil ID</label><input id="arCivil" class="inp inp-sm" oninput="renderAdminRecords()"></div>
+            <div><label class="lbl">Doctor Code</label><input id="arCode" class="inp inp-sm" placeholder="e.g. 101" oninput="renderAdminRecords()"></div>
+            <div><label class="lbl">CRF Number</label><input id="arCrf" class="inp inp-sm" oninput="renderAdminRecords()"></div>
           </div>
-          <button class="btn btn-teal inp-sm" style="margin-top:12px;" onclick="addDoctor()"><i class="fas fa-user-plus"></i> Add Doctor</button>
+          <div class="g2" style="gap:12px;margin-top:12px;align-items:end;">
+            <div><label class="lbl">Investigator</label><select id="arInv" class="inp inp-sm" onchange="renderAdminRecords()"><option value="">All Investigators</option></select></div>
+            <div style="display:flex;gap:8px;align-items:end;">
+              <div style="flex:1;"><label class="lbl">Status</label><select id="arStatus" class="inp inp-sm" onchange="renderAdminRecords()"><option value="">All</option><option value="draft">Draft</option><option value="submitted">Submitted</option><option value="reviewed">Reviewed</option></select></div>
+              <button class="btn btn-gray inp-sm" title="Clear filters" onclick="arClear()"><i class="fas fa-xmark"></i></button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="btn btn-teal inp-sm" onclick="exportLabeled()"><i class="fas fa-table"></i> Excel</button>
+          <button class="btn btn-purple inp-sm" onclick="exportCoded()"><i class="fas fa-database"></i> SPSS / Coded</button>
+          <button class="btn btn-gray inp-sm" onclick="exportCodebookOnly()"><i class="fas fa-book"></i> Codebook</button>
         </div>
         <div style="overflow-x:auto;">
-          <table class="admin-table" style="width:100%;border-collapse:collapse;">
-            <thead><tr><th>Name</th><th>PIN</th><th>Records</th><th>Status</th><th></th></tr></thead>
-            <tbody id="doctorsBody"><tr><td colspan="5" style="text-align:center;padding:18px;color:#94a3b8;">Loading…</td></tr></tbody>
+          <table class="admin-table" style="width:100%;border-collapse:collapse;white-space:nowrap;">
+            <thead><tr><th>#</th><th>CRF Number</th><th>Civil ID</th><th>Doctor Code</th><th>Status</th><th>Created By</th><th>Created At</th><th>Last Updated By</th><th>Last Updated</th><th>Actions</th></tr></thead>
+            <tbody id="adminRecBody"><tr><td colspan="10" style="text-align:center;padding:24px;color:#94a3b8;">Loading…</td></tr></tbody>
           </table>
         </div>
       </div>
-      <!-- Settings + exports -->
-      <div>
-        <div class="card" style="margin-bottom:18px;">
-          <div class="sec-title"><div class="icon-wrap" style="background:#7c3aed;"><i class="fas fa-key"></i></div>Admin PIN</div>
-          <label class="lbl">Change master admin PIN</label>
-          <div style="display:flex;gap:8px;">
-            <input id="newAdminPin" class="inp inp-sm" maxlength="8" style="font-family:'DM Mono',monospace;" placeholder="New PIN" oninput="this.value=this.value.replace(/\D/g,'')">
-            <button class="btn btn-purple inp-sm" onclick="changeAdminPin()"><i class="fas fa-save"></i> Save</button>
-          </div>
-          <p style="font-size:11px;color:#94a3b8;margin-top:8px;">PIN is stored in Firestore (<code>cad_settings/config</code>), never in the page source.</p>
+
+      <!-- Manage Users -->
+      <div id="adminSub-users" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+          <div style="font-size:16px;font-weight:800;">Registered Users</div>
+          <button class="btn btn-primary inp-sm" onclick="document.getElementById('addUserForm').classList.toggle('hidden')"><i class="fas fa-user-plus"></i> Add New User</button>
         </div>
-        <div class="card">
-          <div class="sec-title"><div class="icon-wrap" style="background:#059669;"><i class="fas fa-file-export"></i></div>Data Export</div>
-          <p style="font-size:13px;color:#64748b;margin:0 0 14px;">Exports follow your EPS convention: numeric byte-coding for SPSS/Stata plus a codebook of value labels, and a human-readable labeled workbook.</p>
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <button class="btn btn-purple" style="justify-content:center;" onclick="exportCoded()"><i class="fas fa-database"></i> Excel — Numeric Coded + Codebook (SPSS/Stata)</button>
-            <button class="btn btn-teal" style="justify-content:center;" onclick="exportLabeled()"><i class="fas fa-table"></i> Excel — Labeled / Human-Readable</button>
-            <button class="btn btn-gray" style="justify-content:center;" onclick="exportCodebookOnly()"><i class="fas fa-book"></i> Codebook Only</button>
+        <div id="addUserForm" class="hidden" style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:14px;">
+          <div class="g3" style="gap:10px;">
+            <div><label class="lbl">Doctor Name</label><input id="newDocName" class="inp inp-sm" placeholder="Dr Ahmed Shafie"></div>
+            <div><label class="lbl">Email (optional)</label><input id="newDocEmail" class="inp inp-sm" placeholder="name@example.com"></div>
+            <div><label class="lbl">Doctor Code / PIN (3–6 digits)</label><input id="newDocPin" class="inp inp-sm" maxlength="6" style="font-family:'DM Mono',monospace;" placeholder="101" oninput="this.value=this.value.replace(/\D/g,'')"></div>
           </div>
+          <button class="btn btn-teal inp-sm" style="margin-top:12px;" onclick="addDoctor()"><i class="fas fa-user-plus"></i> Add User</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table" style="width:100%;border-collapse:collapse;white-space:nowrap;">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Doctor Code</th><th>Cases</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="usersBody"><tr><td colspan="7" style="text-align:center;padding:18px;color:#94a3b8;">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="card" style="margin-top:18px;background:#faf5ff;border-color:#e9d5ff;">
+          <div class="sec-title" style="border:none;margin:0 0 10px;padding:0;"><div class="icon-wrap" style="background:#7c3aed;"><i class="fas fa-key"></i></div>Master Admin PIN</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input id="newAdminPin" class="inp inp-sm" maxlength="8" style="font-family:'DM Mono',monospace;max-width:180px;" placeholder="New admin PIN" oninput="this.value=this.value.replace(/\D/g,'')">
+            <button class="btn btn-purple inp-sm" onclick="changeAdminPin()"><i class="fas fa-save"></i> Update PIN</button>
+            <span style="font-size:11px;color:#94a3b8;">Stored in <code>cad_settings/config</code>, never in page source.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Doctor Codes -->
+      <div id="adminSub-codes" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+          <div style="font-size:16px;font-weight:800;">Doctor Code Registry</div>
+          <button class="btn btn-primary inp-sm" onclick="saveDoctorCodes()"><i class="fas fa-save"></i> Save Changes</button>
+        </div>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px;font-size:12.5px;color:#1e40af;margin-bottom:14px;">
+          <i class="fas fa-circle-info"></i> Doctor codes are embedded in every CRF number (format <b>01-DDD-NNN</b>). The doctor code (PIN) uniquely identifies the operator. Hospital code is fixed at <b>01</b> (SACC).
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table" style="width:100%;border-collapse:collapse;">
+            <thead><tr><th>Doctor Name</th><th>Code (PIN)</th><th>CRF Prefix</th><th>Action</th></tr></thead>
+            <tbody id="codesBody"><tr><td colspan="4" style="text-align:center;padding:18px;color:#94a3b8;">Loading…</td></tr></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -706,7 +753,7 @@ window.verifyAdminPin=async function(){
   if(String(SETTINGS.adminPin)!==pin){err.textContent='Incorrect admin PIN.';err.style.display='block';return;}
   closeAdminGate();
   document.getElementById('doctorPinOverlay').classList.add('hidden');
-  switchTab('admin'); renderDoctors();
+  switchTab('admin'); renderAdmin();
 };
 
 /* ════════════════════════ TABS ════════════════════════ */
@@ -1178,37 +1225,109 @@ window.deleteRecord=async function(id,pid){
   catch(e){ toast('Delete failed: '+e.message,'#e11d48'); }
 };
 
-/* ════════════════════════ ADMIN: DOCTORS ════════════════════════ */
-window.renderDoctors=async function(){
-  await loadDoctors(); await loadRecords();
-  const tb=document.getElementById('doctorsBody'); if(!tb)return;
-  const counts={}; RECORDS.forEach(r=>{ if(r.enteredByPin) counts[r.enteredByPin]=(counts[r.enteredByPin]||0)+1; });
-  if(!DOCTORS.length){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:18px;color:#94a3b8;">No doctors yet. Add one above.</td></tr>'; return; }
-  tb.innerHTML=DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`
-    <tr>
-      <td style="font-weight:700;">${d.name}</td>
-      <td style="font-family:'DM Mono',monospace;"><span class="badge badge-blue">${d.pin}</span></td>
-      <td style="font-weight:700;color:#1d4ed8;">${counts[d.pin]||0}</td>
-      <td>${d.active!==false?'<span class="badge badge-green">Active</span>':'<span class="badge badge-red">Disabled</span>'}</td>
-      <td style="white-space:nowrap;">
-        <button class="btn btn-gray" style="padding:5px 9px;font-size:11px;" onclick="toggleDoctor('${d.id}',${d.active===false})">${d.active!==false?'Disable':'Enable'}</button>
-        <button class="btn btn-red" style="padding:5px 9px;font-size:11px;margin-left:4px;" onclick="deleteDoctor('${d.id}','${(d.name||'').replace(/'/g,"")}')"><i class="fas fa-trash"></i></button>
-      </td></tr>`).join('');
+/* ════════════════════════ ADMIN: 3-TAB PANEL ════════════════════════ */
+window.renderAdmin=async function(){ await loadDoctors(); await loadRecords(); fillInvestigatorFilter(); adminSubTab('records'); };
+window.adminSubTab=function(sub){
+  ['records','users','codes'].forEach(s=>{ const el=document.getElementById('adminSub-'+s); if(el)el.classList.toggle('hidden',s!==sub); });
+  document.querySelectorAll('#tab-admin .subtab').forEach(b=>b.classList.toggle('subtab-active',b.dataset.sub===sub));
+  if(sub==='records')renderAdminRecords();
+  if(sub==='users')renderUsers();
+  if(sub==='codes')renderDoctorCodes();
 };
+function fillInvestigatorFilter(){ const sel=document.getElementById('arInv'); if(!sel)return; const cur=sel.value; sel.innerHTML='<option value="">All Investigators</option>'+DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`<option value="${d.pin}">${d.name}</option>`).join(''); sel.value=cur; }
+function fmtTS(ts){ if(!ts)return '—'; let d; if(ts.toDate)d=ts.toDate(); else if(ts.seconds)d=new Date(ts.seconds*1000); else d=new Date(ts); if(isNaN(d.getTime()))return '—'; const p=n=>String(n).padStart(2,'0'); return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+window.arClear=function(){ ['arCivil','arCode','arCrf'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); const i=document.getElementById('arInv'),s=document.getElementById('arStatus'); if(i)i.value=''; if(s)s.value=''; renderAdminRecords(); };
+window.renderAdminRecords=function(){
+  const tb=document.getElementById('adminRecBody'); if(!tb)return;
+  const civ=(document.getElementById('arCivil')?.value||'').toLowerCase().trim();
+  const code=(document.getElementById('arCode')?.value||'').trim();
+  const crf=(document.getElementById('arCrf')?.value||'').toLowerCase().trim();
+  const inv=document.getElementById('arInv')?.value||'';
+  const stf=document.getElementById('arStatus')?.value||'';
+  let rows=RECORDS.slice().sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||''));
+  rows=rows.filter(r=>{
+    if(civ && !String(r.data?.['Patient_Master.Civil_ID_Optional']||'').toLowerCase().includes(civ))return false;
+    if(code && String(r.enteredByPin||'')!==code)return false;
+    if(crf && !String(r.patientId||'').toLowerCase().includes(crf))return false;
+    if(inv && String(r.enteredByPin||'')!==inv)return false;
+    if(stf && (r.recordStatus||'draft')!==stf)return false;
+    return true;
+  });
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:#94a3b8;">No records match.</td></tr>'; return; }
+  tb.innerHTML=rows.map((r,i)=>{
+    const st=r.recordStatus||'draft';
+    const badge=st==='reviewed'?'<span class="badge badge-purple">Reviewed</span>':(st==='submitted'?'<span class="badge badge-green">Submitted</span>':'<span class="badge badge-amber">Draft</span>');
+    return `<tr>
+      <td style="color:#94a3b8;">${i+1}</td>
+      <td><a onclick="editRecord('${r.id}')" style="font-family:'DM Mono',monospace;font-weight:800;color:#1d4ed8;cursor:pointer;">${r.patientId||'—'}</a></td>
+      <td>${r.data?.['Patient_Master.Civil_ID_Optional']||'—'}</td>
+      <td><span class="badge badge-blue" style="font-family:'DM Mono',monospace;">${r.enteredByPin||'—'}</span></td>
+      <td>${badge}</td>
+      <td style="font-weight:700;">${r.enteredByName||'—'}</td>
+      <td style="color:#64748b;">${fmtTS(r.createdAt)}</td>
+      <td>${r.updatedByName||r.enteredByName||'—'}</td>
+      <td style="color:#64748b;">${fmtTS(r.updatedAt)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-yellow" style="padding:5px 9px;" title="Edit" onclick="editRecord('${r.id}')"><i class="fas fa-edit"></i></button>
+        ${st!=='reviewed'?`<button class="btn btn-green" style="padding:5px 9px;margin-left:4px;" title="Approve / mark reviewed" onclick="markReviewed('${r.id}')"><i class="fas fa-check"></i></button>`:`<button class="btn btn-gray" style="padding:5px 9px;margin-left:4px;" title="Revert to draft" onclick="markDraft('${r.id}')"><i class="fas fa-rotate-left"></i></button>`}
+        <button class="btn btn-red" style="padding:5px 9px;margin-left:4px;" title="Delete" onclick="deleteRecord('${r.id}','${r.patientId||''}')"><i class="fas fa-trash"></i></button>
+      </td></tr>`;
+  }).join('');
+};
+window.renderUsers=function(){
+  const tb=document.getElementById('usersBody'); if(!tb)return;
+  const counts={}; RECORDS.forEach(r=>{ if(r.enteredByPin)counts[r.enteredByPin]=(counts[r.enteredByPin]||0)+1; });
+  if(!DOCTORS.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:18px;color:#94a3b8;">No users yet. Add one above.</td></tr>'; return; }
+  tb.innerHTML=DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`<tr>
+    <td style="font-weight:700;">${d.name}</td>
+    <td style="color:#64748b;">${d.email||'—'}</td>
+    <td><span class="badge badge-blue">Investigator</span></td>
+    <td><span class="badge badge-gray" style="font-family:'DM Mono',monospace;">${d.pin}</span></td>
+    <td style="font-weight:700;color:#1d4ed8;">${counts[d.pin]||0}</td>
+    <td>${d.active!==false?'<span class="badge badge-green">Active</span>':'<span class="badge badge-red">Disabled</span>'}</td>
+    <td style="white-space:nowrap;">
+      <button class="btn btn-gray" style="padding:5px 9px;font-size:11px;" onclick="toggleDoctor('${d.id}',${d.active===false})">${d.active!==false?'Disable':'Enable'}</button>
+      <button class="btn btn-red" style="padding:5px 9px;font-size:11px;margin-left:4px;" onclick="deleteDoctor('${d.id}','${(d.name||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
+    </td></tr>`).join('');
+};
+window.renderDoctorCodes=function(){
+  const tb=document.getElementById('codesBody'); if(!tb)return;
+  if(!DOCTORS.length){ tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:18px;color:#94a3b8;">No doctor codes yet. Add a user first.</td></tr>'; return; }
+  tb.innerHTML=DOCTORS.slice().sort((a,b)=>String(a.pin).localeCompare(String(b.pin))).map(d=>`<tr data-id="${d.id}">
+    <td><input class="inp inp-sm dc-name" value="${(d.name||'').replace(/"/g,'&quot;')}" style="min-width:200px;"></td>
+    <td><input class="inp inp-sm dc-pin" value="${d.pin}" maxlength="6" style="width:90px;font-family:'DM Mono',monospace;" oninput="this.value=this.value.replace(/\\D/g,'');this.closest('tr').querySelector('.dc-prefix').textContent='01-'+(this.value||'DDD')+'-NNN';"></td>
+    <td class="dc-prefix" style="font-family:'DM Mono',monospace;color:#64748b;">01-${d.pin}-NNN</td>
+    <td><button class="btn btn-red" style="padding:5px 9px;" onclick="deleteDoctor('${d.id}','${(d.name||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button></td>
+  </tr>`).join('');
+};
+window.saveDoctorCodes=async function(){
+  const rows=[...document.querySelectorAll('#codesBody tr[data-id]')];
+  if(!rows.length){ toast('Nothing to save','#64748b'); return; }
+  const pins=rows.map(tr=>tr.querySelector('.dc-pin').value.trim());
+  if(pins.some(p=>!/^\d{3,6}$/.test(p))){ toast('All codes must be 3–6 digits','#e11d48'); return; }
+  if(new Set(pins).size!==pins.length){ toast('Duplicate codes are not allowed','#e11d48'); return; }
+  try{
+    for(const tr of rows){ const id=tr.dataset.id,name=tr.querySelector('.dc-name').value.trim(),pin=tr.querySelector('.dc-pin').value.trim(); await db.collection(COL_DOCTORS).doc(id).update({name,pin}); }
+    await loadDoctors(); renderDoctorCodes(); fillInvestigatorFilter(); toast('Doctor codes saved ✓','#059669');
+  }catch(e){ toast('Failed: '+e.message,'#e11d48'); }
+};
+window.renderDoctors=function(){ renderUsers(); renderDoctorCodes(); };
+async function adminRefresh(){ await loadDoctors(); await loadRecords(); fillInvestigatorFilter(); renderUsers(); renderDoctorCodes(); renderAdminRecords(); }
 window.addDoctor=async function(){
   const name=document.getElementById('newDocName').value.trim();
   const pin=document.getElementById('newDocPin').value.trim();
-  if(!name||!pin){ toast('Name and PIN required','#e11d48'); return; }
-  if(!/^\d{3,6}$/.test(pin)){ toast('PIN must be 3–6 digits','#e11d48'); return; }
-  if(DOCTORS.some(d=>String(d.pin)===pin)){ toast('That PIN is already in use','#e11d48'); return; }
+  const email=(document.getElementById('newDocEmail')?.value||'').trim();
+  if(!name||!pin){ toast('Name and code required','#e11d48'); return; }
+  if(!/^\d{3,6}$/.test(pin)){ toast('Code must be 3–6 digits','#e11d48'); return; }
+  if(DOCTORS.some(d=>String(d.pin)===pin)){ toast('That code is already in use','#e11d48'); return; }
   try{
-    await db.collection(COL_DOCTORS).add({name,pin,active:true,createdAt:new Date()});
-    document.getElementById('newDocName').value=''; document.getElementById('newDocPin').value='';
-    await renderDoctors(); toast('Doctor added ✓','#059669');
+    await db.collection(COL_DOCTORS).add({name,pin,email,active:true,createdAt:new Date()});
+    document.getElementById('newDocName').value=''; document.getElementById('newDocPin').value=''; if(document.getElementById('newDocEmail'))document.getElementById('newDocEmail').value='';
+    await adminRefresh(); toast('User added ✓','#059669');
   }catch(e){ toast('Failed: '+e.message,'#e11d48'); }
 };
-window.toggleDoctor=async function(id,enable){ try{ await db.collection(COL_DOCTORS).doc(id).update({active:enable}); await renderDoctors(); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
-window.deleteDoctor=async function(id,name){ if(!confirm(`Remove "${name}"? Existing records keep their stamp.`))return; try{ await db.collection(COL_DOCTORS).doc(id).delete(); await renderDoctors(); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
+window.toggleDoctor=async function(id,enable){ try{ await db.collection(COL_DOCTORS).doc(id).update({active:enable}); await adminRefresh(); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
+window.deleteDoctor=async function(id,name){ if(!confirm(`Remove "${name}"? Existing records keep their stamp.`))return; try{ await db.collection(COL_DOCTORS).doc(id).delete(); await adminRefresh(); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
 window.changeAdminPin=async function(){
   const p=document.getElementById('newAdminPin').value.trim();
   if(!/^\d{3,8}$/.test(p)){ toast('Admin PIN must be 3–8 digits','#e11d48'); return; }
