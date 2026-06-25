@@ -440,6 +440,27 @@ const CM_TIMEFRAME = ['New diagnosis (this admission)','< 3 months','3–12 mont
 const GDMT = ['Not on GDMT','Sub-maximal dose','Maximally tolerated dose'];
 const REASON_NO_PPCI = ['Late presentation (outside reperfusion window)','Successful thrombolysis / pharmaco-invasive','Spontaneous reperfusion','Patient / family refusal','Non-obstructive coronaries (MINOCA)','Anatomy unsuitable / referred for CABG','Comorbidity / palliative decision','Cath-lab unavailable / logistic delay','Other'];
 
+// Shared, aligned medication set — used for BOTH Home Meds and Discharge Meds so the two lists never diverge
+function medGroups(){return [
+   {title:'Antiplatelets', tint:'yellow', c:'#d97706', icon:'fa-tablets', cols:4, fields:[
+     {k:'Aspirin',type:'ynbtn'},{k:'Clopidogrel',type:'ynbtn'},{k:'Prasugrel',type:'ynbtn'},{k:'Ticagrelor',type:'ynbtn'}]},
+   {title:'Oral Anticoagulants', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
+     {k:'Warfarin',type:'ynbtn'},{k:'Dabigatran',type:'ynbtn'},{k:'Apixaban',type:'ynbtn'},{k:'Rivaroxaban',type:'ynbtn'},{k:'Edoxaban',type:'ynbtn'},{k:'LMWH',type:'ynbtn'}]},
+   {title:'Lipid-Lowering', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:4, fields:[
+     {k:'Statin',type:'ynbtn'},{k:'Ezetimibe',type:'ynbtn'},{k:'PCSK9i',type:'ynbtn',label:'PCSK9 Inhibitor'},{k:'Icosapent_Ethyl_Omega3',type:'ynbtn',label:'Icosapent Ethyl (Omega-3)'},{k:'Fibrates',type:'ynbtn'}]},
+   {title:'Beta-Blocker & Renin-Angiotensin', tint:'green', c:'#059669', icon:'fa-heart', cols:4, fields:[
+     {k:'Beta_Blockers',type:'ynbtn',label:'Beta-Blocker'},{k:'ACE_I',type:'ynbtn',label:'ACE Inhibitor'},{k:'ARB',type:'ynbtn'},{k:'ARNI',type:'ynbtn'},{k:'MRA',type:'ynbtn'}]},
+   {title:'Heart-Failure / Other Neurohormonal', tint:'blue', c:'#2563eb', icon:'fa-heart-pulse', cols:4, fields:[
+     {k:'SGLT_Inhibitor',type:'ynbtn',label:'SGLT2 Inhibitor'},{k:'Ivabradine',type:'ynbtn'},{k:'Digoxin',type:'ynbtn'},{k:'Loop_Diuretics',type:'ynbtn',label:'Loop Diuretic'},{k:'Hydralazine_Nitrate',type:'ynbtn',label:'Hydralazine / Nitrates'}]},
+   {title:'Rate Control / Calcium-Channel Blockers', tint:'gray', c:'#475569', icon:'fa-gauge', cols:4, fields:[
+     {k:'Verapamil',type:'ynbtn'},{k:'Diltiazem',type:'ynbtn'}]},
+   {title:'Antiarrhythmics', tint:'gray', c:'#64748b', icon:'fa-bolt', cols:4, fields:[
+     {k:'Amiodarone',type:'ynbtn'},{k:'Flecainide',type:'ynbtn'},{k:'Sotalol',type:'ynbtn'},{k:'Procainamide',type:'ynbtn'}]},
+   {title:'Antidiabetic', tint:'teal', c:'#0d9488', icon:'fa-syringe', cols:4, fields:[
+     {k:'Insulin',type:'ynbtn'},{k:'Oral_Hypoglycemic',type:'ynbtn',label:'Oral Hypoglycemic'},{k:'GLP1_RA',type:'ynbtn',label:'GLP-1 RA'}]},
+   {title:'Anti-anginal & Other', tint:'yellow', c:'#d97706', icon:'fa-capsules', cols:4, fields:[
+     {k:'Ranolazine',type:'ynbtn'},{k:'Trimetazidine',type:'ynbtn'},{k:'Nicorandil',type:'ynbtn'},{k:'Colchicine',type:'ynbtn'},{k:'PPI',type:'ynbtn'}]}
+];}
 const SECTIONS = [
  {id:'master', sheet:'Patient_Master', title:'Identification', icon:'fa-id-card', color:'#2563eb', groups:[
    {title:'1.1 Patient Name (Initials)', tint:'blue', c:'#2563eb', icon:'fa-signature', cols:3, fields:[
@@ -512,24 +533,7 @@ const SECTIONS = [
      {k:'MV_Procedure_Type',type:'select',opts:['PMVR','Mechanical MV','Bioprosthetic MV','Mitral clipping'],label:'Mitral procedure type',showIf:{sec:'history',k:'Mitral_Valve_Procedure',eq:'Yes'}},
      {k:'MV_Within_6_Months',type:'ynbtn',label:'Mitral — within last 6 months',showIf:{sec:'history',k:'Mitral_Valve_Procedure',eq:'Yes'}}]}
  ]},
- {id:'homemeds', sheet:'Home_Medications', title:'Home Meds', icon:'fa-prescription-bottle-medical', color:'#0891b2', groups:[
-   {title:'Antiplatelets', tint:'yellow', c:'#d97706', icon:'fa-tablets', cols:3, fields:[
-     {k:'Aspirin',type:'ynbtn'},{k:'Prasugrel',type:'ynbtn'},{k:'Clopidogrel',type:'ynbtn'},{k:'Ticagrelor',type:'ynbtn'},{k:'Cangrelor',type:'ynbtn'}]},
-   {title:'Lipid-Lowering', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:3, fields:[
-     {k:'Statin',type:'ynbtn'},{k:'PCSK9i',type:'ynbtn'},{k:'Ezetimibe',type:'ynbtn'}]},
-   {title:'Beta-Blocker & Renin-Angiotensin', tint:'green', c:'#059669', icon:'fa-heart', cols:3, fields:[
-     {k:'Beta_Blockers',type:'ynbtn'},{k:'ACE_I',type:'ynbtn'},{k:'ARB',type:'ynbtn'},{k:'ARNI',type:'ynbtn'}]},
-   {title:'Anticoagulants', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:3, fields:[
-     {k:'Warfarin',type:'ynbtn'},{k:'Dabigatran',type:'ynbtn'},{k:'Apixaban',type:'ynbtn'},{k:'Rivaroxaban',type:'ynbtn'},
-     {k:'Edoxaban',type:'ynbtn'},{k:'LMWH',type:'ynbtn'},{k:'Unfractionated_Heparin',type:'ynbtn'}]},
-   {title:'Heart-Failure / Other Neurohormonal', tint:'blue', c:'#2563eb', icon:'fa-heart-pulse', cols:3, fields:[
-     {k:'MRA',type:'ynbtn'},{k:'SGLT_Inhibitor',type:'ynbtn'},{k:'Digoxin',type:'ynbtn'},{k:'Loop_Diuretics',type:'ynbtn'},{k:'Ivabradine',type:'ynbtn'}]},
-   {title:'Rate Control / Calcium-Channel Blockers', tint:'gray', c:'#475569', icon:'fa-gauge', cols:3, fields:[
-     {k:'Verapamil',type:'ynbtn'},{k:'Diltiazem',type:'ynbtn'}]},
-   {title:'Antiarrhythmics', tint:'gray', c:'#64748b', icon:'fa-bolt', cols:3, fields:[
-     {k:'Amiodarone',type:'ynbtn'},{k:'Disopyramide',type:'ynbtn'},{k:'Flecainide',type:'ynbtn'},
-     {k:'Procainamide',type:'ynbtn'},{k:'Propafenone',type:'ynbtn'},{k:'Sotalol',type:'ynbtn'}]}
- ]},
+ {id:'homemeds', sheet:'Home_Medications', title:'Home Meds', icon:'fa-prescription-bottle-medical', color:'#0891b2', groups: medGroups()},
  {id:'blood', sheet:'Blood_Work', title:'Investigations', icon:'fa-microscope', color:'#0d9488', groups:[
    {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
      {k:'ECG_Rhythm',type:'select',opts:RHYTHM,sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation_Leads',type:'text',sheet:'Presentation_ECG_Timing'},
@@ -543,16 +547,16 @@ const SECTIONS = [
      {k:'RV_Function',type:'select',opts:RV,sheet:'Echocardiography'},{k:'Pulmonary_Pressure',type:'num',label:'Pulmonary Pressure (mmHg)',sheet:'Echocardiography'},{k:'Valvular_Disease',type:'select',opts:VALVE,sheet:'Echocardiography'},
      {k:'Pericardial_Effusion',type:'ynbtn',sheet:'Echocardiography'},{k:'Echo_Notes',type:'textarea',sheet:'Echocardiography'}]},
    {title:'Labs — Hematology', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
-     {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'num',label:'Hemoglobin (g/L)'},{k:'WBC',type:'num',label:'WBC (×10⁹/L)'},{k:'Platelets',type:'num',label:'Platelets (×10⁹/L)'}]},
+     {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'labnum',label:'Hemoglobin (g/L)'},{k:'WBC',type:'labnum',label:'WBC (×10⁹/L)'},{k:'Platelets',type:'labnum',label:'Platelets (×10⁹/L)'}]},
    {title:'Labs — Renal Function & Electrolytes', tint:'blue', c:'#2563eb', icon:'fa-flask', cols:4, fields:[
-     {k:'Creatinine',type:'num',label:'Creatinine (µmol/L)'},{k:'eGFR',type:'num',label:'eGFR (mL/min/1.73m²)',hint:'auto',ro:true},
-     {k:'Sodium',type:'num',label:'Sodium (mmol/L)'},{k:'Potassium',type:'num',label:'Potassium (mmol/L)'}]},
+     {k:'Creatinine',type:'labnum',label:'Creatinine (µmol/L)'},{k:'eGFR',type:'num',label:'eGFR (mL/min/1.73m²)',hint:'auto',ro:true},
+     {k:'Sodium',type:'labnum',label:'Sodium (mmol/L)'},{k:'Potassium',type:'labnum',label:'Potassium (mmol/L)'}]},
    {title:'Labs — Metabolic', tint:'yellow', c:'#d97706', icon:'fa-cubes', cols:2, fields:[
-     {k:'Glucose',type:'num',label:'Glucose (mmol/L)'},{k:'HbA1c',type:'num',label:'HbA1c (%)'}]},
+     {k:'Glucose',type:'labnum',label:'Glucose (mmol/L)'},{k:'HbA1c',type:'labnum',label:'HbA1c (%)'}]},
    {title:'Labs — Lipid Profile', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:4, fields:[
-     {k:'Total_Cholesterol',type:'num',label:'Total Cholesterol (mmol/L)'},{k:'LDL',type:'num',label:'LDL (mmol/L)'},{k:'HDL',type:'num',label:'HDL (mmol/L)'},{k:'Triglycerides',type:'num',label:'Triglycerides (mmol/L)'}]},
+     {k:'Total_Cholesterol',type:'labnum',label:'Total Cholesterol (mmol/L)'},{k:'LDL',type:'labnum',label:'LDL (mmol/L)'},{k:'HDL',type:'labnum',label:'HDL (mmol/L)'},{k:'Triglycerides',type:'labnum',label:'Triglycerides (mmol/L)'}]},
    {title:'Labs — Cardiac & Inflammatory Markers', tint:'gray', c:'#475569', icon:'fa-heart-pulse', cols:4, fields:[
-     {k:'Troponin',type:'num',label:'hs-Troponin (ng/L)'},{k:'BNP',type:'num',label:'BNP (pg/mL)'},{k:'NT_proBNP',type:'num',label:'NT-proBNP (pg/mL)'},{k:'CRP',type:'num',label:'CRP (mg/L)'}]}
+     {k:'Troponin',type:'labnum',label:'hs-Troponin (ng/L)'},{k:'BNP',type:'labnum',label:'BNP (pg/mL)'},{k:'NT_proBNP',type:'labnum',label:'NT-proBNP (pg/mL)'},{k:'CRP',type:'labnum',label:'CRP (mg/L)'}]}
  ]},
  {id:'pci', sheet:'PCI_Details', title:'Procedure', icon:'fa-syringe', color:'#0891b2', groups:[
    {title:'Reperfusion Timing', tint:'yellow', c:'#d97706', icon:'fa-clock', cols:2,
@@ -596,31 +600,13 @@ const SECTIONS = [
      {k:'Type_Reintervention_PCI_or_CABG',type:'select',opts:['PCI','CABG','None']}]}
  ]},
  {id:'dc_meds', sheet:'Discharge_Medications', title:'Discharge & Medications', icon:'fa-pills', color:'#059669', groups:[
-   {title:'In-Hospital Outcome & Discharge', tint:'gray', c:'#334155', icon:'fa-flag-checkered', cols:2, fields:[
-     {k:'In_Hospital_Outcome',type:'select',opts:['Survived to discharge','In-hospital death'],req:true},{k:'Discharge_Date',type:'date'}]},
-   {title:'Antiplatelet & Anticoagulation', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:2,
+   {title:'In-Hospital Outcome & Discharge', tint:'gray', c:'#334155', icon:'fa-flag-checkered', cols:3, fields:[
+     {k:'In_Hospital_Outcome',type:'select',opts:['Survived to discharge','In-hospital death'],req:true,label:'Discharge status'},
+     {k:'Discharge_Date',type:'date',label:'Date of discharge / death'},
+     {k:'Discharge_Type',type:'select',opts:['Home','LAMA','Transfer to cardiac surgery','Transfer to other dept'],label:'Discharge type',showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}}]},
+   ...medGroups().map(g=>({...g, showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}})),
+   {title:'Other / Notes', tint:'gray', c:'#475569', icon:'fa-pen', cols:1,
      showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
-     {k:'Aspirin',type:'ynbtn'},{k:'P2Y12_Inhibitor',type:'select',opts:['Clopidogrel','Prasugrel','Ticagrelor','None']},
-     {k:'Dual_Antiplatelet_Therapy',type:'ynbtn'},{k:'Planned_DAPT_Duration_Months',type:'num'},
-     {k:'Oral_Anticoagulant',type:'select',opts:['Warfarin','DOAC','None']},
-     {k:'Indication_for_Anticoagulation',type:'select',opts:['AF','LV thrombus','VTE','Other','None']}]},
-   {title:'Lipid-Lowering Therapy', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:3,
-     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
-     {k:'Statin',type:'select',opts:['Atorvastatin','Rosuvastatin','Simvastatin','Pitavastatin','Other','None']},{k:'Statin_Dose',type:'text'},
-     {k:'Ezetimibe',type:'ynbtn'},{k:'PCSK9_Inhibitor',type:'ynbtn'},{k:'Bempedoic_Acid',type:'ynbtn'},
-     {k:'Inclisiran',type:'ynbtn'},{k:'Icosapent_Ethyl_Omega3',type:'ynbtn'}]},
-   {title:'Neurohormonal / Heart-Failure', tint:'blue', c:'#2563eb', icon:'fa-heart', cols:3,
-     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
-     {k:'Beta_Blocker',type:'ynbtn'},{k:'ACEi_or_ARB_or_ARNI',type:'select',opts:['ACEi','ARB','ARNI','None']},
-     {k:'MRA',type:'ynbtn'},{k:'SGLT2_Inhibitor',type:'ynbtn'},{k:'Diuretics',type:'ynbtn'},{k:'Ivabradine',type:'ynbtn'},
-     {k:'Vericiguat',type:'ynbtn'},{k:'Digoxin',type:'ynbtn'},{k:'Hydralazine_Nitrate',type:'ynbtn'}]},
-   {title:'Anti-anginal & Anti-inflammatory', tint:'yellow', c:'#d97706', icon:'fa-capsules', cols:3,
-     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
-     {k:'Nitrates',type:'ynbtn'},{k:'Calcium_Channel_Blocker',type:'ynbtn'},{k:'Ranolazine',type:'ynbtn'},
-     {k:'Trimetazidine',type:'ynbtn'},{k:'Nicorandil',type:'ynbtn'},{k:'Colchicine',type:'ynbtn'}]},
-   {title:'Antiarrhythmic, Glucose-Lowering & Other', tint:'gray', c:'#475569', icon:'fa-pills', cols:3,
-     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',ne:'In-hospital death'}, fields:[
-     {k:'Amiodarone',type:'ynbtn'},{k:'Metformin',type:'ynbtn'},{k:'GLP1_RA',type:'ynbtn'},{k:'PPI',type:'ynbtn'},
      {k:'Other_Medications_Notes',type:'textarea'}]}
  ]}
 ];
@@ -806,6 +792,8 @@ function fieldHtml(secId,f){
     inner=`<div style="display:flex;gap:6px;"><input type="date" class="inp" id="${fid}" data-k="${f.k}" data-type="dt24" style="flex:1;"><input type="text" id="${fid}__t" class="inp" style="width:88px;text-align:center;font-family:'DM Mono',monospace;" maxlength="5" inputmode="numeric" placeholder="HH:MM" oninput="timeMask(this)" onblur="timeClamp(this)"></div>`;
   } else if(f.type==='numu'){
     inner=`<input type="number" step="any" class="inp" id="${fid}" data-k="${f.k}" data-type="numu"><label class="ur-line"><input type="checkbox" id="${fid}__urc" onchange="urToggle('${fid}')">Unrecordable</label>`;
+  } else if(f.type==='labnum'){
+    inner=`<input type="number" step="any" class="inp" id="${fid}" data-k="${f.k}" data-type="labnum"><label class="ur-line"><input type="checkbox" id="${fid}__ncc" onchange="ncToggle('${fid}')">Not collected</label>`;
   } else {
     const t=f.type==='num'?'number':(f.type==='date'?'date':(f.type==='datetime'?'datetime-local':(f.type==='tel'?'tel':'text')));
     const step=f.type==='num'?' step="any"':'';
@@ -851,7 +839,8 @@ function updateIndicators(){
       const el=document.getElementById(`f_${s.id}__${f.k}`);
       const ind=document.getElementById(`f_${s.id}__${f.k}_ind`);
       if(!el||!ind)return;
-      const v=(el.value||'').trim();
+      let v=(el.value||'').trim();
+      if(f.type==='labnum'){ const c=document.getElementById(`f_${s.id}__${f.k}__ncc`); if(c&&c.checked) v='Not collected'; }
       if(f.req){ totalReq++; if(v) doneReq++; else reqMissing=true; }
       if(v){ ind.textContent='✓'; ind.style.cssText=badgeCss('#059669','#d1fae5'); anyFilled=true; }
       else { ind.textContent='✕'; ind.style.cssText=badgeCss('#e11d48','#ffe4e6'); }
@@ -910,12 +899,6 @@ function reactors(){
   // Year of birth → estimated age (only fills when Age is empty)
   const yob=document.getElementById('f_master__Year_of_Birth'), ageEl=document.getElementById('f_master__Age');
   if(yob && ageEl && /^\d{4}$/.test(yob.value)){ const a=new Date().getFullYear()-parseInt(yob.value,10); if(a>0&&a<130&&!ageEl.value) ageEl.value=a; }
-  const dapt=document.getElementById('f_dc_meds__Dual_Antiplatelet_Therapy');
-  const p2=document.getElementById('f_dc_meds__P2Y12_Inhibitor');
-  if(dapt && dapt.value==='Yes'){
-    setYNsilent('f_dc_meds__Aspirin','Yes');
-    if(p2){ const bad=(!p2.value||p2.value==='None'); p2.style.borderColor=bad?'#e11d48':''; p2.style.boxShadow=bad?'0 0 0 3px rgba(225,29,72,.15)':''; }
-  } else if(p2){ p2.style.borderColor=''; p2.style.boxShadow=''; }
   const out=document.getElementById('f_dc_meds__In_Hospital_Outcome');
   if(out && out.value==='In-hospital death'){
     setYNsilent('f_complications__InHospital_Complication_Present','Yes');
@@ -959,6 +942,12 @@ window.urToggle=function(fid){
   if(fid==='f_history__Height_cm'||fid==='f_history__Weight_kg') recalcBMI();
   updateIndicators();
 };
+window.ncToggle=function(fid){
+  const n=document.getElementById(fid), c=document.getElementById(fid+'__ncc'); if(!n||!c)return;
+  if(c.checked){ n.value=''; n.readOnly=true; n.style.background='#f1f5f9'; } else { n.readOnly=false; n.style.background=''; }
+  if(fid==='f_blood__Creatinine') recalcEGFR();
+  updateIndicators();
+};
 let _fuSeq=0;
 window.addFollowupCard=function(data){
   _fuSeq++; const idx=_fuSeq;
@@ -981,6 +970,7 @@ function setFieldVal(fid,f,val){
   if(f.type==='ynbtn'){ el.value=val||''; const grp=document.getElementById(fid+'_grp'); if(grp){grp.querySelector('.yn-yes').classList.toggle('selected',val==='Yes');grp.querySelector('.yn-no').classList.toggle('selected',val==='No');} }
   else if(f.type==='radio'){ el.value=val||''; const grp=document.getElementById(fid+'_grp'); if(grp) grp.querySelectorAll('.radio-pill').forEach(p=>p.classList.toggle('selected',p.dataset.val===val)); }
   else if(f.type==='numu'){ const c=document.getElementById(fid+'__urc'); if(val==='Unrecordable'){ if(c)c.checked=true; el.value='Unrecordable'; el.readOnly=true; } else { if(c)c.checked=false; el.readOnly=false; el.value=(val==null)?'':val; } }
+  else if(f.type==='labnum'){ const c=document.getElementById(fid+'__ncc'); if(val==='Not collected'){ if(c)c.checked=true; el.value=''; el.readOnly=true; el.style.background='#f1f5f9'; } else { if(c)c.checked=false; el.readOnly=false; el.style.background=''; el.value=(val==null)?'':val; } }
   else { el.value=(val===undefined||val===null)?'':val; }
 }
 
@@ -1017,6 +1007,7 @@ function collectData(){
   const data={};
   SECTIONS.forEach(s=>secFields(s).forEach(f=>{
     if(f.type==='dt24'){ const d=_v(`f_${s.id}__${f.k}`), t=_v(`f_${s.id}__${f.k}__t`); data[`${f.sheet||s.sheet}.${f.k}`]= d?(d+(t?('T'+t):'')):''; }
+    else if(f.type==='labnum'){ const c=document.getElementById(`f_${s.id}__${f.k}__ncc`); const el=document.getElementById(`f_${s.id}__${f.k}`); data[`${f.sheet||s.sheet}.${f.k}`]=(c&&c.checked)?'Not collected':(el?el.value:''); }
     else { const el=document.getElementById(`f_${s.id}__${f.k}`); if(el) data[`${f.sheet||s.sheet}.${f.k}`]=el.value; }
   }));
   const followups=[];
@@ -1058,14 +1049,12 @@ function validateLogic(data){
   if(arr&&bal&&bal<arr) errors.push('Balloon time is before hospital arrival.');
   if(adm&&echo&&echo<adm) warnings.push('Echo date is before the admission date.');
   if(adm&&samp&&samp<adm) warnings.push('Blood sample date is before the admission date.');
-  // DAPT conditional (hard)
-  if(data['Discharge_Medications.Dual_Antiplatelet_Therapy']==='Yes'){
-    if(data['Discharge_Medications.Aspirin']!=='Yes') errors.push('DAPT = Yes → Aspirin must be set to Yes.');
-    const p2=data['Discharge_Medications.P2Y12_Inhibitor']; if(!p2||p2==='None') errors.push('DAPT = Yes → a P2Y12 inhibitor (Clopidogrel/Prasugrel/Ticagrelor) is required.');
+  // antiplatelet advisory (soft) — discharge DAPT now derived from named drugs
+  const dcP2Y12=['Clopidogrel','Prasugrel','Ticagrelor'].some(k=>data['Discharge_Medications.'+k]==='Yes');
+  if(data['Discharge_Medications.In_Hospital_Outcome']==='Survived to discharge'){
+    if(dcP2Y12 && data['Discharge_Medications.Aspirin']!=='Yes') warnings.push('A P2Y12 inhibitor is prescribed at discharge but Aspirin is not — confirm single-antiplatelet is intended.');
+    if(data['Discharge_Medications.Aspirin']!=='Yes' && !dcP2Y12) warnings.push('No antiplatelet recorded at discharge for a survivor — confirm this is intended.');
   }
-  // reverse: both antiplatelets present but DAPT not marked
-  if(data['Discharge_Medications.Aspirin']==='Yes' && ['Clopidogrel','Prasugrel','Ticagrelor'].includes(data['Discharge_Medications.P2Y12_Inhibitor']) && data['Discharge_Medications.Dual_Antiplatelet_Therapy']!=='Yes')
-    warnings.push('Aspirin + a P2Y12 inhibitor are recorded but DAPT is not marked Yes.');
   // medication / clinical cross-checks (soft)
   const pres=data['Presentation_ECG_Timing.Presentation_Type'];
   const caReason=data['Admission_Reason.CA_Reason'], mgmt=data['PCI_Details.Management_Decision'];
@@ -1073,8 +1062,6 @@ function validateLogic(data){
   if(caReason==='Primary PCI (STEMI)' && pres && pres!=='STEMI') warnings.push('CA reason is Primary PCI (STEMI) but presentation type is not STEMI.');
   if(pres==='STEMI' && data['Presentation_ECG_Timing.ST_Elevation']==='No') warnings.push('Presentation is STEMI but ST-elevation is marked No.');
   if(data['Reintervention_FollowUp.Reintervention_Performed']==='Yes' && (data['Reintervention_FollowUp.Type_Reintervention_PCI_or_CABG']||'None')==='None') warnings.push('Reintervention performed but its type is None.');
-  const oac=data['Discharge_Medications.Oral_Anticoagulant']; if(oac&&oac!=='None'&&!data['Discharge_Medications.Indication_for_Anticoagulation']) warnings.push('Oral anticoagulant selected but no indication is chosen.');
-  if((data['Discharge_Medications.Statin']||'None')==='None' && data['Discharge_Medications.Statin_Dose']) warnings.push('Statin is None but a statin dose is entered.');
   if(data['Coronary_Anatomy.Number_Diseased_Vessels']==='0' && data['Coronary_Anatomy.Culprit_Vessel'] && data['Coronary_Anatomy.Culprit_Vessel']!=='None') warnings.push('Number of diseased vessels is 0 but a culprit vessel is selected.');
   if(data['Patient_Master.Chronic_Kidney_Disease']==='No'){ const e=parseFloat(data['Blood_Work.eGFR']); if(!isNaN(e)&&e<60) warnings.push(`eGFR is ${e} but CKD is marked No.`); }
   if(pciDone){ const n=parseFloat(data['PCI_Details.Number_Stents']); if(!isNaN(n)&&n===0) warnings.push('PCI was performed but number of stents is 0.'); }
@@ -1376,7 +1363,7 @@ window.changeAdminPin=async function(){
 function codeValue(f,val){
   if(val===undefined||val===null||val==='') return '';
   switch(f.type){
-    case 'num':case 'numu':{const n=parseFloat(val);return isNaN(n)?'':n;}
+    case 'num':case 'numu':case 'labnum':{const n=parseFloat(val);return isNaN(n)?'':n;}
     case 'ynbtn':return val==='Yes'?1:(val==='No'?0:'');
     case 'select':case 'radio':{const i=f.opts.indexOf(val);return i<0?'':i+1;}
     case 'date':case 'datetime':case 'dt24':return val;
@@ -1389,6 +1376,7 @@ function codebookFor(f){
     case 'select':case 'radio':return f.opts.map((o,i)=>`${i+1}=${o}`).join('; ');
     case 'num':return 'numeric';
     case 'numu':return 'numeric (blank if Unrecordable)';
+    case 'labnum':return 'numeric (blank if Not collected)';
     case 'date':return 'date (YYYY-MM-DD)';
     case 'datetime':return 'datetime';
     case 'dt24':return 'datetime (YYYY-MM-DDTHH:MM, 24h)';
@@ -1488,12 +1476,14 @@ function renderAnalytics(){
   const risk={Diabetes:yesCount('Patient_Master.Diabetes'),Hypertension:yesCount('Patient_Master.Hypertension'),Dyslipidemia:yesCount('Patient_Master.Dyslipidemia'),'Current smoker':g('Patient_Master.Smoking_Status').filter(v=>v==='Current').length,'Family history CAD':yesCount('Patient_Master.Family_History_CAD'),'Chronic kidney disease':yesCount('Patient_Master.Chronic_Kidney_Disease')};
   // ---- secondary prevention (survivors) ----
   const surv=RECORDS.filter(r=>r.data?.['Discharge_Medications.In_Hospital_Outcome']==='Survived to discharge');
-  const sp=[['Aspirin',surv.filter(r=>r.data?.['Discharge_Medications.Aspirin']==='Yes').length],
-    ['Dual antiplatelet therapy',surv.filter(r=>r.data?.['Discharge_Medications.Dual_Antiplatelet_Therapy']==='Yes').length],
-    ['P2Y12 inhibitor',surv.filter(r=>{const v=r.data?.['Discharge_Medications.P2Y12_Inhibitor'];return v&&v!=='None';}).length],
-    ['Statin',surv.filter(r=>{const v=r.data?.['Discharge_Medications.Statin'];return v&&v!=='None';}).length],
-    ['Beta-blocker',surv.filter(r=>r.data?.['Discharge_Medications.Beta_Blocker']==='Yes').length],
-    ['ACEi / ARB / ARNI',surv.filter(r=>{const v=r.data?.['Discharge_Medications.ACEi_or_ARB_or_ARNI'];return v&&v!=='None';}).length]];
+  const _dx=(r,k)=>r.data?.['Discharge_Medications.'+k]==='Yes';
+  const _p2y12=r=>['Clopidogrel','Prasugrel','Ticagrelor'].some(k=>_dx(r,k));
+  const sp=[['Aspirin',surv.filter(r=>_dx(r,'Aspirin')).length],
+    ['Dual antiplatelet therapy',surv.filter(r=>_dx(r,'Aspirin')&&_p2y12(r)).length],
+    ['P2Y12 inhibitor',surv.filter(_p2y12).length],
+    ['Statin',surv.filter(r=>_dx(r,'Statin')).length],
+    ['Beta-blocker',surv.filter(r=>_dx(r,'Beta_Blockers')).length],
+    ['ACEi / ARB / ARNI',surv.filter(r=>_dx(r,'ACE_I')||_dx(r,'ARB')||_dx(r,'ARNI')).length]];
   // ---- complications ----
   const proc=RECORDS.filter(r=>r.data?.['PCI_Details.Procedural_Complications_Present']==='Yes').length;
   const inhosp=RECORDS.filter(r=>r.data?.['InHospital_Complications.InHospital_Complication_Present']==='Yes').length;
