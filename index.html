@@ -51,6 +51,8 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .btn-yellow{background:#d97706;color:#fff;}.btn-yellow:hover:not(:disabled){background:#b45309;}
 .btn-purple{background:#7c3aed;color:#fff;}.btn-purple:hover:not(:disabled){background:#6d28d9;transform:translateY(-1px);}
 .btn-teal{background:#0d9488;color:#fff;}.btn-teal:hover:not(:disabled){background:#0f766e;transform:translateY(-1px);}
+.btn-orange{background:#ea580c;color:#fff;}.btn-orange:hover:not(:disabled){background:#c2410c;transform:translateY(-1px);}
+.locked-form{pointer-events:none;opacity:.75;filter:grayscale(.15);}
 .admin-table th{background:#f8fafc;padding:11px 14px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#64748b;text-align:left;border-bottom:1.5px solid #e2e8f0;}
 .admin-table td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
 .admin-table tr:hover td{background:#f8fafc;}
@@ -233,16 +235,20 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
         <div style="display:flex;flex-direction:column;">
           <form id="cadForm" onsubmit="return false;" style="padding:22px 24px;flex:1;">
             <input type="hidden" id="editRecordId" value="">
+            <div id="lockBanner" style="display:none;margin-bottom:16px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px 16px;color:#1e40af;font-size:13.5px;font-weight:600;"><i class="fas fa-lock"></i> This record was finalized and is locked. Use <b>Unlock to edit</b> in the footer to make changes.</div>
             <div id="valSummary" style="display:none;margin-bottom:16px;"></div>
             <div id="formStepsContainer"></div>
           </form>
           <div class="step-footer">
-
-        <button type="button" class="btn btn-gray" id="btnPrev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
         <div style="display:flex;gap:10px;">
-          <button type="button" class="btn btn-yellow" id="btnSaveDraft" onclick="saveRecord('draft',false)"><i class="fas fa-save"></i> Save Draft</button>
-          <button type="button" class="btn btn-green hidden" id="btnSubmit" onclick="saveRecord('submitted',true)"><i class="fas fa-check"></i> Submit</button>
+          <button type="button" class="btn btn-gray" id="btnPrev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back</button>
           <button type="button" class="btn btn-primary" id="btnNext" onclick="nextStep()">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-green" id="btnSave" onclick="saveRecord('draft',false,false)"><i class="fas fa-save"></i> Save</button>
+          <button type="button" class="btn btn-orange" id="btnSaveClose" onclick="saveRecord('draft',true,false)"><i class="fas fa-folder-open"></i> Save &amp; Close</button>
+          <button type="button" class="btn btn-primary" id="btnFinal" onclick="saveRecord('submitted',true,true)"><i class="fas fa-lock"></i> Final Submit</button>
+          <button type="button" class="btn btn-yellow hidden" id="btnUnlock" onclick="unlockRecord()"><i class="fas fa-lock-open"></i> Unlock to edit</button>
         </div>
       </div>
         </div><!-- /form column -->
@@ -675,6 +681,7 @@ let currentDoctor=null;          // {id,name,pin}
 let DOCTORS=[];                  // [{id,name,pin,active}]
 let SETTINGS={adminPin:DEFAULT_ADMIN_PIN};
 let currentRecord=null;          // working record
+let _formLocked=false;           // true when viewing a finalized/locked record
 let RECORDS=[];                  // cached patient records
 let currentStep=0;
 
@@ -985,7 +992,6 @@ window.goToStep=function(i){
   document.getElementById('btnPrev').style.visibility=i===0?'hidden':'visible';
   const last=i===ALL_STEPS.length-1;
   document.getElementById('btnNext').classList.toggle('hidden',last);
-  document.getElementById('btnSubmit').classList.toggle('hidden',!last);
   const fc=document.getElementById('formStepsContainer'); if(fc) fc.scrollIntoView({behavior:'smooth',block:'start'});
 };
 window.nextStep=function(){ if(currentStep<ALL_STEPS.length-1) goToStep(currentStep+1); };
@@ -1004,6 +1010,7 @@ window.newRecord=function(){
   document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
   document.getElementById('entryStatusBadge').textContent='Draft';
   document.getElementById('entryStatusBadge').className='badge badge-amber';
+  _formLocked=false; applyLockState();
   applyDefaults(); goToStep(0); switchTab("entry"); updateIndicators(); applyConditionals();
 };
 function collectData(){
@@ -1087,8 +1094,9 @@ function renderValSummary(errors,warnings){
   if(warnings.length) h+=`<div class="card card-yellow"><div style="font-weight:800;color:#92400e;font-size:13px;margin-bottom:8px;"><i class="fas fa-triangle-exclamation"></i> ${warnings.length} advisory warning(s) — review, but you can still save</div><ul style="margin:0;padding-left:20px;font-size:13px;color:#92400e;line-height:1.6;">${warnings.map(w=>`<li>${w}</li>`).join('')}</ul></div>`;
   el.innerHTML=h; el.style.display='block';
 }
-window.saveRecord=async function(status, closeAfter){
+window.saveRecord=async function(status, closeAfter, finalize){
   if(!currentDoctor){ showDoctorGate(); return; }
+  if(_formLocked){ toast('Record is locked — unlock to edit','#2563eb'); return; }
   const admEl=document.getElementById('f_master__Index_Admission_Date');
   const sexEl=document.getElementById('f_master__Sex');
   if(!admEl.value){ goToStep(0); admEl.focus(); toast('Index Admission Date is required','#e11d48'); return; }
@@ -1098,37 +1106,60 @@ window.saveRecord=async function(status, closeAfter){
   const {data,followups}=collectData();
   const vr=validateLogic(data);
   renderValSummary(vr.errors, vr.warnings);
-  if(status==='submitted' && vr.errors.length){
+  if(finalize && vr.errors.length){
     document.getElementById('valSummary').scrollIntoView({behavior:'smooth',block:'center'});
-    toast(`Cannot submit — ${vr.errors.length} issue(s) to fix`,'#e11d48'); return;
+    toast(`Cannot finalize — ${vr.errors.length} issue(s) to fix`,'#e11d48'); return;
   }
+  if(finalize && !confirm('Final Submit locks this record from further editing (an admin can unlock it). Continue?')) return;
   const recId=document.getElementById('editRecordId').value;
-  const btns=[document.getElementById('btnSaveDraft'),document.getElementById('btnSubmit')];
+  const btns=['btnSave','btnSaveClose','btnFinal'].map(id=>document.getElementById(id));
   btns.forEach(b=>b&&(b.disabled=true));
   try{
-    let obj={ data, followups, recordStatus:status, updatedAt:new Date(), updatedByName:currentDoctor.name, updatedByCode:dcode(currentDoctor) };
+    let obj={ data, followups, recordStatus:status, locked:!!finalize, updatedAt:new Date(), updatedByName:currentDoctor.name, updatedByCode:dcode(currentDoctor) };
     if(recId){
       await db.collection(COL_PATIENTS).doc(recId).set(obj,{merge:true});
-      if(status==='submitted') await db.collection(COL_PATIENTS).doc(recId).update({submittedAt:new Date()});
+      if(finalize) await db.collection(COL_PATIENTS).doc(recId).update({submittedAt:new Date()});
     } else {
       const pid=await nextPatientId(dcode(currentDoctor));
       obj.patientId=pid; obj.data['Patient_Master.CRF_Number']=pid; _set('f_master__CRF_Number',pid);
       obj.createdAt=new Date(); obj.enteredByName=currentDoctor.name; obj.enteredByCode=dcode(currentDoctor);
-      if(status==='submitted') obj.submittedAt=new Date();
+      if(finalize) obj.submittedAt=new Date();
       const nd=await db.collection(COL_PATIENTS).add(obj);
       document.getElementById('editRecordId').value=nd.id;
       document.getElementById('entryTitle').textContent=pid;
       document.getElementById('entrySubtitle').textContent='Saved · '+currentDoctor.name;
     }
-    document.getElementById('entryStatusBadge').textContent=status==='submitted'?'Submitted':'Draft';
-    document.getElementById('entryStatusBadge').className='badge '+(status==='submitted'?'badge-green':'badge-amber');
+    setEntryStatusBadge(finalize?'locked':status);
     await loadRecords();
     const vs=document.getElementById('valSummary');
     if(!vr.errors.length && vr.warnings.length){ toast(`Saved · ${vr.warnings.length} advisory warning(s)`,'#d97706'); }
-    else { if(vs) vs.style.display='none'; toast(status==='submitted'?'Record submitted ✓':'Draft saved ✓','#059669'); }
-    if(closeAfter && status==='submitted'){ newRecord(); switchTab('records'); }
+    else { if(vs) vs.style.display='none'; toast(finalize?'Record finalized & locked ✓':(closeAfter?'Saved & closed ✓':'Saved ✓'),'#059669'); }
+    if(closeAfter){ newRecord(); switchTab('records'); }
   }catch(e){ console.error(e); toast('Save failed: '+e.message,'#e11d48'); }
   finally{ btns.forEach(b=>b&&(b.disabled=false)); }
+};
+function setEntryStatusBadge(state){
+  const b=document.getElementById('entryStatusBadge'); if(!b)return;
+  if(state==='locked'){ b.textContent='Locked'; b.className='badge badge-blue'; }
+  else if(state==='submitted'){ b.textContent='Submitted'; b.className='badge badge-green'; }
+  else if(state==='reviewed'){ b.textContent='Reviewed'; b.className='badge badge-purple'; }
+  else { b.textContent='Draft'; b.className='badge badge-amber'; }
+}
+function applyLockState(){
+  const form=document.getElementById('cadForm');
+  const banner=document.getElementById('lockBanner');
+  ['btnSave','btnSaveClose','btnFinal'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('hidden',_formLocked);});
+  const unlock=document.getElementById('btnUnlock'); if(unlock)unlock.classList.toggle('hidden',!_formLocked);
+  if(form)form.classList.toggle('locked-form',_formLocked);
+  if(banner)banner.style.display=_formLocked?'block':'none';
+}
+window.unlockRecord=async function(){
+  const id=document.getElementById('editRecordId').value; if(!id)return;
+  const pin=prompt('Enter the master admin PIN to unlock this finalized record:');
+  if(pin===null)return;
+  if(String(pin)!==String(SETTINGS.adminPin||DEFAULT_ADMIN_PIN)){ toast('Incorrect admin PIN','#e11d48'); return; }
+  try{ await db.collection(COL_PATIENTS).doc(id).update({locked:false}); await loadRecords(); editRecord(id); toast('Record unlocked for editing','#d97706'); }
+  catch(e){ toast('Unlock failed: '+e.message,'#e11d48'); }
 };
 async function loadRecords(){
   try{ const snap=await db.collection(COL_PATIENTS).get(); RECORDS=[]; snap.forEach(d=>RECORDS.push({id:d.id,...d.data()})); renderDashboard(); }
@@ -1176,7 +1207,7 @@ window.renderDashboard=function(){
   if(!rows.length){ wrap.innerHTML='<div class="card" style="text-align:center;color:#94a3b8;padding:28px;">No records match.</div>'; return; }
   wrap.innerHTML=rows.map((r,idx)=>{
     const st=r.recordStatus||'draft';
-    const badge=st==='reviewed'?'<span class="badge badge-purple">Reviewed</span>':(st==='submitted'?'<span class="badge badge-green">Submitted</span>':'<span class="badge badge-amber">Draft</span>');
+    const badge=st==='reviewed'?'<span class="badge badge-purple">Reviewed</span>':(st==='submitted'?('<span class="badge badge-green">Submitted'+(r.locked?' <i class=\"fas fa-lock\"></i>':'')+'</span>'):'<span class="badge badge-amber">Draft</span>');
     const cid=r.data?.['Patient_Master.Civil_ID_Optional']||'—';
     const adm=r.data?.['Patient_Master.Index_Admission_Date']||'—';
     const reason=r.data?.['Admission_Reason.CA_Reason']||'—';
@@ -1206,7 +1237,7 @@ window.renderDashboard=function(){
 };
 window.renderRecords=window.renderDashboard;
 window.markReviewed=async function(id){ try{ await db.collection(COL_PATIENTS).doc(id).update({recordStatus:'reviewed',reviewedAt:new Date()}); await loadRecords(); toast('Marked reviewed ✓','#7c3aed'); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
-window.markDraft=async function(id){ try{ await db.collection(COL_PATIENTS).doc(id).update({recordStatus:'draft'}); await loadRecords(); toast('Reverted to draft','#64748b'); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
+window.markDraft=async function(id){ try{ await db.collection(COL_PATIENTS).doc(id).update({recordStatus:'draft',locked:false}); await loadRecords(); toast('Reverted to draft','#64748b'); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
 window.editRecord=function(id){
   const r=RECORDS.find(x=>x.id===id); if(!r)return;
   newRecord();
@@ -1218,8 +1249,9 @@ window.editRecord=function(id){
   document.getElementById('entryTitle').textContent=r.patientId||'Edit Record';
   document.getElementById('entrySubtitle').textContent='Entered by '+(r.enteredByName||'—');
   const st=r.recordStatus||'draft';
-  document.getElementById('entryStatusBadge').textContent=st==='submitted'?'Submitted':'Draft';
-  document.getElementById('entryStatusBadge').className='badge '+(st==='submitted'?'badge-green':'badge-amber');
+  _formLocked=!!r.locked;
+  setEntryStatusBadge(r.locked?'locked':st);
+  applyLockState();
   switchTab('entry'); goToStep(0);
 };
 window.deleteRecord=async function(id,pid){
@@ -1260,7 +1292,7 @@ window.renderAdminRecords=function(){
   if(!rows.length){ tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:#94a3b8;">No records match.</td></tr>'; return; }
   tb.innerHTML=rows.map((r,i)=>{
     const st=r.recordStatus||'draft';
-    const badge=st==='reviewed'?'<span class="badge badge-purple">Reviewed</span>':(st==='submitted'?'<span class="badge badge-green">Submitted</span>':'<span class="badge badge-amber">Draft</span>');
+    const badge=st==='reviewed'?'<span class="badge badge-purple">Reviewed</span>':(st==='submitted'?('<span class="badge badge-green">Submitted'+(r.locked?' <i class=\"fas fa-lock\"></i>':'')+'</span>'):'<span class="badge badge-amber">Draft</span>');
     return `<tr>
       <td style="color:#94a3b8;">${i+1}</td>
       <td><a onclick="editRecord('${r.id}')" style="font-family:'DM Mono',monospace;font-weight:800;color:#1d4ed8;cursor:pointer;">${r.patientId||'—'}</a></td>
