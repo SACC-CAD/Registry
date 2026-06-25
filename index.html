@@ -343,8 +343,9 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
           <div class="g3" style="gap:10px;">
             <div><label class="lbl">Doctor Name</label><input id="newDocName" class="inp inp-sm" placeholder="Dr Ahmed Shafie"></div>
             <div><label class="lbl">Email (optional)</label><input id="newDocEmail" class="inp inp-sm" placeholder="name@example.com"></div>
-            <div><label class="lbl">Doctor Code / PIN (3–6 digits)</label><input id="newDocPin" class="inp inp-sm" maxlength="6" style="font-family:'DM Mono',monospace;" placeholder="101" oninput="this.value=this.value.replace(/\D/g,'')"></div>
+            <div><label class="lbl">Login PIN (3–6 digits)</label><input id="newDocPin" class="inp inp-sm" maxlength="6" style="font-family:'DM Mono',monospace;" placeholder="secret PIN" oninput="this.value=this.value.replace(/\D/g,'')"></div>
           </div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:8px;"><i class="fas fa-circle-info"></i> The login PIN is private (used to sign in). A public <b>doctor code</b> for CRF numbers is assigned automatically and can be edited under the Doctor Codes tab.</div>
           <button class="btn btn-teal inp-sm" style="margin-top:12px;" onclick="addDoctor()"><i class="fas fa-user-plus"></i> Add User</button>
         </div>
         <div style="overflow-x:auto;">
@@ -1019,12 +1020,14 @@ function collectData(){
   });
   return {data,followups};
 }
-async function nextPatientId(pin){
+async function nextPatientId(code){
   const used=new Set();
   RECORDS.forEach(r=>{ const m=(r.patientId||'').split('-'); if(m.length===3){const n=parseInt(m[2],10);if(!isNaN(n))used.add(n);} });
   let s=1; while(used.has(s)) s++;
-  return `01-${pin}-${String(s).padStart(3,'0')}`;
+  return `01-${code}-${String(s).padStart(3,'0')}`;
 }
+function dcode(d){ return d? (d.code||d.pin) : ''; }
+function nextDoctorCode(){ let mx=100; DOCTORS.forEach(d=>{ const c=parseInt(d.code||d.pin,10); if(!isNaN(c)&&c>mx)mx=c; }); return String(mx+1); }
 /* ════════════════════════ MEDICAL & TEMPORAL LOGIC ════════════════════════ */
 function validateLogic(data){
   const errors=[], warnings=[];
@@ -1103,14 +1106,14 @@ window.saveRecord=async function(status, closeAfter){
   const btns=[document.getElementById('btnSaveDraft'),document.getElementById('btnSubmit')];
   btns.forEach(b=>b&&(b.disabled=true));
   try{
-    let obj={ data, followups, recordStatus:status, updatedAt:new Date(), updatedByName:currentDoctor.name, updatedByPin:currentDoctor.pin };
+    let obj={ data, followups, recordStatus:status, updatedAt:new Date(), updatedByName:currentDoctor.name, updatedByCode:dcode(currentDoctor) };
     if(recId){
       await db.collection(COL_PATIENTS).doc(recId).set(obj,{merge:true});
       if(status==='submitted') await db.collection(COL_PATIENTS).doc(recId).update({submittedAt:new Date()});
     } else {
-      const pid=await nextPatientId(currentDoctor.pin);
+      const pid=await nextPatientId(dcode(currentDoctor));
       obj.patientId=pid; obj.data['Patient_Master.CRF_Number']=pid; _set('f_master__CRF_Number',pid);
-      obj.createdAt=new Date(); obj.enteredByName=currentDoctor.name; obj.enteredByPin=currentDoctor.pin;
+      obj.createdAt=new Date(); obj.enteredByName=currentDoctor.name; obj.enteredByCode=dcode(currentDoctor);
       if(status==='submitted') obj.submittedAt=new Date();
       const nd=await db.collection(COL_PATIENTS).add(obj);
       document.getElementById('editRecordId').value=nd.id;
@@ -1234,7 +1237,7 @@ window.adminSubTab=function(sub){
   if(sub==='users')renderUsers();
   if(sub==='codes')renderDoctorCodes();
 };
-function fillInvestigatorFilter(){ const sel=document.getElementById('arInv'); if(!sel)return; const cur=sel.value; sel.innerHTML='<option value="">All Investigators</option>'+DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`<option value="${d.pin}">${d.name}</option>`).join(''); sel.value=cur; }
+function fillInvestigatorFilter(){ const sel=document.getElementById('arInv'); if(!sel)return; const cur=sel.value; sel.innerHTML='<option value="">All Investigators</option>'+DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`<option value="${dcode(d)}">${d.name}</option>`).join(''); sel.value=cur; }
 function fmtTS(ts){ if(!ts)return '—'; let d; if(ts.toDate)d=ts.toDate(); else if(ts.seconds)d=new Date(ts.seconds*1000); else d=new Date(ts); if(isNaN(d.getTime()))return '—'; const p=n=>String(n).padStart(2,'0'); return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
 window.arClear=function(){ ['arCivil','arCode','arCrf'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); const i=document.getElementById('arInv'),s=document.getElementById('arStatus'); if(i)i.value=''; if(s)s.value=''; renderAdminRecords(); };
 window.renderAdminRecords=function(){
@@ -1246,10 +1249,11 @@ window.renderAdminRecords=function(){
   const stf=document.getElementById('arStatus')?.value||'';
   let rows=RECORDS.slice().sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||''));
   rows=rows.filter(r=>{
+    const rc=r.enteredByCode||r.enteredByPin||'';
     if(civ && !String(r.data?.['Patient_Master.Civil_ID_Optional']||'').toLowerCase().includes(civ))return false;
-    if(code && String(r.enteredByPin||'')!==code)return false;
+    if(code && String(rc)!==code)return false;
     if(crf && !String(r.patientId||'').toLowerCase().includes(crf))return false;
-    if(inv && String(r.enteredByPin||'')!==inv)return false;
+    if(inv && String(rc)!==inv)return false;
     if(stf && (r.recordStatus||'draft')!==stf)return false;
     return true;
   });
@@ -1261,7 +1265,7 @@ window.renderAdminRecords=function(){
       <td style="color:#94a3b8;">${i+1}</td>
       <td><a onclick="editRecord('${r.id}')" style="font-family:'DM Mono',monospace;font-weight:800;color:#1d4ed8;cursor:pointer;">${r.patientId||'—'}</a></td>
       <td>${r.data?.['Patient_Master.Civil_ID_Optional']||'—'}</td>
-      <td><span class="badge badge-blue" style="font-family:'DM Mono',monospace;">${r.enteredByPin||'—'}</span></td>
+      <td><span class="badge badge-blue" style="font-family:'DM Mono',monospace;">${r.enteredByCode||r.enteredByPin||'—'}</span></td>
       <td>${badge}</td>
       <td style="font-weight:700;">${r.enteredByName||'—'}</td>
       <td style="color:#64748b;">${fmtTS(r.createdAt)}</td>
@@ -1276,14 +1280,14 @@ window.renderAdminRecords=function(){
 };
 window.renderUsers=function(){
   const tb=document.getElementById('usersBody'); if(!tb)return;
-  const counts={}; RECORDS.forEach(r=>{ if(r.enteredByPin)counts[r.enteredByPin]=(counts[r.enteredByPin]||0)+1; });
+  const counts={}; RECORDS.forEach(r=>{ const c=r.enteredByCode||r.enteredByPin; if(c)counts[c]=(counts[c]||0)+1; });
   if(!DOCTORS.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:18px;color:#94a3b8;">No users yet. Add one above.</td></tr>'; return; }
   tb.innerHTML=DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`<tr>
     <td style="font-weight:700;">${d.name}</td>
     <td style="color:#64748b;">${d.email||'—'}</td>
     <td><span class="badge badge-blue">Investigator</span></td>
-    <td><span class="badge badge-gray" style="font-family:'DM Mono',monospace;">${d.pin}</span></td>
-    <td style="font-weight:700;color:#1d4ed8;">${counts[d.pin]||0}</td>
+    <td><span class="badge badge-gray" style="font-family:'DM Mono',monospace;">${dcode(d)}</span></td>
+    <td style="font-weight:700;color:#1d4ed8;">${counts[dcode(d)]||0}</td>
     <td>${d.active!==false?'<span class="badge badge-green">Active</span>':'<span class="badge badge-red">Disabled</span>'}</td>
     <td style="white-space:nowrap;">
       <button class="btn btn-gray" style="padding:5px 9px;font-size:11px;" onclick="toggleDoctor('${d.id}',${d.active===false})">${d.active!==false?'Disable':'Enable'}</button>
@@ -1293,22 +1297,22 @@ window.renderUsers=function(){
 window.renderDoctorCodes=function(){
   const tb=document.getElementById('codesBody'); if(!tb)return;
   if(!DOCTORS.length){ tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:18px;color:#94a3b8;">No doctor codes yet. Add a user first.</td></tr>'; return; }
-  tb.innerHTML=DOCTORS.slice().sort((a,b)=>String(a.pin).localeCompare(String(b.pin))).map(d=>`<tr data-id="${d.id}">
+  tb.innerHTML=DOCTORS.slice().sort((a,b)=>String(dcode(a)).localeCompare(String(dcode(b)))).map(d=>`<tr data-id="${d.id}">
     <td><input class="inp inp-sm dc-name" value="${(d.name||'').replace(/"/g,'&quot;')}" style="min-width:200px;"></td>
-    <td><input class="inp inp-sm dc-pin" value="${d.pin}" maxlength="6" style="width:90px;font-family:'DM Mono',monospace;" oninput="this.value=this.value.replace(/\\D/g,'');this.closest('tr').querySelector('.dc-prefix').textContent='01-'+(this.value||'DDD')+'-NNN';"></td>
-    <td class="dc-prefix" style="font-family:'DM Mono',monospace;color:#64748b;">01-${d.pin}-NNN</td>
+    <td><input class="inp inp-sm dc-code" value="${dcode(d)}" maxlength="6" style="width:90px;font-family:'DM Mono',monospace;" oninput="this.value=this.value.replace(/\\D/g,'');this.closest('tr').querySelector('.dc-prefix').textContent='01-'+(this.value||'DDD')+'-NNN';"></td>
+    <td class="dc-prefix" style="font-family:'DM Mono',monospace;color:#64748b;">01-${dcode(d)}-NNN</td>
     <td><button class="btn btn-red" style="padding:5px 9px;" onclick="deleteDoctor('${d.id}','${(d.name||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button></td>
   </tr>`).join('');
 };
 window.saveDoctorCodes=async function(){
   const rows=[...document.querySelectorAll('#codesBody tr[data-id]')];
   if(!rows.length){ toast('Nothing to save','#64748b'); return; }
-  const pins=rows.map(tr=>tr.querySelector('.dc-pin').value.trim());
-  if(pins.some(p=>!/^\d{3,6}$/.test(p))){ toast('All codes must be 3–6 digits','#e11d48'); return; }
-  if(new Set(pins).size!==pins.length){ toast('Duplicate codes are not allowed','#e11d48'); return; }
+  const codes=rows.map(tr=>tr.querySelector('.dc-code').value.trim());
+  if(codes.some(c=>!/^\d{3,6}$/.test(c))){ toast('All doctor codes must be 3–6 digits','#e11d48'); return; }
+  if(new Set(codes).size!==codes.length){ toast('Duplicate doctor codes are not allowed','#e11d48'); return; }
   try{
-    for(const tr of rows){ const id=tr.dataset.id,name=tr.querySelector('.dc-name').value.trim(),pin=tr.querySelector('.dc-pin').value.trim(); await db.collection(COL_DOCTORS).doc(id).update({name,pin}); }
-    await loadDoctors(); renderDoctorCodes(); fillInvestigatorFilter(); toast('Doctor codes saved ✓','#059669');
+    for(const tr of rows){ const id=tr.dataset.id,name=tr.querySelector('.dc-name').value.trim(),code=tr.querySelector('.dc-code').value.trim(); await db.collection(COL_DOCTORS).doc(id).update({name,code}); }
+    await loadDoctors(); renderDoctorCodes(); fillInvestigatorFilter(); renderUsers(); toast('Doctor codes saved ✓','#059669');
   }catch(e){ toast('Failed: '+e.message,'#e11d48'); }
 };
 window.renderDoctors=function(){ renderUsers(); renderDoctorCodes(); };
@@ -1317,13 +1321,14 @@ window.addDoctor=async function(){
   const name=document.getElementById('newDocName').value.trim();
   const pin=document.getElementById('newDocPin').value.trim();
   const email=(document.getElementById('newDocEmail')?.value||'').trim();
-  if(!name||!pin){ toast('Name and code required','#e11d48'); return; }
-  if(!/^\d{3,6}$/.test(pin)){ toast('Code must be 3–6 digits','#e11d48'); return; }
-  if(DOCTORS.some(d=>String(d.pin)===pin)){ toast('That code is already in use','#e11d48'); return; }
+  if(!name||!pin){ toast('Name and login PIN required','#e11d48'); return; }
+  if(!/^\d{3,6}$/.test(pin)){ toast('Login PIN must be 3–6 digits','#e11d48'); return; }
+  if(DOCTORS.some(d=>String(d.pin)===pin)){ toast('That login PIN is already in use','#e11d48'); return; }
+  const code=nextDoctorCode();
   try{
-    await db.collection(COL_DOCTORS).add({name,pin,email,active:true,createdAt:new Date()});
+    await db.collection(COL_DOCTORS).add({name,pin,code,email,active:true,createdAt:new Date()});
     document.getElementById('newDocName').value=''; document.getElementById('newDocPin').value=''; if(document.getElementById('newDocEmail'))document.getElementById('newDocEmail').value='';
-    await adminRefresh(); toast('User added ✓','#059669');
+    await adminRefresh(); toast(`User added · doctor code ${code} ✓`,'#059669');
   }catch(e){ toast('Failed: '+e.message,'#e11d48'); }
 };
 window.toggleDoctor=async function(id,enable){ try{ await db.collection(COL_DOCTORS).doc(id).update({active:enable}); await adminRefresh(); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
@@ -1361,11 +1366,11 @@ function codebookFor(f){
 function buildWorkbook(coded){
   const wb=XLSX.utils.book_new();
   // Patients sheet (single-occurrence sections)
-  const pHeader=['Patient_ID','Entered_By','Doctor_PIN','Record_Status'];
+  const pHeader=['Patient_ID','Entered_By','Doctor_Code','Record_Status'];
   SECTIONS.forEach(s=>secFields(s).forEach(f=>pHeader.push(`${f.sheet||s.sheet}.${f.k}`)));
   const pRows=[pHeader];
   RECORDS.forEach(r=>{
-    const row=[r.patientId||'', r.enteredByName||'', r.enteredByPin||'', r.recordStatus||'draft'];
+    const row=[r.patientId||'', r.enteredByName||'', r.enteredByCode||r.enteredByPin||'', r.recordStatus||'draft'];
     SECTIONS.forEach(s=>secFields(s).forEach(f=>{
       const raw=r.data?.[`${f.sheet||s.sheet}.${f.k}`];
       row.push(coded?codeValue(f,raw):(raw||''));
