@@ -62,7 +62,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 @media(max-width:640px){.g2,.g3,.g4{grid-template-columns:1fr!important;}}
 @media(max-width:1024px){.g3{grid-template-columns:1fr 1fr;}.g4{grid-template-columns:1fr 1fr;}}
 .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
-.badge-blue{background:#dbeafe;color:#1d4ed8;}.badge-green{background:#d1fae5;color:#065f46;}.badge-red{background:#ffe4e6;color:#9f1239;}.badge-gray{background:#f1f5f9;color:#475569;}.badge-amber{background:#fef3c7;color:#92400e;}
+.badge-blue{background:#dbeafe;color:#1d4ed8;}.badge-green{background:#d1fae5;color:#065f46;}.badge-red{background:#ffe4e6;color:#9f1239;}.badge-gray{background:#f1f5f9;color:#475569;}.badge-amber{background:#fef3c7;color:#92400e;}.badge-purple{background:#ede9fe;color:#6d28d9;}
 .step-footer{position:sticky;bottom:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1.5px solid #e2e8f0;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;z-index:30;border-radius:0 0 14px 14px;}
 .fu-card{border:1.5px solid #c7d2fe;background:#f5f7ff;border-radius:12px;padding:16px;margin-bottom:14px;position:relative;}
 .pin-dot{width:14px;height:14px;border-radius:50%;background:#e2e8f0;display:inline-block;transition:background .15s;}
@@ -112,6 +112,24 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 @media (min-width:900px){.entry-grid{display:grid;grid-template-columns:230px 1fr;}.sidebar-sticky{position:sticky;top:64px;align-self:start;}}
 @media (max-width:899px){.entry-grid{display:block;}.sidebar{border-radius:14px 14px 0 0;border-right:0;border-bottom:1.5px solid #e2e8f0;}.vsteps{flex-direction:row;overflow-x:auto;gap:6px;}.vstep{flex-direction:column;min-width:74px;text-align:center;}.vstep .vlabel{font-size:9px;}}
 .req-star{color:#e11d48;font-weight:800;margin-left:2px;}
+/* Dashboard / Analytics additions */
+.kpi-lbl{font-size:11px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.05em;}
+.kpi-num{font-size:30px;font-weight:900;line-height:1.1;margin-top:2px;}
+.chip{padding:8px 16px;border-radius:999px;border:1.5px solid #e2e8f0;background:#fff;color:#475569;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;}
+.chip:hover{border-color:#cbd5e1;}
+.chip-active{background:#2563eb;border-color:#2563eb;color:#fff;}
+.pt-card{margin-bottom:10px;transition:.15s;}
+.pt-card:hover{box-shadow:0 6px 18px rgba(2,6,23,.08);}
+.avatar{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;letter-spacing:1px;flex-shrink:0;}
+.acc-head{width:100%;display:flex;align-items:center;justify-content:space-between;padding:15px 18px;background:#fff;border:none;cursor:pointer;font-size:14px;font-weight:800;color:#1e293b;}
+.acc-head:hover{background:#f8fafc;}
+.acc-head .acc-chev{color:#94a3b8;transition:.2s;}
+.dist-row{margin-bottom:9px;}
+.dist-bar{height:7px;background:#eef2f7;border-radius:5px;overflow:hidden;}
+.subtab{padding:11px 18px;font-size:14px;font-weight:700;background:none;border:none;border-bottom:2.5px solid transparent;color:#64748b;cursor:pointer;white-space:nowrap;}
+.subtab.subtab-active{color:#2563eb;border-bottom-color:#2563eb;}
+.export-card{border-radius:14px;padding:20px;border:1.5px solid #e2e8f0;}
+.export-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px;}
 </style>
 </head>
 <body>
@@ -183,7 +201,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
   </div>
   <div style="max-width:1200px;margin:0 auto;padding:0 20px;display:flex;gap:6px;overflow-x:auto;">
     <button class="tabBtn tab-active" data-tab="entry" onclick="switchTab('entry')" style="padding:11px 16px;font-size:14px;background:none;border:none;cursor:pointer;white-space:nowrap;"><i class="fas fa-notes-medical mr-2"></i>Data Entry</button>
-    <button class="tabBtn" data-tab="records" onclick="switchTab('records')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-table-list mr-2"></i>Records</button>
+    <button class="tabBtn" data-tab="records" onclick="switchTab('records')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-th-large mr-2"></i>Dashboard</button>
     <button class="tabBtn" data-tab="analytics" onclick="switchTab('analytics')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-chart-pie mr-2"></i>Analytics</button>
     <button class="tabBtn" data-tab="admin" onclick="openAdminGate()" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-shield-halved mr-2"></i>Admin</button>
   </div>
@@ -232,42 +250,45 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
     </div>
   </section>
 
-  <!-- ============ RECORDS TAB ============ -->
+  <!-- ============ DASHBOARD TAB ============ -->
   <section id="tab-records" class="hidden">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
-        <div class="sec-title" style="border:none;padding:0;margin:0;"><div class="icon-wrap" style="background:#2563eb;"><i class="fas fa-table-list"></i></div>Patient Records</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <input id="recSearch" class="inp inp-sm" style="width:220px;" placeholder="Search ID / civil ID / doctor…" oninput="renderRecords()">
-          <select id="recStatusFilter" class="inp inp-sm" style="width:140px;" onchange="renderRecords()">
-            <option value="">All statuses</option><option value="draft">Draft</option><option value="submitted">Submitted</option>
-          </select>
-          <button class="btn btn-gray inp-sm" onclick="loadRecords()"><i class="fas fa-rotate"></i></button>
-        </div>
-      </div>
-      <div style="overflow-x:auto;">
-        <table class="admin-table" style="width:100%;border-collapse:collapse;">
-          <thead><tr><th>Patient ID</th><th>Civil ID</th><th>Adm. Date</th><th>Presentation</th><th>Entered By</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="recordsBody"><tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8;">Loading…</td></tr></tbody>
-        </table>
-      </div>
+    <div class="card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;">
+      <i class="fas fa-magnifying-glass" style="color:#94a3b8;font-size:15px;"></i>
+      <input id="dashSearch" class="inp" style="flex:1;border:none;box-shadow:none;padding:8px 2px;font-size:15px;" placeholder="Search by Civil ID or CRF Number…" oninput="renderDashboard()">
+      <button class="btn btn-primary" onclick="renderDashboard()"><i class="fas fa-magnifying-glass"></i> Search</button>
+      <button class="btn btn-gray" title="Clear" onclick="document.getElementById('dashSearch').value='';renderDashboard()"><i class="fas fa-xmark"></i></button>
     </div>
+    <div class="g4" style="margin-bottom:16px;">
+      <div class="dash-card" style="border-left:4px solid #2563eb;"><div class="kpi-lbl">Total Cases</div><div id="kpiTotal" class="kpi-num" style="color:#2563eb;">—</div></div>
+      <div class="dash-card" style="border-left:4px solid #059669;"><div class="kpi-lbl">Complete</div><div id="kpiComplete" class="kpi-num" style="color:#059669;">—</div></div>
+      <div class="dash-card" style="border-left:4px solid #d97706;"><div class="kpi-lbl">Incomplete</div><div id="kpiIncomplete" class="kpi-num" style="color:#d97706;">—</div></div>
+      <div class="dash-card" style="border-left:4px solid #7c3aed;"><div class="kpi-lbl">Reviewed</div><div id="kpiReviewed" class="kpi-num" style="color:#7c3aed;">—</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <button class="chip chip-active" data-f="all" onclick="setDashFilter('all',this)">All</button>
+      <button class="chip" data-f="submitted" onclick="setDashFilter('submitted',this)">Submitted</button>
+      <button class="chip" data-f="draft" onclick="setDashFilter('draft',this)">Draft</button>
+      <button class="chip" data-f="complete" onclick="setDashFilter('complete',this)">Complete</button>
+      <button class="chip" data-f="incomplete" onclick="setDashFilter('incomplete',this)">Incomplete</button>
+      <button class="chip" data-f="reviewed" onclick="setDashFilter('reviewed',this)">Reviewed</button>
+      <button class="btn btn-primary" style="margin-left:auto;" onclick="loadRecords()"><i class="fas fa-rotate"></i> Refresh</button>
+    </div>
+    <div id="dashList"><div class="card" style="text-align:center;color:#94a3b8;padding:28px;">Loading…</div></div>
   </section>
 
   <!-- ============ ANALYTICS TAB ============ -->
   <section id="tab-analytics" class="hidden">
-    <div class="g4" style="margin-bottom:18px;">
-      <div class="dash-card"><div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Total Patients</div><div id="stTotal" style="font-size:30px;font-weight:800;color:#1d4ed8;">—</div></div>
-      <div class="dash-card"><div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Primary PCI</div><div id="stPci" style="font-size:30px;font-weight:800;color:#059669;">—</div></div>
-      <div class="dash-card"><div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">MACE Events</div><div id="stMace" style="font-size:30px;font-weight:800;color:#e11d48;">—</div></div>
-      <div class="dash-card"><div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Deaths</div><div id="stDeath" style="font-size:30px;font-weight:800;color:#0f172a;">—</div></div>
+    <div class="card" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div class="sec-title" style="border:none;margin:0;padding:0;"><div class="icon-wrap" style="background:#2563eb;"><i class="fas fa-chart-line"></i></div>Clinical Analytics</div>
+      <button class="btn btn-primary" onclick="renderAnalytics()"><i class="fas fa-rotate"></i> Refresh</button>
     </div>
-    <div class="g2">
-      <div class="card"><div style="font-size:14px;font-weight:800;margin-bottom:10px;">Presentation Type</div><canvas id="chartPresentation" height="200"></canvas></div>
-      <div class="card"><div style="font-size:14px;font-weight:800;margin-bottom:10px;">Diseased Vessels</div><canvas id="chartVessels" height="200"></canvas></div>
-      <div class="card"><div style="font-size:14px;font-weight:800;margin-bottom:10px;">Records per Doctor</div><canvas id="chartDoctors" height="200"></canvas></div>
-      <div class="card"><div style="font-size:14px;font-weight:800;margin-bottom:10px;">Risk Factors</div><canvas id="chartRisk" height="200"></canvas></div>
+    <div class="g2" style="margin-bottom:16px;">
+      <div class="dash-card" style="border-left:4px solid #2563eb;background:#eff6ff;"><div class="kpi-lbl">Total Patients</div><div id="anTotal" class="kpi-num" style="color:#2563eb;">—</div></div>
+      <div class="dash-card" style="border-left:4px solid #0891b2;background:#ecfeff;"><div class="kpi-lbl">PCI Performed</div><div id="anPci" class="kpi-num" style="color:#0891b2;">—</div></div>
+      <div class="dash-card" style="border-left:4px solid #16a34a;background:#f0fdf4;"><div class="kpi-lbl">Procedure Success</div><div id="anSuccess" class="kpi-num" style="color:#16a34a;">—</div></div>
+      <div class="dash-card" style="border-left:4px solid #dc2626;background:#fff5f5;"><div class="kpi-lbl">In-Hospital Mortality</div><div id="anMortality" class="kpi-num" style="color:#dc2626;">—</div></div>
     </div>
+    <div id="anAccordions"></div>
   </section>
 
   <!-- ============ ADMIN TAB ============ -->
@@ -696,7 +717,7 @@ window.switchTab=function(tab){
   document.querySelectorAll('.tabBtn').forEach(b=>{
     const on=b.dataset.tab===tab; b.classList.toggle('tab-active',on); b.style.color=on?'#1e3a8a':'#64748b';
   });
-  if(tab==='records'){ renderRecords(); }
+  if(tab==='records'){ renderDashboard(); }
   if(tab==='analytics'){ renderAnalytics(); }
 };
 
@@ -1060,36 +1081,82 @@ window.saveRecord=async function(status, closeAfter){
   finally{ btns.forEach(b=>b&&(b.disabled=false)); }
 };
 async function loadRecords(){
-  try{ const snap=await db.collection(COL_PATIENTS).get(); RECORDS=[]; snap.forEach(d=>RECORDS.push({id:d.id,...d.data()})); renderRecords(); }
+  try{ const snap=await db.collection(COL_PATIENTS).get(); RECORDS=[]; snap.forEach(d=>RECORDS.push({id:d.id,...d.data()})); renderDashboard(); }
   catch(e){ console.warn('loadRecords',e); }
 }
-window.renderRecords=function(){
-  const tb=document.getElementById('recordsBody'); if(!tb)return;
-  const q=(document.getElementById('recSearch').value||'').toLowerCase();
-  const sf=document.getElementById('recStatusFilter').value;
-  let rows=RECORDS.slice().sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||''));
+let _dashFilter='all';
+window.setDashFilter=function(f,btn){ _dashFilter=f; document.querySelectorAll('#tab-records .chip').forEach(b=>b.classList.remove('chip-active')); if(btn)btn.classList.add('chip-active'); renderDashboard(); };
+function computeProgress(r){
+  let total=0,filled=0;
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.ro)return; if(!f.req)return; total++; const v=r.data?.[`${f.sheet||s.sheet}.${f.k}`]; if(v!==undefined&&v!==null&&v!=='')filled++; }));
+  // augment with overall fill ratio so the bar reflects real entry depth
+  let aTot=0,aFill=0;
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.ro)return; aTot++; const v=r.data?.[`${f.sheet||s.sheet}.${f.k}`]; if(v!==undefined&&v!==null&&v!=='')aFill++; }));
+  const reqPct=total?filled/total:1, fillPct=aTot?aFill/aTot:0;
+  return Math.round((reqPct*0.6+fillPct*0.4)*100);
+}
+function initialsOf(r){
+  const fn=r.data?.['Patient_Master.Name_First']||'', mn=r.data?.['Patient_Master.Name_Middle']||'', ln=r.data?.['Patient_Master.Name_Last']||'';
+  const i=(fn[0]||'')+(mn[0]||'')+(ln[0]||''); return (i||(r.patientId||'?').slice(-2)).toUpperCase();
+}
+window.renderDashboard=function(){
+  const wrap=document.getElementById('dashList'); if(!wrap)return;
+  const q=(document.getElementById('dashSearch')?.value||'').toLowerCase().trim();
+  let rows=RECORDS.slice().sort((a,b)=>(b.patientId||'').localeCompare(a.patientId||''));
+  rows.forEach(r=>r._pct=computeProgress(r));
+  // KPIs
+  const total=RECORDS.length;
+  const complete=RECORDS.filter(r=>computeProgress(r)>=100).length;
+  const reviewed=RECORDS.filter(r=>(r.recordStatus||'')==='reviewed').length;
+  document.getElementById('kpiTotal').textContent=total;
+  document.getElementById('kpiComplete').textContent=complete;
+  document.getElementById('kpiIncomplete').textContent=total-complete;
+  document.getElementById('kpiReviewed').textContent=reviewed;
+  // filter
   rows=rows.filter(r=>{
-    if(sf && (r.recordStatus||'draft')!==sf) return false;
-    if(q){ const blob=`${r.patientId} ${r.data?.['Patient_Master.Civil_ID_Optional']||''} ${r.enteredByName||''}`.toLowerCase(); if(!blob.includes(q)) return false; }
+    const st=r.recordStatus||'draft';
+    if(_dashFilter==='submitted'&&st!=='submitted')return false;
+    if(_dashFilter==='draft'&&st!=='draft')return false;
+    if(_dashFilter==='reviewed'&&st!=='reviewed')return false;
+    if(_dashFilter==='complete'&&r._pct<100)return false;
+    if(_dashFilter==='incomplete'&&r._pct>=100)return false;
+    if(q){ const blob=`${r.patientId||''} ${r.data?.['Patient_Master.Civil_ID_Optional']||''} ${r.enteredByName||''}`.toLowerCase(); if(!blob.includes(q))return false; }
     return true;
   });
-  if(!rows.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8;">No records.</td></tr>'; return; }
-  tb.innerHTML=rows.map(r=>{
+  if(!rows.length){ wrap.innerHTML='<div class="card" style="text-align:center;color:#94a3b8;padding:28px;">No records match.</div>'; return; }
+  wrap.innerHTML=rows.map((r,idx)=>{
     const st=r.recordStatus||'draft';
-    const badge=st==='submitted'?'<span class="badge badge-green">Submitted</span>':'<span class="badge badge-amber">Draft</span>';
-    return `<tr>
-      <td style="font-family:'DM Mono',monospace;font-weight:700;color:#1d4ed8;">${r.patientId||'—'}</td>
-      <td>${r.data?.['Patient_Master.Civil_ID_Optional']||'—'}</td>
-      <td>${r.data?.['Patient_Master.Index_Admission_Date']||'—'}</td>
-      <td>${r.data?.['Presentation_ECG_Timing.Presentation_Type']||'—'}</td>
-      <td>${r.enteredByName||'—'}</td>
-      <td>${badge}</td>
-      <td style="white-space:nowrap;">
-        <button class="btn btn-yellow" style="padding:5px 10px;font-size:12px;" onclick="editRecord('${r.id}')"><i class="fas fa-edit"></i></button>
-        <button class="btn btn-red" style="padding:5px 10px;font-size:12px;margin-left:4px;" onclick="deleteRecord('${r.id}','${r.patientId||''}')"><i class="fas fa-trash"></i></button>
-      </td></tr>`;
+    const badge=st==='reviewed'?'<span class="badge badge-purple">Reviewed</span>':(st==='submitted'?'<span class="badge badge-green">Submitted</span>':'<span class="badge badge-amber">Draft</span>');
+    const cid=r.data?.['Patient_Master.Civil_ID_Optional']||'—';
+    const adm=r.data?.['Patient_Master.Index_Admission_Date']||'—';
+    const reason=r.data?.['Admission_Reason.CA_Reason']||'—';
+    const pct=r._pct;
+    const pcol=pct>=100?'#059669':(pct>=50?'#d97706':'#e11d48');
+    return `<div class="card pt-card">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="avatar">${initialsOf(r)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-weight:800;font-family:'DM Mono',monospace;color:#1d4ed8;">${r.patientId||'—'}</span>${badge}
+          </div>
+          <div style="font-size:12px;color:#64748b;margin-top:4px;display:flex;gap:14px;flex-wrap:wrap;">
+            <span>CID: <b>${cid}</b></span><span><i class="fas fa-calendar-day"></i> ${adm}</span><span><i class="fas fa-heart-pulse"></i> ${reason}</span><span><i class="fas fa-user-doctor"></i> ${r.enteredByName||'—'}</span>
+          </div>
+          <div class="progress-bar" style="margin-top:9px;"><div class="progress-fill" style="width:${pct}%;background:${pcol};"></div></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-yellow" style="padding:7px 11px;" title="Edit" onclick="editRecord('${r.id}')"><i class="fas fa-edit"></i></button>
+            ${st!=='reviewed'?`<button class="btn btn-green" style="padding:7px 11px;" title="Mark reviewed" onclick="markReviewed('${r.id}')"><i class="fas fa-check"></i></button>`:`<button class="btn btn-gray" style="padding:7px 11px;" title="Revert to draft" onclick="markDraft('${r.id}')"><i class="fas fa-rotate-left"></i></button>`}
+          </div>
+          <div style="font-size:13px;font-weight:800;color:${pcol};margin-top:6px;">${pct}%</div>
+        </div>
+      </div></div>`;
   }).join('');
 };
+window.renderRecords=window.renderDashboard;
+window.markReviewed=async function(id){ try{ await db.collection(COL_PATIENTS).doc(id).update({recordStatus:'reviewed',reviewedAt:new Date()}); await loadRecords(); toast('Marked reviewed ✓','#7c3aed'); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
+window.markDraft=async function(id){ try{ await db.collection(COL_PATIENTS).doc(id).update({recordStatus:'draft'}); await loadRecords(); toast('Reverted to draft','#64748b'); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
 window.editRecord=function(id){
   const r=RECORDS.find(x=>x.id===id); if(!r)return;
   newRecord();
@@ -1212,35 +1279,86 @@ window.exportCodebookOnly=function(){ const wb=XLSX.utils.book_new(); appendCode
 function stamp(){ const d=new Date(); return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
 
 /* ════════════════════════ ANALYTICS ════════════════════════ */
-let _charts={};
-function destroyCharts(){ Object.values(_charts).forEach(c=>c&&c.destroy()); _charts={}; }
+function _pctStr(n,d){ return d>0?Math.round(n/d*100)+'%':'—'; }
+function _countBy(arr){ return arr.reduce((m,v)=>{m[v]=(m[v]||0)+1;return m;},{}); }
+function _distRows(counts,color){
+  const ent=Object.entries(counts).filter(([k])=>k&&k!=='undefined').sort((a,b)=>b[1]-a[1]);
+  if(!ent.length)return '<div style="color:#94a3b8;font-size:13px;">No data yet.</div>';
+  const max=Math.max(...ent.map(e=>e[1])), tot=ent.reduce((a,e)=>a+e[1],0)||1;
+  return ent.map(([k,v])=>`<div class="dist-row"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px;"><span>${k}</span><span style="font-weight:700;color:#475569;">${v} · ${Math.round(v/tot*100)}%</span></div><div class="dist-bar"><div style="height:100%;width:${v/max*100}%;background:${color||'#2563eb'};border-radius:5px;"></div></div></div>`).join('');
+}
+function _rateRows(pairs,denom,color){
+  if(!denom)return '<div style="color:#94a3b8;font-size:13px;">No eligible patients.</div>';
+  return pairs.map(([k,v])=>`<div class="dist-row"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px;"><span>${k}</span><span style="font-weight:700;color:#475569;">${v}/${denom} · ${Math.round(v/denom*100)}%</span></div><div class="dist-bar"><div style="height:100%;width:${Math.round(v/denom*100)}%;background:${color||'#16a34a'};border-radius:5px;"></div></div></div>`).join('');
+}
+function _statRow(label,val){ return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:13px;"><span style="color:#64748b;">${label}</span><span style="font-weight:800;color:#0f172a;">${val}</span></div>`; }
+function _acc(title,icon,color,body,open){
+  return `<div class="card" style="padding:0;overflow:hidden;margin-bottom:10px;">
+    <button class="acc-head" onclick="const b=this.nextElementSibling;b.classList.toggle('hidden');this.querySelector('.acc-chev').style.transform=b.classList.contains('hidden')?'':'rotate(180deg)';">
+      <span style="display:flex;align-items:center;gap:10px;"><i class="fas ${icon}" style="color:${color};"></i>${title}</span><i class="fas fa-chevron-down acc-chev"${open?' style="transform:rotate(180deg);"':''}></i>
+    </button>
+    <div class="acc-body${open?'':' hidden'}" style="padding:16px 18px;border-top:1px solid #eef2f7;">${body}</div>
+  </div>`;
+}
 function renderAnalytics(){
-  destroyCharts();
-  const g=k=>RECORDS.map(r=>r.data?.[k]).filter(Boolean);
-  document.getElementById('stTotal').textContent=RECORDS.length;
-  document.getElementById('stPci').textContent=RECORDS.filter(r=>{const cr=r.data?.['Admission_Reason.CA_Reason'],md=r.data?.['PCI_Details.Management_Decision'];return cr==='Primary PCI (STEMI)'||md==='PCI'||md==='Hybrid (PCI + CABG)';}).length;
-  let mace=0,death=0;
-  RECORDS.forEach(r=>{ (r.followups||[]).forEach(fu=>{ if(fu.MACE==='Yes')mace++; if(fu.Death==='Yes')death++; }); if(r.data?.['Discharge_Medications.In_Hospital_Outcome']==='In-hospital death' || r.data?.['InHospital_Complications.Death_In_Hospital']==='Yes')death++; });
-  document.getElementById('stMace').textContent=mace;
-  document.getElementById('stDeath').textContent=death;
-  const C=['#2563eb','#059669','#d97706','#e11d48','#7c3aed','#0d9488','#0891b2'];
-  const countBy=(arr)=>arr.reduce((m,v)=>{m[v]=(m[v]||0)+1;return m;},{});
-  const mk=(id,type,labels,data,colors)=>{ const el=document.getElementById(id); if(!el)return; _charts[id]=new Chart(el,{type,data:{labels,datasets:[{data,backgroundColor:colors||C,borderWidth:0}]},options:{plugins:{legend:{display:type!=='bar',position:'bottom',labels:{font:{size:11}}}},scales:type==='bar'?{y:{beginAtZero:true,ticks:{precision:0}}}:{}}}); };
-  const pres=countBy(g('Presentation_ECG_Timing.Presentation_Type'));
-  mk('chartPresentation','doughnut',Object.keys(pres),Object.values(pres));
-  const ves=countBy(g('Coronary_Anatomy.Number_Diseased_Vessels'));
-  mk('chartVessels','bar',Object.keys(ves),Object.values(ves),'#2563eb');
-  const docs=countBy(RECORDS.map(r=>r.enteredByName||'—'));
-  mk('chartDoctors','bar',Object.keys(docs),Object.values(docs),'#0d9488');
-  const risk=['Diabetes','Hypertension','Dyslipidemia','Smoking_Status'];
-  const rl=['Diabetes','Hypertension','Dyslipidemia','Current Smoker'];
-  const rd=[
-    g('Patient_Master.Diabetes').filter(v=>v==='Yes').length,
-    g('Patient_Master.Hypertension').filter(v=>v==='Yes').length,
-    g('Patient_Master.Dyslipidemia').filter(v=>v==='Yes').length,
-    g('Patient_Master.Smoking_Status').filter(v=>v==='Current').length
-  ];
-  mk('chartRisk','bar',rl,rd,'#e11d48');
+  const g=k=>RECORDS.map(r=>r.data?.[k]).filter(v=>v!==undefined&&v!==null&&v!=='');
+  const yesCount=k=>g(k).filter(v=>v==='Yes').length;
+  const N=RECORDS.length;
+  const _avg=key=>{const vals=RECORDS.map(r=>parseFloat(r.data?.[key])).filter(v=>!isNaN(v));return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;};
+  // ---- KPIs ----
+  const pciCases=RECORDS.filter(r=>{const cr=r.data?.['Admission_Reason.CA_Reason'],md=r.data?.['PCI_Details.Management_Decision'];return cr==='Primary PCI (STEMI)'||md==='PCI'||md==='Hybrid (PCI + CABG)';});
+  const success=pciCases.filter(r=>r.data?.['PCI_Details.Procedural_Complications_Present']!=='Yes').length;
+  const deaths=RECORDS.filter(r=>r.data?.['Discharge_Medications.In_Hospital_Outcome']==='In-hospital death'||r.data?.['InHospital_Complications.Death_In_Hospital']==='Yes').length;
+  document.getElementById('anTotal').textContent=N;
+  document.getElementById('anPci').textContent=pciCases.length;
+  document.getElementById('anSuccess').textContent=_pctStr(success,pciCases.length);
+  document.getElementById('anMortality').textContent=_pctStr(deaths,N);
+  // ---- Coronary anatomy / disease extent ----
+  const dvRaw=_countBy(g('Coronary_Anatomy.Number_Diseased_Vessels')); const dv={};
+  Object.entries(dvRaw).forEach(([k,v])=>{ const lbl={'0':'No obstructive disease','1':'Single-vessel','2':'Two-vessel','3':'Three-vessel'}[k]||k; dv[lbl]=v; });
+  const vesselInv={'Left Main':yesCount('Coronary_Anatomy.Left_Main_Disease'),'LAD':yesCount('Coronary_Anatomy.LAD_Disease'),'LCx':yesCount('Coronary_Anatomy.LCX_Disease'),'RCA':yesCount('Coronary_Anatomy.RCA_Disease')};
+  const anatomyBody=`<div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Disease extent</div>${_distRows(dv,'#7c3aed')}<div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px;">Vessel involvement (of ${N})</div>${_rateRows(Object.entries(vesselInv),N,'#7c3aed')}`;
+  // ---- PCI & stents ----
+  const meanStents=_avg('PCI_Details.Number_Stents'), meanLen=_avg('PCI_Details.Total_Stent_Length');
+  const stentBody=`<div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Stent type</div>${_distRows(_countBy(g('PCI_Details.Stent_Type')),'#0891b2')}<div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px;">Intracoronary imaging</div>${_distRows(_countBy(g('PCI_Details.Imaging_Used')),'#0891b2')}<div style="margin-top:14px;">${_statRow('Mean stents per case',meanStents!=null?meanStents:'—')}${_statRow('Mean total stent length (mm)',meanLen!=null?meanLen:'—')}</div>`;
+  // ---- STEMI reperfusion times ----
+  const d2b=RECORDS.map(r=>parseFloat(r.data?.['Presentation_ECG_Timing.Door_to_Balloon_Min'])).filter(v=>!isNaN(v));
+  const d2bTarget=d2b.length?Math.round(d2b.filter(v=>v<=90).length/d2b.length*100):null;
+  const reperfBody=`${_statRow('Mean door-to-balloon (min)',_avg('Presentation_ECG_Timing.Door_to_Balloon_Min')??'—')}${_statRow('Mean symptom-to-balloon (min)',_avg('Presentation_ECG_Timing.Symptom_to_Balloon_Min')??'—')}${_statRow('Door-to-balloon ≤90 min',d2bTarget!=null?d2bTarget+'% ('+d2b.filter(v=>v<=90).length+'/'+d2b.length+')':'—')}`;
+  // ---- LV function ----
+  const lvef={};
+  RECORDS.forEach(r=>{const e=parseFloat(r.data?.['Echocardiography.LVEF']);if(isNaN(e))return;const cat=e>=50?'Normal (≥50%)':e>=40?'Mildly reduced (40–49%)':e>=30?'Moderately reduced (30–39%)':'Severely reduced (<30%)';lvef[cat]=(lvef[cat]||0)+1;});
+  // ---- risk factors ----
+  const risk={Diabetes:yesCount('Patient_Master.Diabetes'),Hypertension:yesCount('Patient_Master.Hypertension'),Dyslipidemia:yesCount('Patient_Master.Dyslipidemia'),'Current smoker':g('Patient_Master.Smoking_Status').filter(v=>v==='Current').length,'Family history CAD':yesCount('Patient_Master.Family_History_CAD'),'Chronic kidney disease':yesCount('Patient_Master.Chronic_Kidney_Disease')};
+  // ---- secondary prevention (survivors) ----
+  const surv=RECORDS.filter(r=>r.data?.['Discharge_Medications.In_Hospital_Outcome']==='Survived to discharge');
+  const sp=[['Aspirin',surv.filter(r=>r.data?.['Discharge_Medications.Aspirin']==='Yes').length],
+    ['Dual antiplatelet therapy',surv.filter(r=>r.data?.['Discharge_Medications.Dual_Antiplatelet_Therapy']==='Yes').length],
+    ['P2Y12 inhibitor',surv.filter(r=>{const v=r.data?.['Discharge_Medications.P2Y12_Inhibitor'];return v&&v!=='None';}).length],
+    ['Statin',surv.filter(r=>{const v=r.data?.['Discharge_Medications.Statin'];return v&&v!=='None';}).length],
+    ['Beta-blocker',surv.filter(r=>r.data?.['Discharge_Medications.Beta_Blocker']==='Yes').length],
+    ['ACEi / ARB / ARNI',surv.filter(r=>{const v=r.data?.['Discharge_Medications.ACEi_or_ARB_or_ARNI'];return v&&v!=='None';}).length]];
+  // ---- complications ----
+  const proc=RECORDS.filter(r=>r.data?.['PCI_Details.Procedural_Complications_Present']==='Yes').length;
+  const inhosp=RECORDS.filter(r=>r.data?.['InHospital_Complications.InHospital_Complication_Present']==='Yes').length;
+  const anyComp=RECORDS.filter(r=>r.data?.['PCI_Details.Procedural_Complications_Present']==='Yes'||r.data?.['InHospital_Complications.InHospital_Complication_Present']==='Yes').length;
+  const complDetail={};
+  ['Periprocedural_MI','No_Reflow_Slow_Flow','Coronary_Perforation','Coronary_Dissection','Access_Site_Bleeding','Acute_Stent_Thrombosis','Contrast_Induced_AKI'].forEach(k=>{const c=yesCount('PCI_Details.'+k);if(c)complDetail[pretty(k)]=c;});
+  ['Acute_Heart_Failure','Cardiogenic_Shock_InHospital','Cardiac_Arrest_InHospital','Sustained_VT_VF','Major_Bleeding','Stroke_TIA_InHospital','Subacute_Stent_Thrombosis'].forEach(k=>{const c=yesCount('InHospital_Complications.'+k);if(c)complDetail[pretty(k)]=c;});
+  const complBody=`<div style="margin-bottom:12px;">${_statRow('Overall complication rate',_pctStr(anyComp,N)+' ('+anyComp+'/'+N+')')}${_statRow('Procedural (cath-lab)',_pctStr(proc,N))}${_statRow('In-hospital',_pctStr(inhosp,N))}${_statRow('In-hospital mortality',_pctStr(deaths,N))}</div><div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Specific events</div>${_distRows(complDetail,'#e11d48')}`;
+  // ---- render ----
+  document.getElementById('anAccordions').innerHTML=
+     _acc('Indication for Catheterization','fa-hospital','#7c3aed',_distRows(_countBy(g('Admission_Reason.CA_Reason')),'#7c3aed'),true)
+    +_acc('Coronary Anatomy & Disease Extent','fa-diagram-project','#7c3aed',anatomyBody)
+    +_acc('Culprit Vessel','fa-bullseye','#dc2626',_distRows(_countBy(g('Coronary_Anatomy.Culprit_Vessel')),'#dc2626'))
+    +_acc('Management After Angiography','fa-route','#0891b2',_distRows(_countBy(g('PCI_Details.Management_Decision')),'#0891b2'))
+    +_acc('PCI &amp; Stent Use','fa-syringe','#0891b2',stentBody)
+    +_acc('STEMI Reperfusion Times','fa-stopwatch','#d97706',reperfBody)
+    +_acc('LV Systolic Function (LVEF)','fa-heart','#dc2626',_distRows(lvef,'#dc2626'))
+    +_acc('Cardiovascular Risk Factors','fa-triangle-exclamation','#d97706',_rateRows(Object.entries(risk),N,'#d97706'))
+    +_acc('Secondary Prevention at Discharge','fa-pills','#16a34a',_rateRows(sp,surv.length,'#16a34a'))
+    +_acc('Complications &amp; Outcomes','fa-kit-medical','#e11d48',complBody)
+    +_acc('Cases by Investigator','fa-user-doctor','#0d9488',_distRows(_countBy(RECORDS.map(r=>r.enteredByName||'—')),'#0d9488'));
 }
 
 /* ════════════════════════ TOAST ════════════════════════ */
