@@ -399,40 +399,43 @@ const SECTIONS = [
      {k:'Systolic_BP',type:'numu',label:'Systolic BP (mmHg)',info:'BP'},{k:'Diastolic_BP',type:'numu',label:'Diastolic BP (mmHg)',info:'BP'},
      {k:'Presenting_HR',type:'numu',label:'Presenting HR (/min)',info:'HR'},{k:'Weight_kg',type:'numu',label:'Weight (kg)'},
      {k:'Height_cm',type:'numu',label:'Height (cm)'},{k:'BMI',type:'num',hint:'auto'}]},
-   {title:'Cardiovascular Risk Factors', tint:'yellow', c:'#d97706', icon:'fa-triangle-exclamation', cols:3, fields:[
+   {title:'Cardiovascular Risk Factors', tint:'gray', c:'#475569', icon:'fa-triangle-exclamation', cols:3, fields:[
      {k:'Smoking_Status',type:'select',opts:['Never','Former','Current'],sheet:'Patient_Master'},{k:'Diabetes',type:'ynbtn',sheet:'Patient_Master'},
      {k:'Hypertension',type:'ynbtn',sheet:'Patient_Master'},{k:'Dyslipidemia',type:'ynbtn',sheet:'Patient_Master'},
      {k:'Family_History_CAD',type:'ynbtn',sheet:'Patient_Master'},{k:'Chronic_Kidney_Disease',type:'ynbtn',sheet:'Patient_Master'}]},
-   {title:'Coronary Disease & Infarction', tint:'gray', c:'#475569', icon:'fa-heart-circle-exclamation', cols:2, fields:[
-     {k:'Coronary_Artery_Disease',type:'select',opts:YN,label:'Coronary artery disease'},{k:'Myocardial_Infarction',type:'select',opts:YN,label:'Myocardial infarction'}]},
-   {gate:'Prior_PCI', gateSheet:'Patient_Master', title:'Prior PCI', tint:'red', c:'#e11d48', icon:'fa-syringe', cols:1, fields:[
-     {k:'PCI_Within_6_Months',type:'select',opts:YN,label:'PCI done within last 6 months'}]},
-   {gate:'Prior_CABG', gateSheet:'Patient_Master', title:'Prior CABG', tint:'red', c:'#e11d48', icon:'fa-heart-circle-plus', cols:1, fields:[
-     {k:'CABG_Within_6_Months',type:'select',opts:YN,label:'CABG within last 6 months'}]},
-   {gate:'Prior_Coronary_Angiography', title:'Prior Coronary Angiography', tint:'red', c:'#e11d48', icon:'fa-diagram-project', cols:2, fields:[
-     {k:'CA_Within_6_Months',type:'select',opts:YN,label:'Within last 6 months'},{k:'CA_After_Cardiac_Arrest',type:'select',opts:YN,label:'After most recent cardiac arrest'}]},
-   {gate:'Ischemic_Cardiomyopathy', title:'Ischemic Cardiomyopathy', tint:'red', c:'#e11d48', icon:'fa-heart-crack', cols:2, fields:[
-     {k:'Cardiomyopathy_Timeframe',type:'select',opts:CM_TIMEFRAME,label:'Timeframe'},{k:'GDMT_Max_Dose',type:'select',opts:GDMT,label:'GDMT max dose'}]},
-   {gate:'Heart_Failure', gateSheet:'Patient_Master', title:'Heart Failure', tint:'red', c:'#e11d48', icon:'fa-heart', cols:1, fields:[
-     {k:'HF_Type',type:'radio',opts:['HFrEF','HFpEF','HFmrEF'],label:'Heart-failure phenotype'}]},
+   {title:'Coronary Disease & Prior Revascularization', tint:'gray', c:'#475569', icon:'fa-heart-circle-exclamation', cols:3, fields:[
+     {k:'Coronary_Artery_Disease',type:'ynbtn',label:'Coronary Artery Disease'},{k:'Myocardial_Infarction',type:'ynbtn',label:'Myocardial Infarction'},
+     {k:'Prior_PCI',type:'ynbtn',label:'Prior PCI',sheet:'Patient_Master'},
+     {k:'PCI_Within_6_Months',type:'ynbtn',label:'PCI within last 6 months',showIf:{sec:'history',k:'Prior_PCI',eq:'Yes'}},
+     {k:'Prior_CABG',type:'ynbtn',label:'Prior CABG',sheet:'Patient_Master'},
+     {k:'CABG_Within_6_Months',type:'ynbtn',label:'CABG within last 6 months',showIf:{sec:'history',k:'Prior_CABG',eq:'Yes'}},
+     {k:'Prior_Coronary_Angiography',type:'ynbtn',label:'Prior Coronary Angiography'},
+     {k:'CA_Within_6_Months',type:'ynbtn',label:'Angiography within last 6 months',showIf:{sec:'history',k:'Prior_Coronary_Angiography',eq:'Yes'}},
+     {k:'CA_After_Cardiac_Arrest',type:'ynbtn',label:'After most recent cardiac arrest',showIf:{sec:'history',k:'Prior_Coronary_Angiography',eq:'Yes'}}]},
+   {title:'Cardiomyopathy & Heart Failure', tint:'gray', c:'#475569', icon:'fa-heart-crack', cols:3, fields:[
+     {k:'Ischemic_Cardiomyopathy',type:'ynbtn',label:'Ischemic Cardiomyopathy'},
+     {k:'Cardiomyopathy_Timeframe',type:'select',opts:CM_TIMEFRAME,label:'Timeframe',showIf:{sec:'history',k:'Ischemic_Cardiomyopathy',eq:'Yes'}},
+     {k:'GDMT_Max_Dose',type:'select',opts:GDMT,label:'GDMT max dose',showIf:{sec:'history',k:'Ischemic_Cardiomyopathy',eq:'Yes'}},
+     {k:'Heart_Failure',type:'ynbtn',label:'Heart Failure',sheet:'Patient_Master'},
+     {k:'HF_Type',type:'select',opts:['HFrEF','HFpEF','HFmrEF'],label:'HF phenotype',showIf:{sec:'history',k:'Heart_Failure',eq:'Yes'}}]},
    {title:'Other Comorbidities', tint:'gray', c:'#475569', icon:'fa-list-check', cols:3, fields:[
-     {k:'Valvular_Heart_Disease',type:'select',opts:YN,label:'Valvular heart disease'},{k:'Cerebrovascular_Disease',type:'select',opts:YN,label:'Cerebrovascular disease'},
-     {k:'Chronic_Lung_Disease',type:'select',opts:YN,label:'Chronic lung disease'},{k:'Currently_On_Dialysis',type:'select',opts:YN,label:'Currently on dialysis'},
-     {k:'Peripheral_Artery_Disease',type:'select',opts:YN,label:'Peripheral artery disease',sheet:'Patient_Master'},{k:'Prior_Stroke_TIA',type:'select',opts:YN,label:'Prior stroke / TIA',sheet:'Patient_Master'},
-     {k:'Familial_Syndrome',type:'select',opts:YN,label:'Familial syndrome'}]},
-   {gate:'Atrial_Fibrillation', gateSheet:'Patient_Master', title:'Atrial Fibrillation', tint:'gray', c:'#64748b', icon:'fa-heart-pulse', cols:1, fields:[]},
-   {gate:'Prior_Cardiac_Arrest', title:'Prior Cardiac Arrest', tint:'gray', c:'#64748b', icon:'fa-bolt', cols:1, fields:[]},
-   {title:'Arrhythmia History', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
-     {k:'Paroxysmal_SVT',type:'select',opts:YN,label:'Paroxysmal SVT history'},{k:'Ventricular_Fibrillation',type:'select',opts:YN,label:'Ventricular fibrillation'},
-     {k:'Ventricular_Tachycardia',type:'select',opts:YN,label:'Ventricular tachycardia'}]},
-   {gate:'Syndromes_Of_Sudden_Death', title:'Syndromes of Sudden Death', info:'SUDDEN_DEATH', tint:'gray', c:'#64748b', icon:'fa-dna', cols:1, fields:[]},
-   {gate:'Structural_Abnormalities', title:'Structural Abnormalities', tint:'gray', c:'#64748b', icon:'fa-heart-crack', cols:1, fields:[]},
-   {gate:'Syncope', title:'Syncope', tint:'gray', c:'#64748b', icon:'fa-person-falling', cols:1, fields:[]},
-   {gate:'Aortic_Valve_Procedure', title:'Aortic Valve Procedure', tint:'gray', c:'#64748b', icon:'fa-heart-circle-bolt', cols:2, fields:[
-     {k:'AV_Procedure_Type',type:'radio',opts:['TAVR','SAVR'],label:'Type'},{k:'AV_Within_6_Months',type:'select',opts:YN,label:'Within last 6 months'}]},
-   {gate:'Mitral_Valve_Procedure', title:'Mitral Valve Procedure', tint:'gray', c:'#64748b', icon:'fa-heart-circle-bolt', cols:2, fields:[
-     {k:'MV_Procedure_Type',type:'radio',opts:['PMVR','Mechanical MV','Bioprosthetic MV','Mitral clipping'],label:'Type'},{k:'MV_Within_6_Months',type:'select',opts:YN,label:'Within last 6 months'}]},
-   {gate:'Prior_CIED', title:'Prior CV Implantable Electronic Device (CIED)', tint:'gray', c:'#64748b', icon:'fa-microchip', cols:1, fields:[]}
+     {k:'Valvular_Heart_Disease',type:'ynbtn',label:'Valvular Heart Disease'},{k:'Cerebrovascular_Disease',type:'ynbtn',label:'Cerebrovascular Disease'},
+     {k:'Chronic_Lung_Disease',type:'ynbtn',label:'Chronic Lung Disease'},{k:'Currently_On_Dialysis',type:'ynbtn',label:'Currently on Dialysis'},
+     {k:'Peripheral_Artery_Disease',type:'ynbtn',label:'Peripheral Artery Disease',sheet:'Patient_Master'},{k:'Prior_Stroke_TIA',type:'ynbtn',label:'Prior Stroke / TIA',sheet:'Patient_Master'},
+     {k:'Familial_Syndrome',type:'ynbtn',label:'Familial Syndrome'}]},
+   {title:'Arrhythmia & Other Cardiac History', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
+     {k:'Atrial_Fibrillation',type:'ynbtn',label:'Atrial Fibrillation',sheet:'Patient_Master'},{k:'Prior_Cardiac_Arrest',type:'ynbtn',label:'Prior Cardiac Arrest'},
+     {k:'Paroxysmal_SVT',type:'ynbtn',label:'Paroxysmal SVT'},{k:'Ventricular_Fibrillation',type:'ynbtn',label:'Ventricular Fibrillation'},
+     {k:'Ventricular_Tachycardia',type:'ynbtn',label:'Ventricular Tachycardia'},{k:'Syndromes_Of_Sudden_Death',type:'ynbtn',label:'Syndromes of Sudden Death',info:'SUDDEN_DEATH'},
+     {k:'Structural_Abnormalities',type:'ynbtn',label:'Structural Abnormalities'},{k:'Syncope',type:'ynbtn',label:'Syncope'},
+     {k:'Prior_CIED',type:'ynbtn',label:'Prior CIED'}]},
+   {title:'Valve Procedures', tint:'gray', c:'#475569', icon:'fa-heart-circle-bolt', cols:3, fields:[
+     {k:'Aortic_Valve_Procedure',type:'ynbtn',label:'Aortic Valve Procedure'},
+     {k:'AV_Procedure_Type',type:'select',opts:['TAVR','SAVR'],label:'Aortic procedure type',showIf:{sec:'history',k:'Aortic_Valve_Procedure',eq:'Yes'}},
+     {k:'AV_Within_6_Months',type:'ynbtn',label:'Aortic — within last 6 months',showIf:{sec:'history',k:'Aortic_Valve_Procedure',eq:'Yes'}},
+     {k:'Mitral_Valve_Procedure',type:'ynbtn',label:'Mitral Valve Procedure'},
+     {k:'MV_Procedure_Type',type:'select',opts:['PMVR','Mechanical MV','Bioprosthetic MV','Mitral clipping'],label:'Mitral procedure type',showIf:{sec:'history',k:'Mitral_Valve_Procedure',eq:'Yes'}},
+     {k:'MV_Within_6_Months',type:'ynbtn',label:'Mitral — within last 6 months',showIf:{sec:'history',k:'Mitral_Valve_Procedure',eq:'Yes'}}]}
  ]},
  {id:'homemeds', sheet:'Home_Medications', title:'Home Meds', icon:'fa-prescription-bottle-medical', color:'#0891b2', groups:[
    {title:'Antiplatelets', tint:'yellow', c:'#d97706', icon:'fa-tablets', cols:3, fields:[
@@ -467,14 +470,14 @@ const SECTIONS = [
    {title:'Labs — Hematology', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
      {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'num',label:'Hemoglobin (g/L)'},{k:'WBC',type:'num',label:'WBC (×10⁹/L)'},{k:'Platelets',type:'num',label:'Platelets (×10⁹/L)'}]},
    {title:'Labs — Renal Function & Electrolytes', tint:'blue', c:'#2563eb', icon:'fa-flask', cols:4, fields:[
-     {k:'Creatinine',type:'num',label:'Creatinine (µmol/L)'},{k:'eGFR',type:'num',label:'eGFR (mL/min/1.73m²)',hint:'auto CKD-EPI'},
+     {k:'Creatinine',type:'num',label:'Creatinine (µmol/L)'},{k:'eGFR',type:'num',label:'eGFR (mL/min/1.73m²)',hint:'auto',ro:true},
      {k:'Sodium',type:'num',label:'Sodium (mmol/L)'},{k:'Potassium',type:'num',label:'Potassium (mmol/L)'}]},
    {title:'Labs — Metabolic', tint:'yellow', c:'#d97706', icon:'fa-cubes', cols:2, fields:[
      {k:'Glucose',type:'num',label:'Glucose (mmol/L)'},{k:'HbA1c',type:'num',label:'HbA1c (%)'}]},
    {title:'Labs — Lipid Profile', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:4, fields:[
      {k:'Total_Cholesterol',type:'num',label:'Total Cholesterol (mmol/L)'},{k:'LDL',type:'num',label:'LDL (mmol/L)'},{k:'HDL',type:'num',label:'HDL (mmol/L)'},{k:'Triglycerides',type:'num',label:'Triglycerides (mmol/L)'}]},
-   {title:'Labs — Cardiac & Inflammatory Markers', tint:'gray', c:'#475569', icon:'fa-heart-pulse', cols:3, fields:[
-     {k:'Troponin',type:'num',label:'hs-Troponin (ng/L)'},{k:'BNP',type:'num',label:'BNP / NT-proBNP (pg/mL)'},{k:'CRP',type:'num',label:'CRP (mg/L)'}]}
+   {title:'Labs — Cardiac & Inflammatory Markers', tint:'gray', c:'#475569', icon:'fa-heart-pulse', cols:4, fields:[
+     {k:'Troponin',type:'num',label:'hs-Troponin (ng/L)'},{k:'BNP',type:'num',label:'BNP (pg/mL)'},{k:'NT_proBNP',type:'num',label:'NT-proBNP (pg/mL)'},{k:'CRP',type:'num',label:'CRP (mg/L)'}]}
  ]},
  {id:'pci', sheet:'PCI_Details', title:'Procedure', icon:'fa-syringe', color:'#0891b2', groups:[
    {title:'Reperfusion Timing', tint:'yellow', c:'#d97706', icon:'fa-clock', cols:2,
