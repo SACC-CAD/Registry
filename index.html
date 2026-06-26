@@ -103,7 +103,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .modal-box table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
 .modal-box th,.modal-box td{border:1px solid #e2e8f0;padding:7px 9px;text-align:left;vertical-align:top;}
 .modal-box th{background:#f1f5f9;font-weight:700;}
-.grp-head .gi{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.12);}
+.grp-head .gi,.gate-title .gi{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.12);}
 .sidebar{background:linear-gradient(180deg,#f8fafc,#eef2f7);border-right:1.5px solid #e2e8f0;border-radius:14px 0 0 14px;}
 .progress-bar{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--blue-primary),#60a5fa);border-radius:3px;transition:width .45s cubic-bezier(.22,1,.36,1);}
@@ -597,30 +597,33 @@ const SECTIONS = [
      {k:'Procedural_Anticoagulation',type:'select',opts:['None','UFH','LMWH','Bivalirudin','Other'],label:'Procedural anticoagulation'},
      {k:'Culprit_Vessel',type:'select',opts:['Left main','LAD','LCx','RCA','Ramus','Graft','None'],label:'Culprit vessel',sheet:'Coronary_Anatomy'},
      {k:'Vascular_Closure_Device',type:'ynbtn',label:'Vascular closure device used'},
-     {k:'Procedure_Success',type:'select',opts:['Successful','Partially successful','Failed','Aborted'],label:'Overall procedure success'},
-     {k:'Complete_Revascularization',type:'ynbtn',label:'Complete revascularization achieved'},
+     {k:'Procedure_Success',type:'select',opts:['Successful','Partially successful','Failed','Aborted'],label:'Overall procedure success',hidden:true},
+     {k:'Complete_Revascularization',type:'ynbtn',label:'Complete revascularization achieved',hidden:true},
+     {k:'Staged_PCI_Planned',type:'ynbtn',label:'Staged PCI planned',hidden:true},
      {k:'Vessel_Treated',type:'text',ro:true,hidden:true},{k:'Total_Stents',type:'num',ro:true,hidden:true}]}
  ]},
  {id:'complications', sheet:'Reintervention_FollowUp', title:'Complications', icon:'fa-triangle-exclamation', color:'#e11d48', groups:[
-   {gate:'Procedural_Complications_Present', gateSheet:'PCI_Details', title:'Any procedural (cath-lab) complication?', tint:'red', c:'#e11d48', icon:'fa-triangle-exclamation', cols:3, fields:[
+   {gate:'Procedural_Complications_Present', gateSheet:'PCI_Details', title:'Any procedural (cath-lab) complication?', tint:'yellow', c:'#d97706', icon:'fa-kit-medical', cols:3, fields:[
      {k:'Access_Site_Bleeding',type:'ynbtn',sheet:'PCI_Details'},{k:'Access_Hematoma',type:'ynbtn',sheet:'PCI_Details'},{k:'Pseudoaneurysm',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Retroperitoneal_Bleed',type:'ynbtn',sheet:'PCI_Details'},{k:'Access_Limb_Ischemia',type:'ynbtn',sheet:'PCI_Details'},{k:'Coronary_Dissection',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Coronary_Perforation',type:'ynbtn',sheet:'PCI_Details'},{k:'No_Reflow_Slow_Flow',type:'ynbtn',sheet:'PCI_Details'},{k:'Side_Branch_Occlusion',type:'ynbtn',sheet:'PCI_Details'},
-     {k:'Acute_Stent_Thrombosis',type:'ynbtn',sheet:'PCI_Details',label:'Acute Stent Thrombosis (<24h)'},{k:'Abrupt_Vessel_Closure',type:'ynbtn',sheet:'PCI_Details'},{k:'Distal_Embolization',type:'ynbtn',sheet:'PCI_Details'},
+     {k:'Acute_Stent_Thrombosis',type:'ynbtn',sheet:'PCI_Details',label:'Acute Stent Thrombosis (<24h)'},{k:'Acute_ST_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'PCI_Details',showIf:{sec:'complications',k:'Acute_Stent_Thrombosis',eq:'Yes'}},{k:'Abrupt_Vessel_Closure',type:'ynbtn',sheet:'PCI_Details'},{k:'Distal_Embolization',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Periprocedural_MI',type:'ynbtn',sheet:'PCI_Details'},{k:'Contrast_Induced_AKI',type:'ynbtn',sheet:'PCI_Details'},{k:'Contrast_Reaction',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Emergency_CABG',type:'ynbtn',sheet:'PCI_Details'},{k:'Procedural_Complications',type:'textarea',sheet:'PCI_Details',label:'Other procedural complication details'}]},
-   {gate:'InHospital_Complication_Present', gateSheet:'InHospital_Complications', title:'Any in-hospital complication?', tint:'red', c:'#e11d48', icon:'fa-house-medical', cols:3, fields:[
-     {k:'Recurrent_Ischemia_Angina',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Reinfarction',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Acute_Heart_Failure',type:'ynbtn',sheet:'InHospital_Complications'},
+   {gate:'InHospital_Complication_Present', gateSheet:'InHospital_Complications', title:'Any in-hospital complication?', tint:'red', c:'#f43f5e', icon:'fa-house-medical', cols:3, fields:[
+     {k:'Recurrent_Ischemia_Angina',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Recurrent_Ischemia_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Recurrent_Ischemia_Angina',eq:'Yes'}},
+     {k:'Reinfarction',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Reinfarction_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Reinfarction',eq:'Yes'}},{k:'Acute_Heart_Failure',type:'ynbtn',sheet:'InHospital_Complications'},
      {k:'Cardiogenic_Shock_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Cardiac_Arrest_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Sustained_VT_VF',type:'ynbtn',sheet:'InHospital_Complications'},
      {k:'New_Atrial_Fibrillation',type:'ynbtn',sheet:'InHospital_Complications'},{k:'High_Grade_AV_Block',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Mechanical_Complication',type:'ynbtn',sheet:'InHospital_Complications'},
      {k:'LV_Thrombus',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Pericardial_Effusion_Tamponade',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Stroke_TIA_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},
-     {k:'Major_Bleeding',type:'ynbtn',sheet:'InHospital_Complications'},{k:'BARC_Bleeding_Grade',type:'select',opts:['None','BARC 1','BARC 2','BARC 3a','BARC 3b','BARC 3c','BARC 4','BARC 5'],label:'Max BARC bleeding grade',info:'BARC',sheet:'InHospital_Complications'},
+     {k:'Major_Bleeding',type:'ynbtn',sheet:'InHospital_Complications'},{k:'BARC_Bleeding_Grade',type:'select',opts:['BARC 1','BARC 2','BARC 3a','BARC 3b','BARC 3c','BARC 4','BARC 5'],label:'Max BARC bleeding grade',info:'BARC',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Major_Bleeding',eq:'Yes'}},
      {k:'Blood_Transfusion',type:'ynbtn',sheet:'InHospital_Complications'},{k:'New_Dialysis',type:'ynbtn',label:'New dialysis requirement',sheet:'InHospital_Complications'},
-     {k:'Subacute_Stent_Thrombosis',type:'ynbtn',sheet:'InHospital_Complications',label:'Subacute Stent Thrombosis (>24h)'},
+     {k:'Subacute_Stent_Thrombosis',type:'ynbtn',sheet:'InHospital_Complications',label:'Subacute Stent Thrombosis (>24h)'},{k:'Subacute_ST_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Subacute_Stent_Thrombosis',eq:'Yes'}},
      {k:'Infection_Sepsis',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Death_In_Hospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'InHospital_Complication_Notes',type:'textarea',sheet:'InHospital_Complications',label:'Other in-hospital complication details'}]},
-   {gate:'Reintervention_Performed', title:'Reintervention during index stay?', tint:'red', c:'#be123c', icon:'fa-rotate', cols:3, fields:[
-     {k:'Recurrent_Angina',type:'ynbtn'},{k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
-     {k:'Type_Reintervention_PCI_or_CABG',type:'select',opts:['PCI','CABG','None']}]}
+   {gate:'Reintervention_Performed', title:'Reintervention during index stay?', tint:'blue', c:'#2563eb', icon:'fa-rotate', cols:3,
+     showIf:{any:[{sec:'complications',k:'Recurrent_Ischemia_Management',in:['Repeat PCI','CABG']},{sec:'complications',k:'Reinfarction_Management',in:['Repeat PCI','CABG']},{sec:'complications',k:'Subacute_ST_Management',in:['Repeat PCI','CABG']},{sec:'complications',k:'Acute_ST_Management',in:['Repeat PCI','CABG']}]}, fields:[
+     {k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
+     {k:'Type_Reintervention_PCI_or_CABG',type:'select',opts:['PCI','CABG']}]}
  ]},
  {id:'dc_meds', sheet:'Discharge_Medications', title:'Discharge & Medications', icon:'fa-pills', color:'#059669', groups:[
    {title:'In-Hospital Outcome & Discharge', tint:'gray', c:'#334155', icon:'fa-flag-checkered', cols:3, fields:[
@@ -852,7 +855,7 @@ function groupCard(secId,g){
   if(g.gate){
     const fid=`f_${secId}__${g.gate}`;
     const sub=(g.fields&&g.fields.length)?`<div class="sub-reveal"${showAttr({showIf:{sec:secId,k:g.gate,eq:'Yes'}})}><div class="${grid}" style="gap:12px;">${g.fields.map(f=>fieldHtml(secId,f)).join('')}</div></div>`:'';
-    return `<div class="grp card-${g.tint}"><div class="gate-head"><span class="gate-title"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span>${g.title}${gInfo}<span class="fi-badge" id="${fid}_ind"></span></span>
+    return `<div class="grp card-${g.tint}"${showAttr(g)}><div class="gate-head"><span class="gate-title"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span>${g.title}${gInfo}<span class="fi-badge" id="${fid}_ind"></span></span>
       <div class="yn-group" id="${fid}_grp"><button type="button" class="yn-btn yn-no" onclick="setYN('${fid}','No')">No</button><button type="button" class="yn-btn yn-yes" onclick="setYN('${fid}','Yes')">Yes</button><input type="hidden" id="${fid}" data-k="${g.gate}" data-type="ynbtn"></div></div>${sub}</div>`;
   }
   return `<div class="grp card-${g.tint}"${showAttr(g)}><div class="grp-head"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}${gInfo}</span></div>
@@ -865,12 +868,15 @@ function buildForm(){
     div.innerHTML=`<div class="sec-title"><div class="icon-wrap" style="background:${s.color};color:#fff;"><i class="fas ${s.icon}"></i></div>${s.title}</div>${s.groups.map(g=>groupCard(s.id,g)).join('')}`;
     if(s.id==='pci'){
       const pciCond=JSON.stringify([{any:[{sec:'careason',k:'CA_Reason',eq:'Primary PCI (STEMI)'},{sec:'pci',k:'Management_Decision',eq:'PCI'},{sec:'pci',k:'Management_Decision',eq:'Hybrid (PCI + CABG)'}]}]);
+      const outFields=['Procedure_Success','Complete_Revascularization','Staged_PCI_Planned'].map(k=>secFields(s).find(f=>f.k===k)).filter(Boolean);
+      const outHtml=outFields.map(f=>fieldHtml('pci',f)).join('');
       div.innerHTML+=`<div id="treatedBlock" data-showif='${pciCond}'>
         <div class="grp card-cyan"><div class="grp-head"><span class="gi" style="background:#0891b2;"><i class="fas fa-diagram-project"></i></span><span>Treated Vessels &amp; Lesions</span></div>
           <div style="font-size:12px;color:#475569;margin:2px 0 10px;">Select each diseased vessel that was treated — a lesion block opens for each. Only vessels marked diseased above can be chosen.</div>
           <div id="treatedToggles" class="g4" style="gap:10px;"></div></div>
         <div id="lesionContainer"></div>
         <div class="grp card-gray" style="display:flex;align-items:center;gap:10px;"><span class="gi" style="background:#059669;"><i class="fas fa-layer-group"></i></span><b style="font-size:13px;color:#334155;">Total number of stents (auto):</b> <span id="totalStentsDisp" style="font-weight:800;color:#0891b2;font-size:15px;">0</span><input type="hidden" id="f_pci__Total_Stents" data-k="Total_Stents"><input type="hidden" id="f_pci__Vessel_Treated" data-k="Vessel_Treated"></div>
+        <div class="grp card-cyan"><div class="grp-head"><span class="gi" style="background:#0891b2;"><i class="fas fa-clipboard-check"></i></span><span>Procedure Outcome</span></div><div class="g3" style="gap:12px;">${outHtml}</div></div>
       </div>`;
     }
     cont.appendChild(div);
@@ -961,6 +967,20 @@ function reactors(){
   // Procedure: auto-count diseased vessels / ≥70% vessels, prune+sync treated-vessel lesion blocks, total stents
   computeAngioCounts();
   syncTreated();
+  applyDateBounds();
+}
+function applyDateBounds(){
+  const t=new Date().toISOString().slice(0,10);
+  const adm=ctrlVal('master','Index_Admission_Date'), angio=ctrlVal('pci','Angio_Date'), pci=ctrlVal('pci','PCI_Date');
+  const set=(id,min,max)=>{ const e=document.getElementById(id); if(!e)return; if(max!=null)e.max=max; else e.removeAttribute('max'); if(min)e.min=min; else e.removeAttribute('min'); };
+  set('f_master__Index_Admission_Date',null,t);
+  set('f_pci__Angio_Date',adm,t);
+  set('f_pci__PCI_Date',angio||adm,t);
+  set('f_blood__Echo_Date',null,t); set('f_blood__Sample_Date',null,t);
+  set('f_dc_meds__Discharge_Date',pci||angio||adm,t);
+  ['Symptom_Onset_Time','Hospital_Arrival_Time','Balloon_Time_First_Device'].forEach(k=>{ const e=document.getElementById('f_pci__'+k); if(e)e.max=t; });
+  const fuMin=ctrlVal('dc_meds','Discharge_Date')||adm;
+  document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{ const e=document.getElementById(`f_fu${card.dataset.fu}__FollowUp_Date`); if(e){ e.max=t; if(fuMin)e.min=fuMin; } });
 }
 window.setYN=function(fid,val){
   const inp=document.getElementById(fid); const grp=document.getElementById(fid+'_grp');
@@ -1017,7 +1037,7 @@ window.addFollowupCard=function(data){
     <div style="font-weight:800;font-size:14px;color:#4f46e5;margin-bottom:14px;"><i class="fas fa-calendar-check mr-1"></i> Follow-Up Visit</div>${groups}`;
   document.getElementById('fuContainer').appendChild(card);
   if(data){ secFields(FOLLOWUP).forEach(f=>setFieldVal(`f_fu${idx}__${f.k}`,f,data[f.k])); }
-  applyConditionals();
+  applyConditionals(); applyDateBounds();
   return idx;
 };
 let _lesSeq=0;
@@ -1110,7 +1130,7 @@ window.newRecord=function(){
   document.getElementById('cadForm').querySelectorAll('input[id$="__t"]').forEach(e=>e.value='');
   document.getElementById('fuContainer').innerHTML='';
   const _lc=document.getElementById('lesionContainer'); if(_lc)_lc.innerHTML='';
-  computeAngioCounts(); syncTreated();
+  computeAngioCounts(); syncTreated(); applyDateBounds();
   document.getElementById('entryTitle').textContent='New CAD Patient Record';
   document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
   document.getElementById('entryStatusBadge').textContent='Draft';
@@ -1153,21 +1173,21 @@ function validateLogic(data){
   SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.req){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && el.offsetParent!==null && !((data[`${f.sheet||s.sheet}.${f.k}`]||'').trim())) errors.push(`${pretty(f.k)} is required.`); } }));
   const today=new Date(); today.setHours(23,59,59,999);
   const D=key=>{ const v=data[key]; if(!v) return null; const d=new Date(v); return isNaN(d.getTime())?null:d; };
-  const adm=D('Patient_Master.Index_Admission_Date'), dis=D('Patient_Master.Discharge_Date');
+  const adm=D('Patient_Master.Index_Admission_Date'), dis=D('Discharge_Medications.Discharge_Date');
   const echo=D('Echocardiography.Echo_Date'), samp=D('Blood_Work.Sample_Date');
-  const angio=D('Coronary_Anatomy.Angio_Date'), pci=D('PCI_Details.PCI_Date'), dcm=D('Discharge_Medications.Discharge_Date');
+  const angio=D('Coronary_Anatomy.Angio_Date'), pci=D('PCI_Details.PCI_Date');
   const onset=D('Presentation_ECG_Timing.Symptom_Onset_Time'), arr=D('Presentation_ECG_Timing.Hospital_Arrival_Time'), bal=D('Presentation_ECG_Timing.Balloon_Time_First_Device');
   // no future dates
-  [['Index Admission',adm],['Discharge',dis],['Echo',echo],['Blood sample',samp],['Angiography',angio],['PCI',pci],['Symptom onset',onset],['Hospital arrival',arr],['Balloon',bal]].forEach(([n,d])=>{ if(d&&d>today) errors.push(`${n} date/time is in the future.`); });
+  [['Index Admission',adm],['Discharge / death',dis],['Echo',echo],['Blood sample',samp],['Angiography',angio],['PCI',pci],['Symptom onset',onset],['Hospital arrival',arr],['Balloon',bal]].forEach(([n,d])=>{ if(d&&d>today) errors.push(`${n} date/time is in the future.`); });
   // chronological order (hard)
-  if(adm&&dis&&dis<adm) errors.push('Discharge date is before the index admission date.');
   if(adm&&angio&&angio<adm) errors.push('Angiography date is before the admission date.');
   if(adm&&pci&&pci<adm) errors.push('PCI date is before the admission date.');
   if(angio&&pci&&pci<angio) warnings.push('PCI date is before the angiography date.');
-  if(pci&&dis&&dis<pci) errors.push('Discharge date is before the PCI date.');
-  if(adm&&dcm&&dcm<adm) errors.push('Discharge-medications date is before the admission date.');
+  if(adm&&dis&&dis<adm) errors.push('Discharge / death date is before the admission date.');
+  if(pci&&dis&&dis<pci) errors.push('Discharge / death date is before the PCI date.');
+  if(angio&&dis&&dis<angio) warnings.push('Discharge / death date is before the angiography date.');
   if(onset&&arr&&arr<onset) errors.push('Hospital arrival is before symptom onset.');
-  if(arr&&bal&&bal<arr) errors.push('Balloon time is before hospital arrival.');
+  if(arr&&bal&&bal<arr) errors.push('Balloon / first-device time is before hospital arrival.');
   if(adm&&echo&&echo<adm) warnings.push('Echo date is before the admission date.');
   if(adm&&samp&&samp<adm) warnings.push('Blood sample date is before the admission date.');
   // antiplatelet advisory (soft) — discharge DAPT now derived from named drugs
@@ -1182,7 +1202,9 @@ function validateLogic(data){
   const pciDone = caReason==='Primary PCI (STEMI)' || mgmt==='PCI' || mgmt==='Hybrid (PCI + CABG)';
   if(caReason==='Primary PCI (STEMI)' && pres && pres!=='STEMI') warnings.push('CA reason is Primary PCI (STEMI) but presentation type is not STEMI.');
   if(pres==='STEMI' && data['Presentation_ECG_Timing.ST_Elevation']==='No') warnings.push('Presentation is STEMI but ST-elevation is marked No.');
-  if(data['Reintervention_FollowUp.Reintervention_Performed']==='Yes' && (data['Reintervention_FollowUp.Type_Reintervention_PCI_or_CABG']||'None')==='None') warnings.push('Reintervention performed but its type is None.');
+  if(data['Reintervention_FollowUp.Reintervention_Performed']==='Yes' && !data['Reintervention_FollowUp.Type_Reintervention_PCI_or_CABG']) warnings.push('Reintervention performed but its type (PCI/CABG) is not specified.');
+  const _mgmtPCI=['InHospital_Complications.Recurrent_Ischemia_Management','InHospital_Complications.Reinfarction_Management','InHospital_Complications.Subacute_ST_Management','PCI_Details.Acute_ST_Management'].some(k=>['Repeat PCI','CABG'].includes(data[k]));
+  if(_mgmtPCI && data['Reintervention_FollowUp.Reintervention_Performed']!=='Yes') warnings.push('An in-hospital event was managed with PCI/CABG — open the reintervention section and record its details.');
   if(data['Coronary_Anatomy.Number_Diseased_Vessels']==='0' && data['Coronary_Anatomy.Culprit_Vessel'] && data['Coronary_Anatomy.Culprit_Vessel']!=='None') warnings.push('Number of diseased vessels is 0 but a culprit vessel is selected.');
   if(data['Patient_Master.Chronic_Kidney_Disease']==='No'){ const e=parseFloat(data['Blood_Work.eGFR']); if(!isNaN(e)&&e<60) warnings.push(`eGFR is ${e} but CKD is marked No.`); }
   if(pciDone){ const n=parseFloat(data['PCI_Details.Total_Stents']); if(!isNaN(n)&&n===0) warnings.push('PCI was performed but the total number of stents is 0.'); }
@@ -1353,7 +1375,7 @@ window.editRecord=function(id){
   SECTIONS.forEach(s=>secFields(s).forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${f.sheet||s.sheet}.${f.k}`])));
   (r.followups||[]).forEach(fu=>addFollowupCard(fu));
   (r.lesions||[]).forEach(les=>addLesionCard(les, les.Target_Vessel));
-  computeAngioCounts(); syncTreated();
+  computeAngioCounts(); syncTreated(); applyDateBounds();
   recalcBMI(); recalcEGFR(); updateIndicators(); reactors(); applyConditionals();
   _set('f_master__CRF_Number', r.patientId||r.data?.['Patient_Master.CRF_Number']||'');
   document.getElementById('entryTitle').textContent=r.patientId||'Edit Record';
