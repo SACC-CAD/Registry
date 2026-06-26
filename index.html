@@ -600,6 +600,8 @@ const SECTIONS = [
      {k:'Procedure_Success',type:'select',opts:['Successful','Partially successful','Failed','Aborted'],label:'Overall procedure success',hidden:true},
      {k:'Complete_Revascularization',type:'ynbtn',label:'Complete revascularization achieved',hidden:true},
      {k:'Staged_PCI_Planned',type:'ynbtn',label:'Staged PCI planned',hidden:true},
+     {k:'Staged_PCI_Setting',type:'select',opts:['Inpatient','Outpatient'],label:'Staged PCI setting',hidden:true,showIf:{sec:'pci',k:'Staged_PCI_Planned',eq:'Yes'}},
+     {k:'Staged_PCI_Date',type:'date',label:'Staged PCI date',hidden:true},{k:'Staged_Total_Stents',type:'num',ro:true,hidden:true},
      {k:'Vessel_Treated',type:'text',ro:true,hidden:true},{k:'Total_Stents',type:'num',ro:true,hidden:true}]}
  ]},
  {id:'complications', sheet:'Reintervention_FollowUp', title:'Complications', icon:'fa-triangle-exclamation', color:'#e11d48', groups:[
@@ -609,7 +611,7 @@ const SECTIONS = [
      {k:'Coronary_Perforation',type:'ynbtn',sheet:'PCI_Details'},{k:'No_Reflow_Slow_Flow',type:'ynbtn',sheet:'PCI_Details'},{k:'Side_Branch_Occlusion',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Acute_Stent_Thrombosis',type:'ynbtn',sheet:'PCI_Details',label:'Acute Stent Thrombosis (<24h)'},{k:'Acute_ST_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'PCI_Details',showIf:{sec:'complications',k:'Acute_Stent_Thrombosis',eq:'Yes'}},{k:'Abrupt_Vessel_Closure',type:'ynbtn',sheet:'PCI_Details'},{k:'Distal_Embolization',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Periprocedural_MI',type:'ynbtn',sheet:'PCI_Details'},{k:'Contrast_Induced_AKI',type:'ynbtn',sheet:'PCI_Details'},{k:'Contrast_Reaction',type:'ynbtn',sheet:'PCI_Details'},
-     {k:'Emergency_CABG',type:'ynbtn',sheet:'PCI_Details'},{k:'Procedural_Complications',type:'textarea',sheet:'PCI_Details',label:'Other procedural complication details'}]},
+     {k:'Emergency_CABG',type:'ynbtn',sheet:'PCI_Details'}]},
    {gate:'InHospital_Complication_Present', gateSheet:'InHospital_Complications', title:'Any in-hospital complication?', tint:'red', c:'#f43f5e', icon:'fa-house-medical', cols:3, fields:[
      {k:'Recurrent_Ischemia_Angina',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Recurrent_Ischemia_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Recurrent_Ischemia_Angina',eq:'Yes'}},
      {k:'Reinfarction',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Reinfarction_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Reinfarction',eq:'Yes'}},{k:'Acute_Heart_Failure',type:'ynbtn',sheet:'InHospital_Complications'},
@@ -619,7 +621,7 @@ const SECTIONS = [
      {k:'Major_Bleeding',type:'ynbtn',sheet:'InHospital_Complications'},{k:'BARC_Bleeding_Grade',type:'select',opts:['BARC 1','BARC 2','BARC 3a','BARC 3b','BARC 3c','BARC 4','BARC 5'],label:'Max BARC bleeding grade',info:'BARC',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Major_Bleeding',eq:'Yes'}},
      {k:'Blood_Transfusion',type:'ynbtn',sheet:'InHospital_Complications'},{k:'New_Dialysis',type:'ynbtn',label:'New dialysis requirement',sheet:'InHospital_Complications'},
      {k:'Subacute_Stent_Thrombosis',type:'ynbtn',sheet:'InHospital_Complications',label:'Subacute Stent Thrombosis (>24h)'},{k:'Subacute_ST_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Subacute_Stent_Thrombosis',eq:'Yes'}},
-     {k:'Infection_Sepsis',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Death_In_Hospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'InHospital_Complication_Notes',type:'textarea',sheet:'InHospital_Complications',label:'Other in-hospital complication details'}]},
+     {k:'Infection_Sepsis',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Death_In_Hospital',type:'ynbtn',sheet:'InHospital_Complications'}]},
    {gate:'Reintervention_Performed', title:'Reintervention during index stay?', tint:'blue', c:'#2563eb', icon:'fa-rotate', cols:3,
      showIf:{any:[{sec:'complications',k:'Recurrent_Ischemia_Management',in:['Repeat PCI','CABG']},{sec:'complications',k:'Reinfarction_Management',in:['Repeat PCI','CABG']},{sec:'complications',k:'Subacute_ST_Management',in:['Repeat PCI','CABG']},{sec:'complications',k:'Acute_ST_Management',in:['Repeat PCI','CABG']}]}, fields:[
      {k:'Time_to_Reintervention_Days',type:'num'},{k:'Same_Vessel',type:'ynbtn'},
@@ -649,11 +651,13 @@ const FOLLOWUP = {id:'fu', sheet:'FollowUp_Comprehensive', title:'Comprehensive 
      {k:'ECG_Performed',type:'ynbtn'},{k:'ECG_Rhythm',type:'select',opts:RHYTHM},{k:'ST_Changes',type:'ynbtn'},
      {k:'New_Q_Waves',type:'ynbtn'},{k:'Arrhythmia',type:'ynbtn'}]},
    {title:'Echocardiography', tint:'teal', c:'#0d9488', icon:'fa-heart', cols:3, fields:[
-     {k:'Echo_Performed',type:'ynbtn'},{k:'LVEF_FollowUp',type:'num'},{k:'RWMA_FollowUp',type:'ynbtn'},{k:'LV_Dilation',type:'ynbtn'},
+     {k:'Echo_Performed',type:'ynbtn'},{k:'LVEF_FollowUp',type:'num',label:'LVEF (%)'},{k:'RWMA_FollowUp',type:'ynbtn'},{k:'LV_Dilation',type:'ynbtn'},
      {k:'RV_Function_FollowUp',type:'select',opts:RV},{k:'Valvular_Disease_FollowUp',type:'select',opts:VALVE}]},
    {title:'Laboratory', tint:'yellow', c:'#d97706', icon:'fa-vial', cols:3, fields:[
-     {k:'Hemoglobin_FU',type:'num'},{k:'Creatinine_FU',type:'num'},{k:'eGFR_FU',type:'num'},{k:'LDL_FU',type:'num'},
-     {k:'HbA1c_FU',type:'num'},{k:'BNP_FU',type:'num'}]},
+     {k:'Hemoglobin_FU',type:'labnum',label:'Hemoglobin (g/dL)'},{k:'Creatinine_FU',type:'labnum',label:'Creatinine (µmol/L)'},{k:'eGFR_FU',type:'labnum',label:'eGFR (mL/min/1.73m²)'},
+     {k:'LDL_FU',type:'labnum',label:'LDL (mmol/L)'},{k:'HbA1c_FU',type:'labnum',label:'HbA1c (%)'},{k:'BNP_FU',type:'labnum',label:'BNP (pg/mL)'}]},
+   {title:'Planned Staged PCI (if applicable)', tint:'cyan', c:'#0891b2', icon:'fa-calendar-plus', cols:3, fields:[
+     {k:'Staged_PCI_Done',type:'ynbtn',label:'Staged PCI done?'},{k:'Staged_PCI_Date',type:'date',label:'Staged PCI date'},{k:'Staged_PCI_Vessel',type:'text',label:'Vessel(s) treated'}]},
    {title:'Medications at Follow-Up', tint:'green', c:'#059669', icon:'fa-pills', cols:3, fields:[
      {k:'On_Aspirin',type:'ynbtn'},{k:'On_P2Y12',type:'ynbtn'},{k:'On_Statin',type:'ynbtn'},{k:'On_BetaBlocker',type:'ynbtn'},
      {k:'On_ACEi_ARB_ARNI',type:'ynbtn'},{k:'On_SGLT2',type:'ynbtn'}]},
@@ -868,8 +872,10 @@ function buildForm(){
     div.innerHTML=`<div class="sec-title"><div class="icon-wrap" style="background:${s.color};color:#fff;"><i class="fas ${s.icon}"></i></div>${s.title}</div>${s.groups.map(g=>groupCard(s.id,g)).join('')}`;
     if(s.id==='pci'){
       const pciCond=JSON.stringify([{any:[{sec:'careason',k:'CA_Reason',eq:'Primary PCI (STEMI)'},{sec:'pci',k:'Management_Decision',eq:'PCI'},{sec:'pci',k:'Management_Decision',eq:'Hybrid (PCI + CABG)'}]}]);
-      const outFields=['Procedure_Success','Complete_Revascularization','Staged_PCI_Planned'].map(k=>secFields(s).find(f=>f.k===k)).filter(Boolean);
+      const outFields=['Procedure_Success','Complete_Revascularization','Staged_PCI_Planned','Staged_PCI_Setting'].map(k=>secFields(s).find(f=>f.k===k)).filter(Boolean);
       const outHtml=outFields.map(f=>fieldHtml('pci',f)).join('');
+      const stagedDateHtml=fieldHtml('pci',secFields(s).find(f=>f.k==='Staged_PCI_Date'));
+      const stagedCond=JSON.stringify([{sec:'pci',k:'Staged_PCI_Setting',eq:'Inpatient'}]);
       div.innerHTML+=`<div id="treatedBlock" data-showif='${pciCond}'>
         <div class="grp card-cyan"><div class="grp-head"><span class="gi" style="background:#0891b2;"><i class="fas fa-diagram-project"></i></span><span>Treated Vessels &amp; Lesions</span></div>
           <div style="font-size:12px;color:#475569;margin:2px 0 10px;">Select each diseased vessel that was treated — a lesion block opens for each. Only vessels marked diseased above can be chosen.</div>
@@ -877,6 +883,13 @@ function buildForm(){
         <div id="lesionContainer"></div>
         <div class="grp card-gray" style="display:flex;align-items:center;gap:10px;"><span class="gi" style="background:#059669;"><i class="fas fa-layer-group"></i></span><b style="font-size:13px;color:#334155;">Total number of stents (auto):</b> <span id="totalStentsDisp" style="font-weight:800;color:#0891b2;font-size:15px;">0</span><input type="hidden" id="f_pci__Total_Stents" data-k="Total_Stents"><input type="hidden" id="f_pci__Vessel_Treated" data-k="Vessel_Treated"></div>
         <div class="grp card-cyan"><div class="grp-head"><span class="gi" style="background:#0891b2;"><i class="fas fa-clipboard-check"></i></span><span>Procedure Outcome</span></div><div class="g3" style="gap:12px;">${outHtml}</div></div>
+        <div id="stagedBlock" data-showif='${stagedCond}'>
+          <div class="grp card-cyan"><div class="grp-head"><span class="gi" style="background:#0891b2;"><i class="fas fa-calendar-plus"></i></span><span>Staged (Inpatient) PCI</span></div>
+            <div class="g3" style="gap:12px;">${stagedDateHtml}</div>
+            <div style="display:flex;justify-content:flex-end;margin:10px 0;"><button type="button" class="btn btn-teal" onclick="addStagedLesionCard()"><i class="fas fa-plus"></i> Add staged lesion</button></div>
+            <div id="stagedLesionContainer"></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:8px;"><span class="gi" style="background:#059669;"><i class="fas fa-layer-group"></i></span><b style="font-size:13px;color:#334155;">Staged total stents (auto):</b> <span id="stagedTotalDisp" style="font-weight:800;color:#0891b2;font-size:15px;">0</span><input type="hidden" id="f_pci__Staged_Total_Stents" data-k="Staged_Total_Stents"></div></div>
+        </div>
       </div>`;
     }
     cont.appendChild(div);
@@ -913,6 +926,10 @@ function updateIndicators(){
   let filledSecs=0;
   SECTIONS.forEach(s=>{ if(secFields(s).some(f=>{const el=document.getElementById(`f_${s.id}__${f.k}`);return el&&(el.value||'').trim();})) filledSecs++; });
   const pf=document.getElementById('progressFill'); if(pf) pf.style.width=Math.round(filledSecs/ALL_STEPS.length*100)+'%';
+  // repeating cards (follow-up, lesions, staged lesions) get the same ✓/✕ badges
+  const badgeCard=(card,sec,fields,prefix)=>{ const idx=card.dataset[prefix]; fields.forEach(f=>{ const ind=document.getElementById(`f_${sec}${idx}__${f.k}_ind`); const el=document.getElementById(`f_${sec}${idx}__${f.k}`); if(!ind||!el)return; let v=(el.value||'').trim(); if(f.type==='labnum'){ const c=document.getElementById(`f_${sec}${idx}__${f.k}__ncc`); if(c&&c.checked) v='Not collected'; } if(v){ind.textContent='✓';ind.style.cssText=badgeCss('#059669','#d1fae5');} else {ind.textContent='✕';ind.style.cssText=badgeCss('#e11d48','#ffe4e6');} }); };
+  document.querySelectorAll('#fuContainer .fu-card').forEach(c=>badgeCard(c,'fu',secFields(FOLLOWUP),'fu'));
+  document.querySelectorAll('#lesionContainer .lesion-card,#stagedLesionContainer .lesion-card').forEach(c=>badgeCard(c,'les',secFields(LESIONS),'les'));
 }
 function recalcBMI(){
   const h=parseFloat(_v('f_history__Height_cm')), w=parseFloat(_v('f_history__Weight_kg'));
@@ -964,9 +981,14 @@ function reactors(){
     setYNsilent('f_complications__InHospital_Complication_Present','Yes');
     setYNsilent('f_complications__Death_In_Hospital','Yes');
   }
+  // An event managed by Repeat PCI / CABG ⇒ a reintervention happened: open + default the gate to Yes
+  const mgmtPCI=['Recurrent_Ischemia_Management','Reinfarction_Management','Subacute_ST_Management','Acute_ST_Management']
+    .some(k=>['Repeat PCI','CABG'].includes(ctrlVal('complications',k)));
+  if(mgmtPCI) setYNsilent('f_complications__Reintervention_Performed','Yes');
   // Procedure: auto-count diseased vessels / ≥70% vessels, prune+sync treated-vessel lesion blocks, total stents
   computeAngioCounts();
   syncTreated();
+  computeStagedTotals();
   applyDateBounds();
 }
 function applyDateBounds(){
@@ -978,9 +1000,10 @@ function applyDateBounds(){
   set('f_pci__PCI_Date',angio||adm,t);
   set('f_blood__Echo_Date',null,t); set('f_blood__Sample_Date',null,t);
   set('f_dc_meds__Discharge_Date',pci||angio||adm,t);
+  set('f_pci__Staged_PCI_Date',pci||angio||adm,t);
   ['Symptom_Onset_Time','Hospital_Arrival_Time','Balloon_Time_First_Device'].forEach(k=>{ const e=document.getElementById('f_pci__'+k); if(e)e.max=t; });
   const fuMin=ctrlVal('dc_meds','Discharge_Date')||adm;
-  document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{ const e=document.getElementById(`f_fu${card.dataset.fu}__FollowUp_Date`); if(e){ e.max=t; if(fuMin)e.min=fuMin; } });
+  document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{ const i=card.dataset.fu; const e=document.getElementById(`f_fu${i}__FollowUp_Date`); if(e){ e.max=t; if(fuMin)e.min=fuMin; } const sd=document.getElementById(`f_fu${i}__Staged_PCI_Date`); if(sd){ sd.max=t; if(fuMin)sd.min=fuMin; } });
 }
 window.setYN=function(fid,val){
   const inp=document.getElementById(fid); const grp=document.getElementById(fid+'_grp');
@@ -1041,25 +1064,34 @@ window.addFollowupCard=function(data){
   return idx;
 };
 let _lesSeq=0;
-window.addLesionCard=function(data,fixedVessel){
+window.addLesionCard=function(data,fixedVessel,staged){
   _lesSeq++; const idx=_lesSeq;
   const vessel=fixedVessel||(data&&data.Target_Vessel)||'';
-  const card=document.createElement('div'); card.className='lesion-card'; card.dataset.les=idx; card.dataset.vessel=vessel;
+  const card=document.createElement('div'); card.className='lesion-card'; card.dataset.les=idx; if(!staged) card.dataset.vessel=vessel;
   const groups=LESIONS.groups.map(g=>{
     const grid=g.cols===1?'g1':(g.cols===2?'g2':(g.cols===4?'g4':'g3'));
-    const fh=g.fields.map(f=> f.k==='Target_Vessel'
+    const fh=g.fields.map(f=> (f.k==='Target_Vessel' && !staged)
       ? `<input type="hidden" id="f_les${idx}__Target_Vessel" data-k="Target_Vessel" data-type="select" value="${vessel}">`
       : fieldHtml('les'+idx,f)).join('');
     return `<div style="margin-bottom:12px;"><div class="grp-head" style="font-size:12px;margin-bottom:9px;"><span class="gi" style="width:22px;height:22px;font-size:11px;background:${g.c};"><i class="fas ${g.icon}"></i></span><span>${g.title}</span></div><div class="${grid}" style="gap:10px;">${fh}</div></div>`;
   }).join('');
-  card.innerHTML=`<button type="button" class="btn btn-red" style="position:absolute;top:12px;right:12px;padding:4px 9px;font-size:11px;" onclick="this.closest('.lesion-card').remove();syncTreated();updateIndicators();"><i class="fas fa-trash"></i></button>
-    <div style="font-weight:800;font-size:14px;color:#0891b2;margin-bottom:14px;"><i class="fas fa-bezier-curve mr-1"></i> Treated Lesion${vessel?' — '+vessel:''}</div>${groups}`;
-  document.getElementById('lesionContainer').appendChild(card);
+  const onDel=staged?'computeStagedTotals()':'syncTreated()';
+  const head=staged?'Staged Lesion':('Treated Lesion'+(vessel?' — '+vessel:''));
+  card.innerHTML=`<button type="button" class="btn btn-red" style="position:absolute;top:12px;right:12px;padding:4px 9px;font-size:11px;" onclick="this.closest('.lesion-card').remove();${onDel};updateIndicators();"><i class="fas fa-trash"></i></button>
+    <div style="font-weight:800;font-size:14px;color:#0891b2;margin-bottom:14px;"><i class="fas fa-bezier-curve mr-1"></i> ${head}</div>${groups}`;
+  document.getElementById(staged?'stagedLesionContainer':'lesionContainer').appendChild(card);
   if(data){ secFields(LESIONS).forEach(f=>setFieldVal(`f_les${idx}__${f.k}`,f,data[f.k])); }
-  const tv=document.getElementById(`f_les${idx}__Target_Vessel`); if(tv&&vessel) tv.value=vessel;
-  applyConditionals();
+  if(!staged){ const tv=document.getElementById(`f_les${idx}__Target_Vessel`); if(tv&&vessel) tv.value=vessel; }
+  applyConditionals(); updateIndicators();
   return idx;
 };
+window.addStagedLesionCard=function(data){ return addLesionCard(data,null,true); };
+function computeStagedTotals(){
+  const c=document.getElementById('stagedLesionContainer'); if(!c)return; let tot=0;
+  [...c.querySelectorAll('.lesion-card')].forEach(card=>{ const e=document.getElementById(`f_les${card.dataset.les}__Stent_Count`); const n=parseInt(e&&e.value,10); if(!isNaN(n))tot+=n; });
+  const d=document.getElementById('stagedTotalDisp'); if(d)d.textContent=tot;
+  const h=document.getElementById('f_pci__Staged_Total_Stents'); if(h)h.value=tot;
+}
 // ---- Vessel-driven treated-lesion machinery ----
 const TREATED_VESSELS=[['Left_Main_Disease','Left main','LM_Stenosis_Pct'],['LAD_Disease','LAD','LAD_Stenosis_Pct'],['LCX_Disease','LCx','LCX_Stenosis_Pct'],['RCA_Disease','RCA','RCA_Stenosis_Pct']];
 function diseasedSet(){ return TREATED_VESSELS.filter(v=>ctrlVal('pci',v[0])==='Yes').map(v=>v[1]); }
@@ -1130,7 +1162,8 @@ window.newRecord=function(){
   document.getElementById('cadForm').querySelectorAll('input[id$="__t"]').forEach(e=>e.value='');
   document.getElementById('fuContainer').innerHTML='';
   const _lc=document.getElementById('lesionContainer'); if(_lc)_lc.innerHTML='';
-  computeAngioCounts(); syncTreated(); applyDateBounds();
+  const _slc=document.getElementById('stagedLesionContainer'); if(_slc)_slc.innerHTML='';
+  computeAngioCounts(); syncTreated(); computeStagedTotals(); applyDateBounds();
   document.getElementById('entryTitle').textContent='New CAD Patient Record';
   document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
   document.getElementById('entryStatusBadge').textContent='Draft';
@@ -1148,7 +1181,10 @@ function collectData(){
   const followups=[];
   document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{
     const idx=card.dataset.fu; const v={}; let any=false;
-    secFields(FOLLOWUP).forEach(f=>{ const el=document.getElementById(`f_fu${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } });
+    secFields(FOLLOWUP).forEach(f=>{
+      if(f.type==='labnum'){ const c=document.getElementById(`f_fu${idx}__${f.k}__ncc`); const el=document.getElementById(`f_fu${idx}__${f.k}`); const val=(c&&c.checked)?'Not collected':(el?el.value:''); if(val){ v[f.k]=val; any=true; } }
+      else { const el=document.getElementById(`f_fu${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } }
+    });
     if(any) followups.push(v);
   });
   const lesions=[];
@@ -1157,7 +1193,13 @@ function collectData(){
     secFields(LESIONS).forEach(f=>{ const el=document.getElementById(`f_les${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } });
     if(any) lesions.push(v);
   });
-  return {data,followups,lesions};
+  const stagedLesions=[];
+  document.querySelectorAll('#stagedLesionContainer .lesion-card').forEach(card=>{
+    const idx=card.dataset.les; const v={}; let any=false;
+    secFields(LESIONS).forEach(f=>{ const el=document.getElementById(`f_les${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } });
+    if(any) stagedLesions.push(v);
+  });
+  return {data,followups,lesions,stagedLesions};
 }
 async function nextPatientId(code){
   const used=new Set();
@@ -1190,6 +1232,10 @@ function validateLogic(data){
   if(arr&&bal&&bal<arr) errors.push('Balloon / first-device time is before hospital arrival.');
   if(adm&&echo&&echo<adm) warnings.push('Echo date is before the admission date.');
   if(adm&&samp&&samp<adm) warnings.push('Blood sample date is before the admission date.');
+  const staged=D('PCI_Details.Staged_PCI_Date');
+  if(staged&&staged>today) errors.push('Staged PCI date is in the future.');
+  if(pci&&staged&&staged<pci) warnings.push('Staged (inpatient) PCI date is before the index PCI date.');
+  if(staged&&dis&&dis<staged) warnings.push('Discharge date is before the staged PCI date.');
   // antiplatelet advisory (soft) — discharge DAPT now derived from named drugs
   const dcP2Y12=['Clopidogrel','Prasugrel','Ticagrelor'].some(k=>data['Discharge_Medications.'+k]==='Yes');
   if(data['Discharge_Medications.In_Hospital_Outcome']==='Survived to discharge'){
@@ -1233,7 +1279,7 @@ window.saveRecord=async function(status, closeAfter, finalize){
   if(!sexEl.value){ goToStep(0); sexEl.focus(); toast('Sex is required','#e11d48'); return; }
   const civEl=document.getElementById('f_master__Civil_ID_Optional');
   if(civEl && civEl.value && civEl.value.length!==12){ goToStep(0); civEl.focus(); toast('Civil ID must be exactly 12 digits, or left blank','#e11d48'); return; }
-  const {data,followups,lesions}=collectData();
+  const {data,followups,lesions,stagedLesions}=collectData();
   const vr=validateLogic(data);
   renderValSummary(vr.errors, vr.warnings);
   if(finalize && vr.errors.length){
@@ -1245,7 +1291,7 @@ window.saveRecord=async function(status, closeAfter, finalize){
   const btns=['btnSave','btnSaveClose','btnFinal'].map(id=>document.getElementById(id));
   btns.forEach(b=>b&&(b.disabled=true));
   try{
-    let obj={ data, followups, lesions, recordStatus:status, locked:!!finalize, updatedAt:new Date(), updatedByName:currentDoctor.name, updatedByCode:dcode(currentDoctor) };
+    let obj={ data, followups, lesions, stagedLesions, recordStatus:status, locked:!!finalize, updatedAt:new Date(), updatedByName:currentDoctor.name, updatedByCode:dcode(currentDoctor) };
     if(recId){
       await db.collection(COL_PATIENTS).doc(recId).set(obj,{merge:true});
       if(finalize) await db.collection(COL_PATIENTS).doc(recId).update({submittedAt:new Date()});
@@ -1375,7 +1421,8 @@ window.editRecord=function(id){
   SECTIONS.forEach(s=>secFields(s).forEach(f=>setFieldVal(`f_${s.id}__${f.k}`,f,r.data?.[`${f.sheet||s.sheet}.${f.k}`])));
   (r.followups||[]).forEach(fu=>addFollowupCard(fu));
   (r.lesions||[]).forEach(les=>addLesionCard(les, les.Target_Vessel));
-  computeAngioCounts(); syncTreated(); applyDateBounds();
+  (r.stagedLesions||[]).forEach(les=>addStagedLesionCard(les));
+  computeAngioCounts(); syncTreated(); computeStagedTotals(); applyDateBounds();
   recalcBMI(); recalcEGFR(); updateIndicators(); reactors(); applyConditionals();
   _set('f_master__CRF_Number', r.patientId||r.data?.['Patient_Master.CRF_Number']||'');
   document.getElementById('entryTitle').textContent=r.patientId||'Edit Record';
@@ -1552,14 +1599,13 @@ function buildWorkbook(coded){
     fRows.push(row);
   }); });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(fRows),'FollowUp');
-  // Lesion long sheet
-  const lHeader=['Patient_ID','Lesion_No']; secFields(LESIONS).forEach(f=>lHeader.push(f.k));
+  // Lesion long sheet (index + staged sessions)
+  const lHeader=['Patient_ID','Session','Lesion_No']; secFields(LESIONS).forEach(f=>lHeader.push(f.k));
   const lRows=[lHeader];
-  RECORDS.forEach(r=>{ (r.lesions||[]).forEach((les,i)=>{
-    const row=[r.patientId||'', i+1];
-    secFields(LESIONS).forEach(f=>row.push(coded?codeValue(f,les[f.k]):(les[f.k]||'')));
-    lRows.push(row);
-  }); });
+  RECORDS.forEach(r=>{
+    (r.lesions||[]).forEach((les,i)=>{ const row=[r.patientId||'','Index',i+1]; secFields(LESIONS).forEach(f=>row.push(coded?codeValue(f,les[f.k]):(les[f.k]||''))); lRows.push(row); });
+    (r.stagedLesions||[]).forEach((les,i)=>{ const row=[r.patientId||'','Staged',i+1]; secFields(LESIONS).forEach(f=>row.push(coded?codeValue(f,les[f.k]):(les[f.k]||''))); lRows.push(row); });
+  });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(lRows),'Lesions');
   // Codebook
   appendCodebook(wb);
