@@ -296,6 +296,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
       <button class="chip" data-f="reviewed" onclick="setDashFilter('reviewed',this)">Reviewed</button>
       <button class="btn btn-primary" style="margin-left:auto;" onclick="loadRecords()"><i class="fas fa-rotate"></i> Refresh</button>
     </div>
+    <div id="fuAlerts"></div>
     <div id="dashList"><div class="card" style="text-align:center;color:#94a3b8;padding:28px;">Loading…</div></div>
   </section>
 
@@ -348,6 +349,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
           <button class="btn btn-purple inp-sm" onclick="exportCoded()"><i class="fas fa-database"></i> SPSS / Coded</button>
           <button class="btn btn-gray inp-sm" onclick="exportCodebookOnly()"><i class="fas fa-book"></i> Codebook</button>
         </div>
+        <div id="adminFuAlerts"></div>
         <div style="overflow-x:auto;">
           <table class="admin-table" style="width:100%;border-collapse:collapse;white-space:nowrap;">
             <thead><tr><th>#</th><th>CRF Number</th><th>Civil ID</th><th>Doctor Code</th><th>Status</th><th>Created By</th><th>Created At</th><th>Last Updated By</th><th>Last Updated</th><th>Actions</th></tr></thead>
@@ -585,18 +587,31 @@ const SECTIONS = [
  {id:'homemeds', sheet:'Home_Medications', title:'Home Meds', icon:'fa-prescription-bottle-medical', color:'#0891b2', groups: medGroups()},
  {id:'blood', sheet:'Blood_Work', title:'Investigations', icon:'fa-microscope', color:'#0d9488', groups:[
    {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
-     {k:'ECG_Rhythm',type:'select',opts:RHYTHM,sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'ST_Elevation_Leads',type:'text',sheet:'Presentation_ECG_Timing'},
-     {k:'ST_Depression',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'T_Wave_Inversion',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Pathologic_Q_Waves',type:'ynbtn',sheet:'Presentation_ECG_Timing'},
-     {k:'New_LBBB',type:'ynbtn',sheet:'Presentation_ECG_Timing'},{k:'Posterior_MI_Suspected',type:'ynbtn',sheet:'Presentation_ECG_Timing'},
-     {k:'STEMI_Territory',type:'select',opts:['None / not STEMI','Anterior','Inferior','Lateral','Posterior','RV infarction','Multiterritory'],label:'STEMI territory (ECG)',sheet:'Presentation_ECG_Timing'},
-     {k:'ECG_Notes',type:'textarea',sheet:'Presentation_ECG_Timing'}]},
+     {k:'ECG_Performed',type:'ynbtn',label:'ECG performed?',sheet:'Presentation_ECG_Timing'},
+     {k:'ECG_Rhythm',type:'select',opts:RHYTHM,sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
+     {k:'ST_Elevation',type:'ynbtn',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
+     {k:'ST_Elevation_Leads',type:'text',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ST_Elevation',eq:'Yes'}},
+     {k:'ST_Depression',type:'ynbtn',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
+     {k:'T_Wave_Inversion',type:'ynbtn',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
+     {k:'Pathologic_Q_Waves',type:'ynbtn',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
+     {k:'New_LBBB',type:'ynbtn',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
+     {k:'Posterior_MI_Suspected',type:'ynbtn',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
+     {k:'STEMI_Territory',type:'select',opts:['None / not STEMI','Anterior','Inferior','Lateral','Posterior','RV infarction','Multiterritory'],label:'STEMI territory (ECG)',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
+     {k:'ECG_Notes',type:'textarea',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}}]},
    {title:'Echocardiography — LV Function', tint:'teal', c:'#0d9488', icon:'fa-heart', cols:3, fields:[
-     {k:'Echo_Date',type:'date',sheet:'Echocardiography'},{k:'LVEF',type:'num',label:'LVEF (%)',sheet:'Echocardiography'},{k:'Regional_Wall_Motion_Abnormality',type:'ynbtn',sheet:'Echocardiography'},
-     {k:'Diastolic_Dysfunction',type:'select',opts:['None','Grade I','Grade II','Grade III'],sheet:'Echocardiography'},{k:'LVH',type:'ynbtn',sheet:'Echocardiography'}]},
+     {k:'Echo_Performed',type:'ynbtn',label:'Echo performed?',sheet:'Echocardiography'},
+     {k:'Echo_Date',type:'date',sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}},
+     {k:'LVEF',type:'num',label:'LVEF (%)',sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}},
+     {k:'Regional_Wall_Motion_Abnormality',type:'ynbtn',sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}},
+     {k:'Diastolic_Dysfunction',type:'select',opts:['None','Grade I','Grade II','Grade III'],sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}},
+     {k:'LVH',type:'ynbtn',sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}}]},
    {title:'Echocardiography — Chambers, Valves & Pericardium', tint:'gray', c:'#475569', icon:'fa-diagram-project', cols:3, fields:[
-     {k:'LA_Size',type:'select',opts:['Normal','Mildly dilated','Moderately dilated','Severely dilated'],sheet:'Echocardiography'},
-     {k:'RV_Function',type:'select',opts:RV,sheet:'Echocardiography'},{k:'Pulmonary_Pressure',type:'num',label:'Pulmonary Pressure (mmHg)',sheet:'Echocardiography'},{k:'Valvular_Disease',type:'select',opts:VALVE,sheet:'Echocardiography'},
-     {k:'Pericardial_Effusion',type:'ynbtn',sheet:'Echocardiography'},{k:'Echo_Notes',type:'textarea',sheet:'Echocardiography'}]},
+     {k:'LA_Size',type:'select',opts:['Normal','Mildly dilated','Moderately dilated','Severely dilated'],sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}},
+     {k:'RV_Function',type:'select',opts:RV,sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}},
+     {k:'Pulmonary_Pressure',type:'num',label:'Pulmonary Pressure (mmHg)',sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}},
+     {k:'Valvular_Disease',type:'select',opts:VALVE,sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}},
+     {k:'Pericardial_Effusion',type:'ynbtn',sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}},
+     {k:'Echo_Notes',type:'textarea',sheet:'Echocardiography',showIf:{sec:'blood',k:'Echo_Performed',eq:'Yes'}}]},
    {title:'Other Non-invasive Imaging', tint:'teal', c:'#0d9488', icon:'fa-display', cols:2, fields:[
      {k:'Stress_Test_Performed',type:'ynbtn',label:'Stress / functional test performed',sheet:'Echocardiography'},{k:'CTCA_Performed',type:'ynbtn',label:'CT coronary angiography performed',sheet:'Echocardiography'}]},
    {title:'Labs — Hematology', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
@@ -686,7 +701,9 @@ const FOLLOWUP = {id:'fu', sheet:'FollowUp_Comprehensive', title:'Comprehensive 
    {title:'Visit & Vital Status', tint:'blue', c:'#4f46e5', icon:'fa-calendar-check', cols:3, fields:[
      {k:'FollowUp_Date',type:'date'},{k:'FollowUp_Timepoint_Months',type:'num'},
      {k:'FollowUp_Source',type:'select',opts:['Clinic','Phone','Hospital record','Death registry'],label:'Source of follow-up'},
-     {k:'Alive',type:'ynbtn'}]},
+     {k:'Alive',type:'ynbtn'},
+     {k:'Still_In_Hospital',type:'ynbtn',label:'Still in hospital?'},
+     {k:'Still_In_Hospital_Reason',type:'select',opts:['Ongoing cardiac care','Heart failure / shock','Post-procedure complication','Awaiting staged PCI','Awaiting CABG','Infection / sepsis','Stroke / neurologic complication','Renal failure / dialysis','Non-cardiac illness','Rehabilitation / placement','Social / discharge planning','Transfer pending','Other'],label:'Why still in hospital?'}]},
    {title:'Symptoms & Clinical Events', tint:'red', c:'#e11d48', icon:'fa-notes-medical', cols:3, fields:[
      {k:'Rehospitalization',type:'ynbtn'},{k:'Recurrent_Chest_Pain',type:'ynbtn'},{k:'Dyspnea',type:'ynbtn'},
      {k:'NYHA_Class',type:'select',opts:['I','II','III','IV']},{k:'Heart_Failure_Hospitalization',type:'ynbtn'},
@@ -961,6 +978,73 @@ function normalizeBMIData(data){
   if(h==='Unrecordable'||w==='Unrecordable'||!(parseFloat(h)>0)||!(parseFloat(w)>0)) data['History_Presentation.BMI']='';
   else data['History_Presentation.BMI']=(parseFloat(w)/Math.pow(parseFloat(h)/100,2)).toFixed(1);
 }
+function dataCtrlVal(data,secId,k){
+  const sec=SECTIONS.find(s=>s.id===secId);
+  const field=sec&&secFields(sec).find(f=>f.k===k);
+  if(field) return String(data[fkey(sec,field)]||'').trim();
+  for(const s of SECTIONS){
+    const f=secFields(s).find(x=>x.k===k);
+    if(f) return String(data[fkey(s,f)]||'').trim();
+  }
+  return '';
+}
+function passDataCond(data,c){
+  if(c.any) return c.any.some(x=>passDataCond(data,x));
+  if(c.all) return c.all.every(x=>passDataCond(data,x));
+  const v=dataCtrlVal(data,c.sec,c.k);
+  if('eq' in c)return v===c.eq;
+  if('ne' in c)return v!==c.ne;
+  if('in' in c)return c.in.includes(v);
+  return true;
+}
+function clearDataField(data,s,f){ data[fkey(s,f)]=''; }
+function clearFollowupKeys(fu,keys){ keys.forEach(k=>{ fu[k]=''; }); }
+function normalizeInterlinkedData(data,followups,lesions,stagedLesions){
+  for(let pass=0; pass<2; pass++){
+    SECTIONS.forEach(s=>s.groups.forEach(g=>{
+      const groupShown=!g.showIf || (Array.isArray(g.showIf)?g.showIf:[g.showIf]).every(c=>passDataCond(data,c));
+      if(!groupShown){
+        if(g.gate) data[`${g.gateSheet||s.sheet}.${g.gate}`]='';
+        (g.fields||[]).forEach(f=>clearDataField(data,s,f));
+        return;
+      }
+      if(g.gate && data[`${g.gateSheet||s.sheet}.${g.gate}`]!=='Yes'){
+        (g.fields||[]).forEach(f=>clearDataField(data,s,f));
+      }
+      (g.fields||[]).forEach(f=>{
+        if(f.showIf && !(Array.isArray(f.showIf)?f.showIf:[f.showIf]).every(c=>passDataCond(data,c))) clearDataField(data,s,f);
+      });
+    }));
+  }
+  const scr=parseFloat(data['Blood_Work.Creatinine']);
+  const age=parseFloat(data['Patient_Master.Age']);
+  const sex=data['Patient_Master.Sex'];
+  if(!(scr>0)||!(age>0)||!sex){
+    data['Blood_Work.eGFR']='';
+  } else {
+    const scrMg=scr/88.42, female=sex==='Female', k=female?0.7:0.9, a=female?-0.241:-0.302;
+    data['Blood_Work.eGFR']=String(Math.round(142*Math.pow(Math.min(scrMg/k,1),a)*Math.pow(Math.max(scrMg/k,1),-1.200)*Math.pow(0.9938,age)*(female?1.012:1)));
+  }
+  followups.forEach(fu=>{
+    if(fu.ECG_Performed!=='Yes') clearFollowupKeys(fu,['ECG_Rhythm','ST_Changes','New_Q_Waves','Arrhythmia']);
+    if(fu.Echo_Performed!=='Yes') clearFollowupKeys(fu,['LVEF_FollowUp','RWMA_FollowUp','LV_Dilation','RV_Function_FollowUp','Valvular_Disease_FollowUp']);
+    if(fu.Staged_PCI_Done!=='Yes') clearFollowupKeys(fu,['Staged_PCI_Date','Staged_PCI_Vessel']);
+    if(fu.Still_In_Hospital!=='Yes') clearFollowupKeys(fu,['Still_In_Hospital_Reason']);
+    if(fu.Reintervention_At_FollowUp!=='Yes') clearFollowupKeys(fu,['Repeat_Angiography','Repeat_PCI','CABG','Target_Lesion_Revascularization','Target_Vessel_Revascularization','Time_to_Reintervention_Months','Same_Vessel_Reintervention']);
+  });
+  const pciRelevant=passDataCond(data,{any:[{sec:'careason',k:'CA_Reason',eq:'Primary PCI (STEMI)'},{sec:'pci',k:'Management_Decision',eq:'PCI'},{sec:'pci',k:'Management_Decision',eq:'Hybrid (PCI + CABG)'}]});
+  if(!pciRelevant){
+    if(lesions) lesions.length=0;
+    if(stagedLesions) stagedLesions.length=0;
+  }
+  if(data['PCI_Details.Staged_PCI_Planned']!=='Yes'){
+    ['Staged_PCI_Setting','Staged_PCI_Date','Staged_Total_Stents'].forEach(k=>data[`PCI_Details.${k}`]='');
+    if(stagedLesions) stagedLesions.length=0;
+  } else if(data['PCI_Details.Staged_PCI_Setting']!=='Inpatient'){
+    ['Staged_PCI_Date','Staged_Total_Stents'].forEach(k=>data[`PCI_Details.${k}`]='');
+    if(stagedLesions) stagedLesions.length=0;
+  }
+}
 function badgeCss(color,bg){return `display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:900;margin-left:auto;color:${color};background:${bg};line-height:1;`;}
 function updateIndicators(){
   let totalReq=0, doneReq=0;
@@ -999,7 +1083,7 @@ function recalcBMI(){
 function recalcEGFR(){
   let scr=parseFloat(_v('f_blood__Creatinine'));
   const age=parseFloat(_v('f_master__Age')), sex=_v('f_master__Sex');
-  if(!(scr>0)||!(age>0)||!sex) return;
+  if(!(scr>0)||!(age>0)||!sex){ _set('f_blood__eGFR',''); updateIndicators(); return; }
   scr=scr/88.42;                       // Kuwait labs report µmol/L → convert to mg/dL for CKD-EPI
   const female=sex==='Female', k=female?0.7:0.9, a=female?-0.241:-0.302;  // CKD-EPI 2021 (race-free)
   const egfr=142*Math.pow(Math.min(scr/k,1),a)*Math.pow(Math.max(scr/k,1),-1.200)*Math.pow(0.9938,age)*(female?1.012:1);
@@ -1038,9 +1122,48 @@ function recalcTiming(){
 }
 function ctrlVal(sec,k){ const el=document.getElementById(`f_${sec}__${k}`); return el?(el.value||'').trim():''; }
 function passCond(c){ if(c.any) return c.any.some(passCond); if(c.all) return c.all.every(passCond); const v=ctrlVal(c.sec,c.k); if('eq' in c)return v===c.eq; if('ne' in c)return v!==c.ne; if('in' in c)return c.in.includes(v); return true; }
+function clearControl(el){
+  if(!el)return;
+  if(el.dataset.type==='ynbtn'){
+    el.value='';
+    const g=document.getElementById(el.id+'_grp');
+    if(g){ const y=g.querySelector('.yn-yes'), n=g.querySelector('.yn-no'); if(y)y.classList.remove('selected'); if(n)n.classList.remove('selected'); }
+  } else if(el.dataset.type==='radio'){
+    el.value='';
+    const g=document.getElementById(el.id+'_grp');
+    if(g)g.querySelectorAll('.radio-pill').forEach(p=>p.classList.remove('selected'));
+  } else {
+    el.value='';
+  }
+  const ur=document.getElementById(el.id+'__urc'); if(ur)ur.checked=false;
+  const nc=document.getElementById(el.id+'__ncc'); if(nc)nc.checked=false;
+  const t=document.getElementById(el.id+'__t'); if(t)t.value='';
+  el.readOnly=false; el.style.background='';
+}
+function clearInputsWithin(root){ root.querySelectorAll('[data-k]').forEach(clearControl); }
+function setFieldBlockVisible(fid,show){
+  const el=document.getElementById(fid), fld=el&&el.closest('.fld');
+  if(!fld)return;
+  fld.style.display=show?'':'none';
+  if(!show) clearControl(el);
+}
 function applyConditionals(){
-  document.querySelectorAll('#cadForm [data-showif]').forEach(el=>{ let cs; try{cs=JSON.parse(el.getAttribute('data-showif'));}catch(e){return;} el.style.display=cs.every(passCond)?'':'none'; });
-  document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{ const idx=card.dataset.fu; const gate=document.getElementById(`f_fu${idx}__Reintervention_At_FollowUp`); const det=card.querySelector('.fu-reint-detail'); if(det) det.style.display=(gate&&gate.value==='Yes')?'':'none'; });
+  document.querySelectorAll('#cadForm [data-showif]').forEach(el=>{ let cs; try{cs=JSON.parse(el.getAttribute('data-showif'));}catch(e){return;} const show=cs.every(passCond); el.style.display=show?'':'none'; if(!show) clearInputsWithin(el); });
+  document.querySelectorAll('#fuContainer .fu-card').forEach(card=>{
+    const idx=card.dataset.fu;
+    const ecg=document.getElementById(`f_fu${idx}__ECG_Performed`)?.value==='Yes';
+    ['ECG_Rhythm','ST_Changes','New_Q_Waves','Arrhythmia'].forEach(k=>setFieldBlockVisible(`f_fu${idx}__${k}`,ecg));
+    const echo=document.getElementById(`f_fu${idx}__Echo_Performed`)?.value==='Yes';
+    ['LVEF_FollowUp','RWMA_FollowUp','LV_Dilation','RV_Function_FollowUp','Valvular_Disease_FollowUp'].forEach(k=>setFieldBlockVisible(`f_fu${idx}__${k}`,echo));
+    const staged=document.getElementById(`f_fu${idx}__Staged_PCI_Done`)?.value==='Yes';
+    ['Staged_PCI_Date','Staged_PCI_Vessel'].forEach(k=>setFieldBlockVisible(`f_fu${idx}__${k}`,staged));
+    const inpatient=document.getElementById(`f_fu${idx}__Still_In_Hospital`)?.value==='Yes';
+    setFieldBlockVisible(`f_fu${idx}__Still_In_Hospital_Reason`,inpatient);
+    const gate=document.getElementById(`f_fu${idx}__Reintervention_At_FollowUp`);
+    const det=card.querySelector('.fu-reint-detail');
+    const showReint=gate&&gate.value==='Yes';
+    if(det){ det.style.display=showReint?'':'none'; if(!showReint) clearInputsWithin(det); }
+  });
 }
 function setYNsilent(fid,val){ const inp=document.getElementById(fid); if(!inp||inp.value===val)return; inp.value=val; const grp=document.getElementById(fid+'_grp'); if(grp){grp.querySelector('.yn-yes').classList.toggle('selected',val==='Yes');grp.querySelector('.yn-no').classList.toggle('selected',val==='No');} }
 function reactors(){
@@ -1280,6 +1403,7 @@ function collectData(){
     secFields(LESIONS).forEach(f=>{ const el=document.getElementById(`f_les${idx}__${f.k}`); if(el){ v[f.k]=el.value; if(el.value) any=true; } });
     if(any) stagedLesions.push(v);
   });
+  normalizeInterlinkedData(data,followups,lesions,stagedLesions);
   return {data,followups,lesions,stagedLesions};
 }
 async function nextPatientId(code){
@@ -1396,6 +1520,36 @@ function validateLogic(data){
   rng('Blood_Work.Hemoglobin',3,22,'Hemoglobin'); rng('Blood_Work.HbA1c',3,20,'HbA1c %');
   return {errors,warnings};
 }
+function findDuplicateAdmission(data,recId){
+  const civ=String(data['Patient_Master.Civil_ID_Optional']||'').trim();
+  const adm=String(data['Patient_Master.Index_Admission_Date']||'').trim();
+  if(!civ||!adm)return null;
+  return RECORDS.find(r=>r.id!==recId && String(r.data?.['Patient_Master.Civil_ID_Optional']||'').trim()===civ && String(r.data?.['Patient_Master.Index_Admission_Date']||'').trim()===adm) || null;
+}
+function validateFollowupTiming(data,followups){
+  const errors=[];
+  if(!followups.length)return errors;
+  const adm=parseISODate(data['Patient_Master.Index_Admission_Date']);
+  if(!adm){ errors.push('Admission date is required before adding follow-up visits.'); return errors; }
+  const today=todayDate(), seen=new Set();
+  followups.forEach((fu,i)=>{
+    const label=`Follow-up visit ${i+1}`;
+    const raw=String(fu.FollowUp_Timepoint_Months||'').trim();
+    const months=parseInt(raw,10);
+    if(!raw || !FOLLOWUP_MONTHS.includes(months) || String(months)!==raw){
+      errors.push(`${label}: choose a valid timepoint (1, 3, 6, or 12 months).`);
+      return;
+    }
+    if(seen.has(months)) errors.push(`${label}: duplicate ${months}-month follow-up for this admission.`);
+    seen.add(months);
+    const due=addMonthsSafe(adm,months), dueLabel=fmtISODate(due);
+    if(today<due) errors.push(`${label}: ${months}-month follow-up is allowed from ${dueLabel}.`);
+    const fuDate=parseISODate(fu.FollowUp_Date);
+    if(fuDate && fuDate<due) errors.push(`${label}: follow-up date cannot be before ${dueLabel}.`);
+    if(fuDate && fuDate>today) errors.push(`${label}: follow-up date cannot be in the future.`);
+  });
+  return errors;
+}
 function renderValSummary(errors,warnings){
   const el=document.getElementById('valSummary'); if(!el)return;
   if(!errors.length && !warnings.length){ el.style.display='none'; el.innerHTML=''; return; }
@@ -1412,7 +1566,15 @@ window.saveRecord=async function(status, closeAfter, finalize){
     const btns=['btnSave','btnSaveClose','btnFinal'].map(id=>document.getElementById(id));
     btns.forEach(b=>b&&(b.disabled=true));
     try{
-      const {followups}=collectData();
+      const {data,followups}=collectData();
+      const fuErrors=validateFollowupTiming(data,followups);
+      if(fuErrors.length){
+        renderValSummary(fuErrors,[]);
+        document.getElementById('valSummary').scrollIntoView({behavior:'smooth',block:'center'});
+        toast(`Cannot save follow-up — ${fuErrors.length} issue(s) to fix`,'#e11d48');
+        return;
+      }
+      renderValSummary([],[]);
       await db.collection(COL_PATIENTS).doc(recId).set({
         followups,
         updatedAt:new Date(),
@@ -1432,16 +1594,28 @@ window.saveRecord=async function(status, closeAfter, finalize){
   if(!sexEl.value){ goToStep(0); sexEl.focus(); toast('Sex is required','#e11d48'); return; }
   const civEl=document.getElementById('f_master__Civil_ID_Optional');
   if(civEl && civEl.value && civEl.value.length!==12){ goToStep(0); civEl.focus(); toast('Civil ID must be exactly 12 digits, or left blank','#e11d48'); return; }
+  const recId=document.getElementById('editRecordId').value;
   const {data,followups,lesions,stagedLesions}=collectData();
+  const dup=findDuplicateAdmission(data,recId);
+  if(dup){
+    goToStep(0); civEl.focus();
+    toast(`Duplicate Civil ID for the same admission date: ${dup.patientId||'existing record'}`,'#e11d48');
+    return;
+  }
   const vr=validateLogic(data);
+  const fuTimingErrors=validateFollowupTiming(data,followups);
+  fuTimingErrors.forEach(e=>pushUnique(vr.errors,e));
   if(finalize) validateFinalCompletion(data, vr.errors);
   renderValSummary(vr.errors, vr.warnings);
+  if(fuTimingErrors.length){
+    document.getElementById('valSummary').scrollIntoView({behavior:'smooth',block:'center'});
+    toast(`Cannot save follow-up — ${fuTimingErrors.length} issue(s) to fix`,'#e11d48'); return;
+  }
   if(finalize && vr.errors.length){
     document.getElementById('valSummary').scrollIntoView({behavior:'smooth',block:'center'});
     toast(`Cannot finalize — ${vr.errors.length} issue(s) to fix`,'#e11d48'); return;
   }
   if(finalize && !confirm('Final Submit locks this record from further editing (an admin can unlock it). Continue?')) return;
-  const recId=document.getElementById('editRecordId').value;
   const btns=['btnSave','btnSaveClose','btnFinal'].map(id=>document.getElementById(id));
   btns.forEach(b=>b&&(b.disabled=true));
   try{
@@ -1522,8 +1696,65 @@ function initialsOf(r){
   const fn=r.data?.['Patient_Master.Name_First']||'', mn=r.data?.['Patient_Master.Name_Middle']||'', ln=r.data?.['Patient_Master.Name_Last']||'';
   const i=(fn[0]||'')+(mn[0]||'')+(ln[0]||''); return (i||(r.patientId||'?').slice(-2)).toUpperCase();
 }
+const FOLLOWUP_MONTHS=[1,3,6,12];
+function parseISODate(v){ if(!v)return null; const d=new Date(String(v).slice(0,10)+'T00:00:00'); return isNaN(d.getTime())?null:d; }
+function todayDate(){ const n=new Date(); return new Date(n.getFullYear(),n.getMonth(),n.getDate()); }
+function addMonthsSafe(d,months){
+  const y=d.getFullYear(), m=d.getMonth()+months, day=d.getDate();
+  const last=new Date(y,m+1,0).getDate();
+  return new Date(y,m,Math.min(day,last));
+}
+function fmtISODate(d){ if(!d)return '—'; const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function dayDiff(a,b){ return Math.round((a-b)/86400000); }
+function hasFollowup(r,months){ return (r.followups||[]).some(f=>String(f.FollowUp_Timepoint_Months||'').trim()===String(months)); }
+function followupGate(r,months){
+  const adm=parseISODate(r.data?.['Patient_Master.Index_Admission_Date']);
+  if(!adm)return {allowed:false,done:false,reason:'Missing admission date',dueDate:null,dueLabel:'—'};
+  const dueDate=addMonthsSafe(adm,months), today=todayDate(), done=hasFollowup(r,months);
+  const early=dayDiff(dueDate,today)>0;
+  return {allowed:done||!early,done,early,dueDate,dueLabel:fmtISODate(dueDate),days:dayDiff(today,dueDate)};
+}
+function investigatorOwns(r){ return !currentDoctor || String(r.enteredByCode||r.enteredByPin||'')===String(dcode(currentDoctor)); }
+function followupAlerts(rows,investigatorOnly){
+  const source=(investigatorOnly&&currentDoctor)?rows.filter(investigatorOwns):rows;
+  const alerts=[];
+  source.forEach(r=>{
+    const st=r.recordStatus||'draft';
+    if(!(r.locked||st==='submitted'||st==='reviewed'))return;
+    FOLLOWUP_MONTHS.forEach(m=>{
+      const g=followupGate(r,m);
+      if(!g.done && g.allowed) alerts.push({r,months:m,due:g.dueLabel,days:g.days});
+    });
+  });
+  return alerts.sort((a,b)=>b.days-a.days);
+}
+function renderFollowupAlertBox(alerts,title){
+  if(!alerts.length)return '';
+  const items=alerts.slice(0,8).map(a=>{
+    const tone=a.days>0?`overdue by ${a.days} day${a.days===1?'':'s'}`:'due today';
+    return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #fde68a;font-size:12.5px;">
+      <span><b style="font-family:'DM Mono',monospace;color:#92400e;">${a.r.patientId||'—'}</b> · ${a.months}M follow-up · due ${a.due} · ${tone}</span>
+      <button class="btn btn-yellow" style="padding:4px 8px;font-size:11px;" onclick="openFollowupVisit('${a.r.id}',${a.months})"><i class="fas fa-bell"></i> Open</button>
+    </div>`;
+  }).join('');
+  const more=alerts.length>8?`<div style="font-size:11px;color:#92400e;margin-top:7px;">+ ${alerts.length-8} more due follow-up(s)</div>`:'';
+  return `<div class="card card-yellow" style="margin-bottom:16px;">
+    <div style="font-weight:900;color:#92400e;margin-bottom:7px;"><i class="fas fa-bell"></i> ${title}</div>
+    ${items}${more}
+  </div>`;
+}
+function followupButton(r,months){
+  const g=followupGate(r,months);
+  if(g.done)return `<button class="btn btn-green" title="${months}-month follow-up recorded" onclick="openFollowupVisit('${r.id}',${months})">${months}M</button>`;
+  if(!g.allowed)return `<button class="btn btn-gray" title="${months}-month follow-up opens on ${g.dueLabel}" disabled>${months}M</button>`;
+  const cls=g.days>0?'btn-red':'btn-purple';
+  const title=g.days>0?`${months}-month follow-up overdue since ${g.dueLabel}`:`${months}-month follow-up due today`;
+  return `<button class="btn ${cls}" title="${title}" onclick="openFollowupVisit('${r.id}',${months})">${months}M</button>`;
+}
 window.renderDashboard=function(){
   const wrap=document.getElementById('dashList'); if(!wrap)return;
+  const alertEl=document.getElementById('fuAlerts');
+  if(alertEl) alertEl.innerHTML=renderFollowupAlertBox(followupAlerts(RECORDS,true),'My follow-up alerts');
   const q=(document.getElementById('dashSearch')?.value||'').toLowerCase().trim();
   let rows=RECORDS.slice().sort((a,b)=>(b.patientId||'').localeCompare(a.patientId||''));
   rows.forEach(r=>r._pct=computeProgress(r));
@@ -1556,12 +1787,7 @@ window.renderDashboard=function(){
     const pct=r._pct;
     const pcol=pct>=100?'#059669':(pct>=50?'#d97706':'#e11d48');
     const canFollow=!!(r.locked || st==='submitted' || st==='reviewed');
-    const fuButtons=canFollow?`<div class="followup-shortcuts">
-      <button class="btn btn-purple" title="Add / open 1-month follow-up" onclick="openFollowupVisit('${r.id}',1)">1M</button>
-      <button class="btn btn-purple" title="Add / open 3-month follow-up" onclick="openFollowupVisit('${r.id}',3)">3M</button>
-      <button class="btn btn-purple" title="Add / open 6-month follow-up" onclick="openFollowupVisit('${r.id}',6)">6M</button>
-      <button class="btn btn-purple" title="Add / open 12-month follow-up" onclick="openFollowupVisit('${r.id}',12)">12M</button>
-    </div>`:'';
+    const fuButtons=canFollow?`<div class="followup-shortcuts">${FOLLOWUP_MONTHS.map(m=>followupButton(r,m)).join('')}</div>`:'';
     return `<div class="card pt-card">
       <div style="display:flex;align-items:center;gap:14px;">
         <div class="avatar">${initialsOf(r)}</div>
@@ -1613,6 +1839,8 @@ window.openFollowupVisit=function(id,months){
   const r=RECORDS.find(x=>x.id===id); if(!r)return;
   const st=r.recordStatus||'draft';
   if(!(r.locked || st==='submitted' || st==='reviewed')){ toast('Follow-up shortcuts are available after final submission','#e11d48'); return; }
+  const gate=followupGate(r,months);
+  if(!gate.allowed){ toast(`${months}-month follow-up is allowed from ${gate.dueLabel}`,'#d97706'); return; }
   editRecord(id,{followup:true});
   const target=String(months);
   let card=[...document.querySelectorAll('#fuContainer .fu-card')].find(c=>_v(`f_fu${c.dataset.fu}__FollowUp_Timepoint_Months`)===target);
@@ -1645,6 +1873,8 @@ function fmtTS(ts){ if(!ts)return '—'; let d; if(ts.toDate)d=ts.toDate(); else
 window.arClear=function(){ ['arCivil','arCode','arCrf'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); const i=document.getElementById('arInv'),s=document.getElementById('arStatus'); if(i)i.value=''; if(s)s.value=''; renderAdminRecords(); };
 window.renderAdminRecords=function(){
   const tb=document.getElementById('adminRecBody'); if(!tb)return;
+  const alertEl=document.getElementById('adminFuAlerts');
+  if(alertEl) alertEl.innerHTML=renderFollowupAlertBox(followupAlerts(RECORDS,false),'Admin follow-up alerts');
   const civ=(document.getElementById('arCivil')?.value||'').toLowerCase().trim();
   const code=(document.getElementById('arCode')?.value||'').trim();
   const crf=(document.getElementById('arCrf')?.value||'').toLowerCase().trim();
