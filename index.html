@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SACC CAD Registry — Sabah Al-Ahmad Cardiac Center</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SACC CAD">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -137,6 +144,11 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .subtab.subtab-active{color:#2563eb;border-bottom-color:#2563eb;}
 .export-card{border-radius:14px;padding:20px;border:1.5px solid #e2e8f0;}
 .export-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px;}
+.app-icon{width:56px;height:56px;border-radius:14px;object-fit:cover;background:#fff;border:1.5px solid #e2e8f0;box-shadow:0 3px 12px rgba(15,23,42,.08);}
+.app-icon-sm{width:42px;height:42px;border-radius:10px;flex-shrink:0;}
+.form-step.index-locked{pointer-events:none;opacity:.72;filter:grayscale(.15);}
+.followup-shortcuts{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-top:7px;}
+.followup-shortcuts .btn{padding:6px 8px;font-size:11px;border-radius:8px;}
 </style>
 </head>
 <body>
@@ -145,7 +157,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 <div id="loginOverlay" class="overlay">
   <div class="card" style="max-width:420px;width:100%;">
     <div style="text-align:center;margin-bottom:18px;">
-      <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#6366f1);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#fff;font-size:24px;"><i class="fas fa-heart-pulse"></i></div>
+      <img class="app-icon" style="margin:0 auto 12px;" src="sacc-cad-icon-192.png" alt="SACC CAD">
       <h1 style="font-size:20px;font-weight:800;margin:0;">SACC CAD Registry</h1>
       <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Sabah Al-Ahmad Cardiac Center</p>
     </div>
@@ -194,7 +206,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 <header style="position:sticky;top:0;z-index:40;">
   <div style="max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
     <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#1d4ed8,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;"><i class="fas fa-heart-pulse"></i></div>
+      <img class="app-icon app-icon-sm" src="sacc-cad-icon-192.png" alt="SACC CAD">
       <div>
         <div style="font-size:16px;font-weight:800;line-height:1.1;">SACC CAD Registry</div>
         <div style="font-size:11px;color:#64748b;">Coronary Artery Disease · Sabah Al-Ahmad Cardiac Center</div>
@@ -433,7 +445,23 @@ const COL_SETTINGS = "cad_settings";
 const RV = ['Normal','Mildly reduced','Moderately reduced','Severely reduced'];
 const VALVE = ['None','Mild','Moderate','Severe'];
 const RHYTHM = ['Sinus','Atrial Fibrillation','Atrial Flutter','Paced','Other'];
-const COUNTRIES = ['Kuwaiti','Bedoon','Saudi Arabian','Bahraini','Qatari','Emirati','Omani','Egyptian','Syrian','Lebanese','Jordanian','Palestinian','Iraqi','Iranian','Yemeni','Sudanese','Somali','Indian','Pakistani','Bangladeshi','Sri Lankan','Nepalese','Filipino','Indonesian','Afghan','Turkish','Moroccan','Tunisian','Algerian','Libyan','Ethiopian','Eritrean','Kenyan','Nigerian','Ghanaian','American','British','Canadian','Australian','French','German','Italian','Spanish','Dutch','Russian','Ukrainian','Chinese','Japanese','Korean','Thai','Vietnamese','Other'];
+const COUNTRIES = [
+  'Kuwaiti','Bedoon','Saudi Arabian','Bahraini','Qatari','Emirati','Omani',
+  'Afghan','Albanian','Algerian','American','Andorran','Angolan','Antiguan or Barbudan','Argentine','Armenian','Australian','Austrian','Azerbaijani',
+  'Bahamian','Bangladeshi','Barbadian','Belarusian','Belgian','Belizean','Beninese','Bhutanese','Bolivian','Bosnian and Herzegovinian','Botswanan','Brazilian','British','Bruneian','Bulgarian','Burkinabe','Burundian',
+  'Cabo Verdean','Cambodian','Cameroonian','Canadian','Central African','Chadian','Chilean','Chinese','Colombian','Comorian','Congolese','Costa Rican','Croatian','Cuban','Cypriot','Czech',
+  'Danish','Djiboutian','Dominican','Dutch','East Timorese','Ecuadorean','Egyptian','Salvadoran','Equatorial Guinean','Eritrean','Estonian','Eswatini','Ethiopian',
+  'Fijian','Filipino','Finnish','French','Gabonese','Gambian','Georgian','German','Ghanaian','Greek','Grenadian','Guatemalan','Guinean','Bissau-Guinean','Guyanese',
+  'Haitian','Honduran','Hungarian','Icelandic','Indian','Indonesian','Iranian','Iraqi','Irish','Israeli','Italian','Ivorian',
+  'Jamaican','Japanese','Jordanian','Kazakh','Kenyan','Kiribati','Kosovar','Kyrgyz',
+  'Lao','Latvian','Lebanese','Lesotho','Liberian','Libyan','Liechtensteiner','Lithuanian','Luxembourger',
+  'Malagasy','Malawian','Malaysian','Maldivian','Malian','Maltese','Marshallese','Mauritanian','Mauritian','Mexican','Micronesian','Moldovan','Monegasque','Mongolian','Montenegrin','Moroccan','Mozambican','Myanmar',
+  'Namibian','Nauruan','Nepalese','New Zealander','Nicaraguan','Nigerien','Nigerian','North Korean','North Macedonian','Norwegian',
+  'Pakistani','Palauan','Palestinian','Panamanian','Papua New Guinean','Paraguayan','Peruvian','Polish','Portuguese',
+  'Romanian','Russian','Rwandan','Saint Kitts and Nevis','Saint Lucian','Saint Vincentian','Samoan','San Marinese','Sao Tomean','Senegalese','Serbian','Seychellois','Sierra Leonean','Singaporean','Slovak','Slovenian','Solomon Islander','Somali','South African','South Korean','South Sudanese','Spanish','Sri Lankan','Sudanese','Surinamese','Swedish','Swiss','Syrian',
+  'Taiwanese','Tajik','Tanzanian','Thai','Togolese','Tongan','Trinidadian or Tobagonian','Tunisian','Turkish','Turkmen','Tuvaluan',
+  'Ugandan','Ukrainian','Uruguayan','Uzbek','Vanuatuan','Vatican','Venezuelan','Vietnamese','Yemeni','Zambian','Zimbabwean','Other'
+];
 const YN = ['Yes','No'];
 const KILLIP = ['I','II','III','IV'];
 const CCS = ['No angina','CCS I','CCS II','CCS III','CCS IV'];
@@ -471,7 +499,7 @@ const SECTIONS = [
    {title:'1.1 Patient Name (Initials)', tint:'blue', c:'#2563eb', icon:'fa-signature', cols:3, fields:[
      {k:'Name_First',type:'text',label:'First'},{k:'Name_Middle',type:'text',label:'Middle'},{k:'Name_Last',type:'text',label:'Last'}]},
    {title:'Identifiers', tint:'gray', c:'#64748b', icon:'fa-id-card', cols:2, fields:[
-     {k:'Civil_ID_Optional',type:'text',digits:12,label:'1.2 Civil ID',ph:'12 digits'},
+     {k:'Civil_ID_Optional',type:'text',digits:12,label:'1.2 Civil ID (optional)',ph:'12 digits'},
      {k:'CRF_Number',type:'text',ro:true,label:'1.3 CRF Number',info:'CRF'},
      {k:'Sex',type:'select',opts:['Male','Female'],req:true,label:'1.4 Gender'},
      {k:'Nationality',type:'select',opts:COUNTRIES,label:'1.5 Nationality',info:'NATIONALITY'},
@@ -479,7 +507,7 @@ const SECTIONS = [
      {k:'Age',type:'num',label:'1.6a Est. Age (yrs)'},
      {k:'Index_Admission_Date',type:'date',req:true,label:'1.7 Hospital Admission Date'},
      {k:'Patient_Contact',type:'tel',digits:8,label:'1.8 Patient Contact'},
-     {k:'Relative_Contact',type:'tel',digits:8,label:'1.9 Relative Contact'}]}
+     {k:'Relative_Contact',type:'tel',digits:8,label:'1.9 Relative Contact (optional)'}]}
  ]},
  {id:'careason', sheet:'Admission_Reason', title:'CA Reason', icon:'fa-clipboard-question', color:'#7c3aed', groups:[
    {title:'2. Reason for Coronary Angiography / Cath Lab', tint:'purple', c:'#7c3aed', icon:'fa-clipboard-question', cols:1, fields:[
@@ -720,6 +748,7 @@ let currentRecord=null;          // working record
 let _formLocked=false;           // true when viewing a finalized/locked record
 let RECORDS=[];                  // cached patient records
 let currentStep=0;
+let _followupEditAllowed=false;  // locked records can still receive post-submit follow-up visits
 
 /* ════════════════════════ AUTH ════════════════════════ */
 function showLoginError(msg){const el=document.getElementById('loginError');if(el){el.textContent=msg;el.style.display='block';}}
@@ -841,7 +870,7 @@ function fieldHtml(secId,f){
   } else if(f.type==='dt24'){
     inner=`<div style="display:flex;gap:6px;"><input type="date" class="inp" id="${fid}" data-k="${f.k}" data-type="dt24" style="flex:1;"><input type="text" id="${fid}__t" class="inp" style="width:88px;text-align:center;font-family:'DM Mono',monospace;" maxlength="5" inputmode="numeric" placeholder="HH:MM" oninput="timeMask(this)" onblur="timeClamp(this)"></div>`;
   } else if(f.type==='numu'){
-    inner=`<input type="number" step="any" class="inp" id="${fid}" data-k="${f.k}" data-type="numu"><label class="ur-line"><input type="checkbox" id="${fid}__urc" onchange="urToggle('${fid}')">Unrecordable</label>`;
+    inner=`<input type="text" inputmode="decimal" class="inp" id="${fid}" data-k="${f.k}" data-type="numu" oninput="if(!this.readOnly)this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\\..*)\\./g,'$1')"><label class="ur-line"><input type="checkbox" id="${fid}__urc" onchange="urToggle('${fid}')">Unrecordable</label>`;
   } else if(f.type==='labnum'){
     inner=`<input type="number" step="any" class="inp" id="${fid}" data-k="${f.k}" data-type="labnum"><label class="ur-line"><input type="checkbox" id="${fid}__ncc" onchange="ncToggle('${fid}')">Not collected</label>`;
   } else {
@@ -934,6 +963,7 @@ function updateIndicators(){
 function recalcBMI(){
   const h=parseFloat(_v('f_history__Height_cm')), w=parseFloat(_v('f_history__Weight_kg'));
   if(h>0 && w>0) _set('f_history__BMI',(w/Math.pow(h/100,2)).toFixed(1));
+  else _set('f_history__BMI','');
   updateIndicators();
 }
 function recalcEGFR(){
@@ -1155,6 +1185,7 @@ window.prevStep=function(){ if(currentStep>0) goToStep(currentStep-1); };
 /* ════════════════════════ RECORD CRUD ════════════════════════ */
 window.newRecord=function(){
   currentRecord=null;
+  _followupEditAllowed=false;
   document.getElementById('editRecordId').value='';
   document.getElementById('cadForm').querySelectorAll('[data-k]').forEach(el=>{
     el.value=''; if(el.dataset.type==='ynbtn'){const g=document.getElementById(el.id+'_grp');if(g){g.querySelector('.yn-yes').classList.remove('selected');g.querySelector('.yn-no').classList.remove('selected');}}
@@ -1175,6 +1206,7 @@ function collectData(){
   const data={};
   SECTIONS.forEach(s=>secFields(s).forEach(f=>{
     if(f.type==='dt24'){ const d=_v(`f_${s.id}__${f.k}`), t=_v(`f_${s.id}__${f.k}__t`); data[`${f.sheet||s.sheet}.${f.k}`]= d?(d+(t?('T'+t):'')):''; }
+    else if(f.type==='numu'){ const c=document.getElementById(`f_${s.id}__${f.k}__urc`); const el=document.getElementById(`f_${s.id}__${f.k}`); data[`${f.sheet||s.sheet}.${f.k}`]=(c&&c.checked)?'Unrecordable':(el?el.value:''); }
     else if(f.type==='labnum'){ const c=document.getElementById(`f_${s.id}__${f.k}__ncc`); const el=document.getElementById(`f_${s.id}__${f.k}`); data[`${f.sheet||s.sheet}.${f.k}`]=(c&&c.checked)?'Not collected':(el?el.value:''); }
     else { const el=document.getElementById(`f_${s.id}__${f.k}`); if(el) data[`${f.sheet||s.sheet}.${f.k}`]=el.value; }
   }));
@@ -1210,9 +1242,62 @@ async function nextPatientId(code){
 function dcode(d){ return d? (d.code||d.pin) : ''; }
 function nextDoctorCode(){ let mx=100; DOCTORS.forEach(d=>{ const c=parseInt(d.code||d.pin,10); if(!isNaN(c)&&c>mx)mx=c; }); return String(mx+1); }
 /* ════════════════════════ MEDICAL & TEMPORAL LOGIC ════════════════════════ */
+const FINAL_OPTIONAL_FIELDS = new Set([
+  'Patient_Master.Civil_ID_Optional',
+  'Patient_Master.Relative_Contact'
+]);
+function pushUnique(arr,msg){ if(!arr.includes(msg)) arr.push(msg); }
+function conditionallyVisible(el){
+  if(!el) return false;
+  for(let n=el; n && n.id!=='cadForm'; n=n.parentElement){
+    if(n.hasAttribute && n.hasAttribute('data-showif')){
+      let cs; try{ cs=JSON.parse(n.getAttribute('data-showif')); }catch(e){ cs=null; }
+      if(cs && !cs.every(passCond)) return false;
+    }
+    if(n.style && n.style.display==='none' && !n.classList.contains('form-step')) return false;
+  }
+  return true;
+}
+function fieldShown(secId,k){
+  const el=document.getElementById(`f_${secId}__${k}`);
+  return !!(el && conditionallyVisible(el));
+}
+function validationValue(s,f,data){
+  const fid=`f_${s.id}__${f.k}`;
+  if(f.type==='dt24'){
+    const d=_v(fid), t=_v(fid+'__t');
+    return (d && /^\d{2}:\d{2}$/.test(t)) ? `${d}T${t}` : '';
+  }
+  if(f.type==='numu'){
+    const c=document.getElementById(fid+'__urc'), el=document.getElementById(fid);
+    return (c&&c.checked) ? 'Unrecordable' : ((el&&el.value)||'').trim();
+  }
+  if(f.type==='labnum'){
+    const c=document.getElementById(fid+'__ncc'), el=document.getElementById(fid);
+    return (c&&c.checked) ? 'Not collected' : ((el&&el.value)||'').trim();
+  }
+  return String(data[fkey(s,f)]||'').trim();
+}
+function skipFinalField(s,f,data){
+  const key=fkey(s,f);
+  if(f.ro || FINAL_OPTIONAL_FIELDS.has(key)) return true;
+  if(key==='Patient_Master.BMI'){
+    const h=validationValue(SECTIONS.find(x=>x.id==='history'),{k:'Height_cm',type:'numu',sheet:'History_Presentation'},data);
+    const w=validationValue(SECTIONS.find(x=>x.id==='history'),{k:'Weight_kg',type:'numu',sheet:'History_Presentation'},data);
+    return !h || !w || h==='Unrecordable' || w==='Unrecordable';
+  }
+  return false;
+}
+function validateFinalCompletion(data,errors){
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>{
+    if(skipFinalField(s,f,data)) return;
+    if(!fieldShown(s.id,f.k)) return;
+    if(!validationValue(s,f,data)) pushUnique(errors, `${pretty(f.k)} is required for final submission.`);
+  }));
+}
 function validateLogic(data){
   const errors=[], warnings=[];
-  SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.req){ const el=document.getElementById(`f_${s.id}__${f.k}`); if(el && el.offsetParent!==null && !((data[`${f.sheet||s.sheet}.${f.k}`]||'').trim())) errors.push(`${pretty(f.k)} is required.`); } }));
+  SECTIONS.forEach(s=>secFields(s).forEach(f=>{ if(f.req && fieldShown(s.id,f.k) && !validationValue(s,f,data)) pushUnique(errors, `${pretty(f.k)} is required.`); }));
   const today=new Date(); today.setHours(23,59,59,999);
   const D=key=>{ const v=data[key]; if(!v) return null; const d=new Date(v); return isNaN(d.getTime())?null:d; };
   const adm=D('Patient_Master.Index_Admission_Date'), dis=D('Discharge_Medications.Discharge_Date');
@@ -1272,6 +1357,25 @@ function renderValSummary(errors,warnings){
 }
 window.saveRecord=async function(status, closeAfter, finalize){
   if(!currentDoctor){ showDoctorGate(); return; }
+  if(_formLocked && _followupEditAllowed){
+    const recId=document.getElementById('editRecordId').value;
+    if(!recId){ toast('Open a finalized record first','#e11d48'); return; }
+    const btns=['btnSave','btnSaveClose','btnFinal'].map(id=>document.getElementById(id));
+    btns.forEach(b=>b&&(b.disabled=true));
+    try{
+      const {followups}=collectData();
+      await db.collection(COL_PATIENTS).doc(recId).set({
+        followups,
+        updatedAt:new Date(),
+        updatedByName:currentDoctor.name,
+        updatedByCode:dcode(currentDoctor)
+      },{merge:true});
+      await loadRecords();
+      toast('Follow-up visits saved ✓','#059669');
+    }catch(e){ console.error(e); toast('Follow-up save failed: '+e.message,'#e11d48'); }
+    finally{ btns.forEach(b=>b&&(b.disabled=false)); }
+    return;
+  }
   if(_formLocked){ toast('Record is locked — unlock to edit','#2563eb'); return; }
   const admEl=document.getElementById('f_master__Index_Admission_Date');
   const sexEl=document.getElementById('f_master__Sex');
@@ -1281,6 +1385,7 @@ window.saveRecord=async function(status, closeAfter, finalize){
   if(civEl && civEl.value && civEl.value.length!==12){ goToStep(0); civEl.focus(); toast('Civil ID must be exactly 12 digits, or left blank','#e11d48'); return; }
   const {data,followups,lesions,stagedLesions}=collectData();
   const vr=validateLogic(data);
+  if(finalize) validateFinalCompletion(data, vr.errors);
   renderValSummary(vr.errors, vr.warnings);
   if(finalize && vr.errors.length){
     document.getElementById('valSummary').scrollIntoView({behavior:'smooth',block:'center'});
@@ -1324,10 +1429,22 @@ function setEntryStatusBadge(state){
 function applyLockState(){
   const form=document.getElementById('cadForm');
   const banner=document.getElementById('lockBanner');
-  ['btnSave','btnSaveClose','btnFinal'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('hidden',_formLocked);});
-  const unlock=document.getElementById('btnUnlock'); if(unlock)unlock.classList.toggle('hidden',!_formLocked);
-  if(form)form.classList.toggle('locked-form',_formLocked);
-  if(banner)banner.style.display=_formLocked?'block':'none';
+  const followupOnly=_formLocked && _followupEditAllowed;
+  const save=document.getElementById('btnSave');
+  if(save){
+    save.classList.toggle('hidden',_formLocked && !followupOnly);
+    save.innerHTML=followupOnly?'<i class="fas fa-calendar-check"></i> Save Follow-Ups':'<i class="fas fa-save"></i> Save';
+  }
+  ['btnSaveClose','btnFinal'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('hidden',_formLocked);});
+  const unlock=document.getElementById('btnUnlock'); if(unlock)unlock.classList.toggle('hidden',!(_formLocked && !followupOnly));
+  if(form)form.classList.toggle('locked-form',_formLocked && !followupOnly);
+  document.querySelectorAll('.form-step').forEach(step=>step.classList.toggle('index-locked',followupOnly && Number(step.dataset.step)!==SECTIONS.length));
+  if(banner){
+    banner.style.display=_formLocked?'block':'none';
+    banner.innerHTML=followupOnly
+      ? '<i class="fas fa-calendar-check"></i> This finalized record is locked. You can add and save follow-up visits only.'
+      : '<i class="fas fa-lock"></i> This record was finalized and is locked. Use <b>Unlock to edit</b> in the footer to make changes.';
+  }
 }
 window.unlockRecord=async function(){
   const id=document.getElementById('editRecordId').value; if(!id)return;
@@ -1389,6 +1506,13 @@ window.renderDashboard=function(){
     const reason=r.data?.['Admission_Reason.CA_Reason']||'—';
     const pct=r._pct;
     const pcol=pct>=100?'#059669':(pct>=50?'#d97706':'#e11d48');
+    const canFollow=!!(r.locked || st==='submitted' || st==='reviewed');
+    const fuButtons=canFollow?`<div class="followup-shortcuts">
+      <button class="btn btn-purple" title="Add / open 1-month follow-up" onclick="openFollowupVisit('${r.id}',1)">1M</button>
+      <button class="btn btn-purple" title="Add / open 3-month follow-up" onclick="openFollowupVisit('${r.id}',3)">3M</button>
+      <button class="btn btn-purple" title="Add / open 6-month follow-up" onclick="openFollowupVisit('${r.id}',6)">6M</button>
+      <button class="btn btn-purple" title="Add / open 12-month follow-up" onclick="openFollowupVisit('${r.id}',12)">12M</button>
+    </div>`:'';
     return `<div class="card pt-card">
       <div style="display:flex;align-items:center;gap:14px;">
         <div class="avatar">${initialsOf(r)}</div>
@@ -1406,6 +1530,7 @@ window.renderDashboard=function(){
             <button class="btn btn-yellow" style="padding:7px 11px;" title="Edit" onclick="editRecord('${r.id}')"><i class="fas fa-edit"></i></button>
             ${st!=='reviewed'?`<button class="btn btn-green" style="padding:7px 11px;" title="Mark reviewed" onclick="markReviewed('${r.id}')"><i class="fas fa-check"></i></button>`:`<button class="btn btn-gray" style="padding:7px 11px;" title="Revert to draft" onclick="markDraft('${r.id}')"><i class="fas fa-rotate-left"></i></button>`}
           </div>
+          ${fuButtons}
           <div style="font-size:13px;font-weight:800;color:${pcol};margin-top:6px;">${pct}%</div>
         </div>
       </div></div>`;
@@ -1414,7 +1539,8 @@ window.renderDashboard=function(){
 window.renderRecords=window.renderDashboard;
 window.markReviewed=async function(id){ try{ await db.collection(COL_PATIENTS).doc(id).update({recordStatus:'reviewed',reviewedAt:new Date()}); await loadRecords(); toast('Marked reviewed ✓','#7c3aed'); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
 window.markDraft=async function(id){ try{ await db.collection(COL_PATIENTS).doc(id).update({recordStatus:'draft',locked:false}); await loadRecords(); toast('Reverted to draft','#64748b'); }catch(e){ toast('Failed: '+e.message,'#e11d48'); } };
-window.editRecord=function(id){
+window.editRecord=function(id,opts){
+  const options=opts||{};
   const r=RECORDS.find(x=>x.id===id); if(!r)return;
   newRecord();
   document.getElementById('editRecordId').value=id;
@@ -1429,9 +1555,26 @@ window.editRecord=function(id){
   document.getElementById('entrySubtitle').textContent='Entered by '+(r.enteredByName||'—');
   const st=r.recordStatus||'draft';
   _formLocked=!!r.locked;
+  _followupEditAllowed=!!(options.followup && (r.locked || st==='submitted' || st==='reviewed'));
   setEntryStatusBadge(r.locked?'locked':st);
+  switchTab('entry'); goToStep(options.followup?SECTIONS.length:0);
   applyLockState();
-  switchTab('entry'); goToStep(0);
+};
+window.openFollowupVisit=function(id,months){
+  const r=RECORDS.find(x=>x.id===id); if(!r)return;
+  const st=r.recordStatus||'draft';
+  if(!(r.locked || st==='submitted' || st==='reviewed')){ toast('Follow-up shortcuts are available after final submission','#e11d48'); return; }
+  editRecord(id,{followup:true});
+  const target=String(months);
+  let card=[...document.querySelectorAll('#fuContainer .fu-card')].find(c=>_v(`f_fu${c.dataset.fu}__FollowUp_Timepoint_Months`)===target);
+  if(!card){
+    const idx=addFollowupCard({FollowUp_Timepoint_Months:target});
+    card=document.querySelector(`#fuContainer .fu-card[data-fu="${idx}"]`);
+  }
+  goToStep(SECTIONS.length);
+  applyLockState();
+  setTimeout(()=>{ const e=card&&card.querySelector('input,select,textarea,button'); if(e)e.focus(); },100);
+  toast(`${months}-month follow-up ready to complete`,'#4f46e5');
 };
 window.deleteRecord=async function(id,pid){
   if(!confirm(`Permanently delete ${pid}? This cannot be undone.`))return;
