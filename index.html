@@ -100,6 +100,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .radio-pill.selected .dot{border-color:#2563eb;background:#2563eb;box-shadow:inset 0 0 0 2.5px #fff;}
 .ur-line{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:12px;color:#64748b;cursor:pointer;}
 .ur-line input{width:14px;height:14px;}
+.auto-cap{margin-top:7px;font-size:12px;color:#94a3b8;line-height:14px;display:flex;align-items:center;gap:5px;}
 .gate-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .gate-title{font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px;letter-spacing:-.01em;}
 .sub-reveal{margin-top:13px;padding:13px 14px 4px;border-left:3px solid #2563eb;background:#f8fafc;border-radius:0 10px 10px 0;}
@@ -227,9 +228,10 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
   <div style="max-width:1200px;margin:0 auto;padding:0 20px;display:flex;gap:6px;overflow-x:auto;">
     <button class="tabBtn tab-active" data-tab="entry" onclick="switchTab('entry')" style="padding:11px 16px;font-size:14px;background:none;border:none;cursor:pointer;white-space:nowrap;"><i class="fas fa-notes-medical mr-2"></i>Data Entry</button>
     <button class="tabBtn" data-tab="records" onclick="switchTab('records')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-th-large mr-2"></i>Dashboard</button>
-    <button class="tabBtn" data-tab="analytics" onclick="switchTab('analytics')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-chart-pie mr-2"></i>Analytics</button>
+    <button class="tabBtn admin-only" data-tab="analytics" onclick="switchTab('analytics')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;display:none;"><i class="fas fa-chart-pie mr-2"></i>Analytics</button>
     <button class="tabBtn" data-tab="dictionary" onclick="switchTab('dictionary')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-book-medical mr-2"></i>Dictionary</button>
-    <button class="tabBtn" data-tab="admin" onclick="openAdminGate()" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;"><i class="fas fa-shield-halved mr-2"></i>Admin</button>
+    <button class="tabBtn admin-only" data-tab="downloads" onclick="switchTab('downloads')" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;display:none;"><i class="fas fa-cloud-arrow-down mr-2"></i>Downloads</button>
+    <button class="tabBtn admin-only" data-tab="admin" onclick="goAdmin()" style="padding:11px 16px;font-size:14px;background:none;border:none;color:#64748b;cursor:pointer;white-space:nowrap;display:none;"><i class="fas fa-shield-halved mr-2"></i>Admin</button>
   </div>
 </header>
 
@@ -240,11 +242,11 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
     <div class="card" style="padding:0;overflow:hidden;">
       <div style="padding:18px 24px;border-bottom:1.5px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <div>
-          <div style="font-size:15px;font-weight:800;" id="entryTitle">New CAD Patient Record</div>
-          <div style="font-size:12px;color:#64748b;" id="entrySubtitle">Patient ID will be generated on first save</div>
+          <div style="font-size:15px;font-weight:800;" id="entryTitle">Add CRF</div>
+          <div style="font-size:12px;color:#64748b;" id="entrySubtitle">Patient ID generated on first save</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <span id="entryStatusBadge" class="badge badge-amber">Draft</span>
+          <span id="entryStatusBadge" class="badge badge-amber" style="display:none;">Draft</span>
           <button class="btn btn-gray" style="padding:7px 12px;font-size:12px;" onclick="newRecord()"><i class="fas fa-plus"></i> New</button>
         </div>
       </div>
@@ -346,6 +348,62 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
           <thead><tr><th>Section</th><th>Sheet</th><th>Variable</th><th>Label</th><th>Type</th><th>Values</th><th>Definition</th></tr></thead>
           <tbody id="dictBody"><tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:24px;">Loading…</td></tr></tbody>
         </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DOWNLOADS TAB (admin only) ============ -->
+  <section id="tab-downloads" class="hidden">
+    <div class="card" style="padding:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px;">
+        <div class="sec-title" style="border:none;margin:0;padding:0;"><div class="icon-wrap" style="background:#2563eb;"><i class="fas fa-cloud-arrow-down"></i></div>Data Downloads &amp; Exports</div>
+        <span style="font-size:13px;color:#94a3b8;"><i class="fas fa-shield-halved" style="margin-right:5px;"></i>Admin access required for all exports</span>
+      </div>
+      <div style="border-top:1px solid #e2e8f0;margin:14px 0 18px;"></div>
+
+      <div class="card" style="background:#eff6ff;border:1px solid #dbeafe;margin-bottom:18px;">
+        <div style="font-weight:800;color:#1d4ed8;margin-bottom:12px;"><i class="fas fa-filter mr-2"></i>Filter Export Range (optional)</div>
+        <div class="g2" style="gap:14px 18px;">
+          <div><label class="lbl">From Date (admission)</label><input id="dlFrom" type="date" class="inp"></div>
+          <div><label class="lbl">To Date (admission)</label><input id="dlTo" type="date" class="inp"></div>
+          <div><label class="lbl">Investigator</label><select id="dlInv" class="inp"><option value="">All Investigators</option></select></div>
+          <div><label class="lbl">CA Reason</label><select id="dlReason" class="inp"><option value="">All Reasons</option></select></div>
+        </div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-gray inp-sm" onclick="document.getElementById('dlFrom').value='';document.getElementById('dlTo').value='';document.getElementById('dlInv').value='';document.getElementById('dlReason').value='';renderDownloads()"><i class="fas fa-rotate-left"></i> Reset filters</button>
+          <span id="dlCount" style="font-size:12.5px;color:#64748b;"></span>
+        </div>
+      </div>
+
+      <div class="g3" style="gap:16px;">
+        <div class="card" style="border-left:4px solid #e11d48;">
+          <div style="width:46px;height:46px;border-radius:12px;background:#fee2e2;display:flex;align-items:center;justify-content:center;color:#e11d48;font-size:18px;margin-bottom:12px;"><i class="fas fa-file-pdf"></i></div>
+          <h4 style="font-size:16px;font-weight:800;margin:0 0 6px;">PDF Summary Report</h4>
+          <p style="font-size:13px;color:#64748b;margin:0 0 16px;">Printable registry summary with completion, status and operator info. One row per patient.</p>
+          <button class="btn btn-red" style="width:100%;justify-content:center;" onclick="downloadSummaryPDF()"><i class="fas fa-download"></i> Download PDF</button>
+        </div>
+        <div class="card" style="border-left:4px solid #059669;">
+          <div style="width:46px;height:46px;border-radius:12px;background:#d1fae5;display:flex;align-items:center;justify-content:center;color:#059669;font-size:18px;margin-bottom:12px;"><i class="fas fa-file-excel"></i></div>
+          <h4 style="font-size:16px;font-weight:800;margin:0 0 6px;">Excel Workbook</h4>
+          <p style="font-size:13px;color:#64748b;margin:0 0 16px;">Labeled multi-sheet export: Patients, Follow-Up, Lesions and a full Codebook sheet.</p>
+          <button class="btn btn-teal" style="width:100%;justify-content:center;" onclick="exportLabeled()"><i class="fas fa-download"></i> Download Excel</button>
+        </div>
+        <div class="card" style="border-left:4px solid #7c3aed;">
+          <div style="width:46px;height:46px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;color:#7c3aed;font-size:18px;margin-bottom:12px;"><i class="fas fa-chart-column"></i></div>
+          <h4 style="font-size:16px;font-weight:800;margin:0 0 6px;">SPSS Export</h4>
+          <p style="font-size:13px;color:#64748b;margin:0 0 16px;">Analysis-ready coded workbook with Yes/No → 1/0 binary coding and a full codebook sheet.</p>
+          <button class="btn btn-purple" style="width:100%;justify-content:center;" onclick="exportCoded()"><i class="fas fa-download"></i> Download SPSS</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;background:#f8fafc;">
+        <div style="font-weight:800;margin-bottom:6px;"><i class="fas fa-user mr-2" style="color:#2563eb;"></i>Individual Patient Report</div>
+        <p style="font-size:13px;color:#64748b;margin:0 0 12px;">Search for a patient and download their individual PDF case report.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <input id="dlPatientSearch" class="inp" style="flex:1;min-width:220px;" placeholder="Search by Civil ID or CRF…" onkeydown="if(event.key==='Enter')findPatientReport()">
+          <button class="btn btn-primary" onclick="findPatientReport()"><i class="fas fa-magnifying-glass"></i> Find</button>
+        </div>
+        <div id="dlPatientResult" style="margin-top:10px;"></div>
       </div>
     </div>
   </section>
@@ -523,8 +581,9 @@ const ORIGIN = ['Home','Transferred from other hospital','Same hospital — inpa
 const CM_TIMEFRAME = ['New diagnosis (this admission)','< 3 months','3–12 months','> 12 months'];
 const GDMT = ['Not on GDMT','Sub-maximal dose','Maximally tolerated dose'];
 const REASON_NO_PPCI = ['Late presentation (outside reperfusion window)','Successful thrombolysis / pharmaco-invasive','Spontaneous reperfusion','Patient / family refusal','Non-obstructive coronaries (MINOCA)','Anatomy unsuitable / referred for CABG','Comorbidity / palliative decision','Cath-lab unavailable / logistic delay','Other'];
-const DAPT_EXCEPTION_REASONS = ['High bleeding risk','Active bleeding','Oral anticoagulation strategy','Aspirin allergy / intolerance','P2Y12 allergy / intolerance','Planned surgery / procedure','Thrombocytopenia / anemia','Comfort / palliative care','Physician decision','Other'];
-const HF_MED_EXCEPTION_REASONS = ['Hypotension','Bradycardia','Acute kidney injury','Hyperkalemia','Severe renal dysfunction','Allergy / intolerance','Contraindication documented','Comfort / palliative care','Physician decision','Other'];
+const DAPT_EXCEPTION_REASONS = ['No stents implanted','High bleeding risk','Active bleeding','Oral anticoagulation strategy','Aspirin allergy / intolerance','P2Y12 allergy / intolerance','Planned surgery / procedure','Thrombocytopenia / anemia','Comfort / palliative care','Physician decision','Other'];
+const HF_MED_EXCEPTION_REASONS = ['Hypotension','Bradycardia','Acute kidney injury','Hyperkalemia','Severe renal dysfunction','Allergy / intolerance','Contraindication documented','Comfort / palliative care','Physician decision','Other']; // retained for reference; field removed from CRF
+
 
 // Shared, aligned medication set — used for BOTH Home Meds and Discharge Meds so the two lists never diverge
 function medGroups(){return [
@@ -625,6 +684,7 @@ const SECTIONS = [
  {id:'blood', sheet:'Blood_Work', title:'Investigations', icon:'fa-microscope', color:'#0d9488', groups:[
    {title:'ECG Findings', tint:'gray', c:'#475569', icon:'fa-wave-square', cols:3, fields:[
      {k:'ECG_Performed',type:'ynbtn',label:'ECG performed?',sheet:'Presentation_ECG_Timing',info:'TEST_DONE'},
+     {k:'ECG_Time',type:'dt24',label:'ECG date & time',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
      {k:'ECG_Rhythm',type:'select',opts:RHYTHM,sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
      {k:'ST_Elevation',type:'ynbtn',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ECG_Performed',eq:'Yes'}},
      {k:'ST_Elevation_Leads',type:'text',sheet:'Presentation_ECG_Timing',showIf:{sec:'blood',k:'ST_Elevation',eq:'Yes'}},
@@ -652,16 +712,16 @@ const SECTIONS = [
    {title:'Other Non-invasive Imaging', tint:'teal', c:'#0d9488', icon:'fa-display', cols:2, fields:[
      {k:'Stress_Test_Performed',type:'ynbtn',label:'Stress / functional test performed',sheet:'Echocardiography'},{k:'CTCA_Performed',type:'ynbtn',label:'CT coronary angiography performed',sheet:'Echocardiography'}]},
    {title:'Labs — Hematology', tint:'red', c:'#e11d48', icon:'fa-droplet', cols:4, fields:[
-     {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'labnum',label:'Hemoglobin (g/dL)'},{k:'WBC',type:'labnum',label:'WBC (×10⁹/L)'},{k:'Platelets',type:'labnum',label:'Platelets (×10⁹/L)'}]},
+     {k:'Sample_Date',type:'date'},{k:'Hemoglobin',type:'labnum',label:'Baseline Hemoglobin (g/dL)'},{k:'Hemoglobin_Nadir',type:'labnum',label:'Nadir Hemoglobin (g/dL)'},{k:'WBC',type:'labnum',label:'WBC (×10⁹/L)'},{k:'Platelets',type:'labnum',label:'Platelets (×10⁹/L)'}]},
    {title:'Labs — Renal Function & Electrolytes', tint:'blue', c:'#2563eb', icon:'fa-flask', cols:4, fields:[
-     {k:'Creatinine',type:'labnum',label:'Creatinine (µmol/L)'},{k:'eGFR',type:'num',label:'eGFR (mL/min/1.73m²)',hint:'auto',ro:true},
+     {k:'Creatinine',type:'labnum',label:'Baseline Creatinine (µmol/L)'},{k:'Creatinine_Peak',type:'labnum',label:'Peak Creatinine (µmol/L)'},{k:'eGFR',type:'num',label:'Baseline eGFR (mL/min/1.73m²)',hint:'auto',ro:true},
      {k:'Sodium',type:'labnum',label:'Sodium (mmol/L)'},{k:'Potassium',type:'labnum',label:'Potassium (mmol/L)'}]},
    {title:'Labs — Metabolic', tint:'yellow', c:'#d97706', icon:'fa-cubes', cols:2, fields:[
      {k:'Glucose',type:'labnum',label:'Glucose (mmol/L)'},{k:'HbA1c',type:'labnum',label:'HbA1c (%)'}]},
    {title:'Labs — Lipid Profile', tint:'purple', c:'#7c3aed', icon:'fa-oil-can', cols:4, fields:[
      {k:'Total_Cholesterol',type:'labnum',label:'Total Cholesterol (mmol/L)'},{k:'LDL',type:'labnum',label:'LDL (mmol/L)'},{k:'HDL',type:'labnum',label:'HDL (mmol/L)'},{k:'Triglycerides',type:'labnum',label:'Triglycerides (mmol/L)'}]},
    {title:'Labs — Cardiac & Inflammatory Markers', tint:'gray', c:'#475569', icon:'fa-heart-pulse', cols:4, fields:[
-     {k:'Troponin',type:'labnum',label:'hs-Troponin (ng/L)'},{k:'BNP',type:'labnum',label:'BNP (pg/mL)'},{k:'NT_proBNP',type:'labnum',label:'NT-proBNP (pg/mL)'},{k:'CRP',type:'labnum',label:'CRP (mg/L)'}]}
+     {k:'Troponin',type:'labnum',label:'Baseline hs-Troponin (ng/L)'},{k:'Troponin_Peak',type:'labnum',label:'Peak hs-Troponin (ng/L)'},{k:'BNP',type:'labnum',label:'BNP (pg/mL)'},{k:'NT_proBNP',type:'labnum',label:'NT-proBNP (pg/mL)'},{k:'CRP',type:'labnum',label:'CRP (mg/L)'}]}
  ]},
  {id:'pci', sheet:'PCI_Details', title:'Procedure', icon:'fa-syringe', color:'#0891b2', groups:[
    {title:'Coronary Angiography', tint:'purple', c:'#7c3aed', icon:'fa-x-ray', cols:3, fields:[
@@ -727,10 +787,15 @@ const SECTIONS = [
      {k:'Discharge_Date',type:'date',label:'Date of discharge / death',showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',in:['Survived to discharge','In-hospital death']}},
      {k:'Discharge_Type',type:'select',opts:['Home','LAMA','Transfer to cardiac surgery','Transfer to other dept'],label:'Discharge type',showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',eq:'Survived to discharge'}}]},
    ...medGroups().map(g=>({...g, showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',eq:'Survived to discharge'}})),
-   {title:'Medication Exceptions', tint:'yellow', c:'#d97706', icon:'fa-circle-exclamation', cols:2,
-     showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',eq:'Survived to discharge'}, fields:[
-     {k:'DAPT_Not_Prescribed_Reason',type:'select',opts:DAPT_EXCEPTION_REASONS,label:'Reason DAPT not prescribed'},
-     {k:'HF_Meds_Not_Prescribed_Reason',type:'select',opts:HF_MED_EXCEPTION_REASONS,label:'Reason HF meds not prescribed'}]},
+   {title:'Medication Exceptions', tint:'yellow', c:'#d97706', icon:'fa-circle-exclamation', cols:1,
+     showIf:{all:[
+       {sec:'dc_meds',k:'In_Hospital_Outcome',eq:'Survived to discharge'},
+       {any:[
+         {sec:'dc_meds',k:'Aspirin',ne:'Yes'},
+         {all:[{sec:'dc_meds',k:'Clopidogrel',ne:'Yes'},{sec:'dc_meds',k:'Prasugrel',ne:'Yes'},{sec:'dc_meds',k:'Ticagrelor',ne:'Yes'}]}
+       ]}
+     ]}, fields:[
+     {k:'DAPT_Not_Prescribed_Reason',type:'select',opts:DAPT_EXCEPTION_REASONS,label:'Reason DAPT (ASA + P2Y12) not prescribed'}]},
    {title:'Other / Notes', tint:'gray', c:'#475569', icon:'fa-pen', cols:1,
      showIf:{sec:'dc_meds',k:'In_Hospital_Outcome',eq:'Survived to discharge'}, fields:[
      {k:'Other_Medications_Notes',type:'textarea'}]}
@@ -801,13 +866,18 @@ const FIELD_DEFINITIONS = {
   'Patient_Master.Relative_Contact':'Alternative contact number for follow-up. Optional.',
   'History_Presentation.BMI':'Calculated from recorded height and weight. Blank when either height or weight is unrecordable or missing.',
   'Presentation_ECG_Timing.ECG_Performed':'Whether a clinically interpretable ECG was performed for the relevant encounter. If No, ECG detail fields are blank.',
+  'Presentation_ECG_Timing.ECG_Time':'Date and time the index ECG was recorded (24h). Used to anchor reperfusion and presentation timing.',
   'Echocardiography.Echo_Performed':'Whether transthoracic or clinically accepted echocardiography was performed. If No, echo detail fields are blank.',
   'Echocardiography.LVEF':'Most clinically relevant left ventricular ejection fraction from the index admission echo, recorded as percent.',
-  'Blood_Work.Creatinine':'Serum creatinine in micromol/L. eGFR is calculated only when creatinine, age, and sex are available.',
-  'Blood_Work.eGFR':'Race-free CKD-EPI 2021 estimate calculated from creatinine, age, and sex.',
+  'Blood_Work.Hemoglobin':'Baseline (admission) hemoglobin in g/dL.',
+  'Blood_Work.Hemoglobin_Nadir':'Lowest hemoglobin (g/dL) recorded during the index admission. Used to flag procedural/bleeding-related anemia.',
+  'Blood_Work.Creatinine':'Baseline (admission) serum creatinine in micromol/L. eGFR is calculated from this baseline value with age and sex.',
+  'Blood_Work.Creatinine_Peak':'Highest serum creatinine (µmol/L) during the index admission. Used with baseline to assess contrast-induced / acute kidney injury.',
+  'Blood_Work.Troponin':'Baseline (first/admission) high-sensitivity troponin in ng/L.',
+  'Blood_Work.Troponin_Peak':'Peak high-sensitivity troponin (ng/L) during the index admission; proxy for infarct size.',
+  'Blood_Work.eGFR':'Baseline eGFR — race-free CKD-EPI 2021 estimate calculated from baseline creatinine, age, and sex.',
   'Discharge_Medications.In_Hospital_Outcome':'Vital status at the end of the index hospital stay: survived to discharge or in-hospital death.',
-  'Discharge_Medications.DAPT_Not_Prescribed_Reason':'Reason dual antiplatelet therapy was not prescribed at discharge after PCI.',
-  'Discharge_Medications.HF_Meds_Not_Prescribed_Reason':'Reason disease-modifying heart-failure medications were not prescribed at discharge when LVEF is reduced.',
+  'Discharge_Medications.DAPT_Not_Prescribed_Reason':'Reason dual antiplatelet therapy (aspirin + P2Y12 inhibitor) was not prescribed at discharge. Shown/required only when the survivor is not on both ASA and a P2Y12 inhibitor.',
   'InHospital_Complications.Death_In_Hospital':'Death before discharge during the index admission.',
   'InHospital_Complications.Major_Bleeding':'Clinically important bleeding during admission; use BARC grade to classify severity.',
   'PCI_Details.Procedure_Success':'Overall operator-assessed success of the PCI procedure at the end of the session.',
@@ -858,6 +928,8 @@ const FIELD_DEFINITIONS = {
 
 let db=null, currentUser=null;
 let currentDoctor=null;          // {id,name,pin}
+let isAdmin=false;               // true for the whole session once the master admin PIN is verified
+const ADMIN_IDENTITY={id:'__admin',name:'Admin',code:'ADM',active:true,isAdmin:true};
 let DOCTORS=[];                  // [{id,name,pin,active}]
 let SETTINGS={adminPin:DEFAULT_ADMIN_PIN};
 let currentRecord=null;          // working record
@@ -940,14 +1012,27 @@ window.verifyAdminPin=async function(){
   const err=document.getElementById('adminPinError');
   await loadSettings();
   if(String(SETTINGS.adminPin)!==pin){err.textContent='Incorrect admin PIN.';err.style.display='block';return;}
+  isAdmin=true;                                  // unlocked for the whole session
+  document.querySelectorAll('.admin-only').forEach(b=>{ b.style.display=''; });
   closeAdminGate();
   document.getElementById('doctorPinOverlay').classList.add('hidden');
+  // If no clinician identity is set yet, sign the admin in as "Admin" so they can also enter data.
+  if(!currentDoctor){
+    currentDoctor=ADMIN_IDENTITY;
+    const badge=document.getElementById('doctorBadge');
+    badge.classList.remove('hidden');
+    document.getElementById('doctorBadgeName').textContent=ADMIN_IDENTITY.name;
+    loadRecords(); newRecord();
+  }
   switchTab('admin'); renderAdmin();
 };
+// Admin tab entry point: free access once unlocked, otherwise prompt for the PIN.
+window.goAdmin=function(){ if(isAdmin){ switchTab('admin'); renderAdmin(); } else { openAdminGate(); } };
 
 /* ════════════════════════ TABS ════════════════════════ */
 window.switchTab=function(tab){
-  ['entry','records','analytics','dictionary','admin'].forEach(t=>{
+  if(['admin','analytics','downloads'].includes(tab) && !isAdmin){ openAdminGate(); return; }
+  ['entry','records','analytics','dictionary','downloads','admin'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('hidden', t!==tab);
   });
   document.querySelectorAll('.tabBtn').forEach(b=>{
@@ -956,6 +1041,7 @@ window.switchTab=function(tab){
   if(tab==='records'){ renderDashboard(); }
   if(tab==='analytics'){ renderAnalytics(); }
   if(tab==='dictionary'){ renderDictionary(); }
+  if(tab==='downloads'){ renderDownloads(); }
 };
 
 /* ════════════════════════ STEPPER + FORM ════════════════════════ */
@@ -997,7 +1083,7 @@ function fieldHtml(secId,f){
     const step=f.type==='num'?' step="any"':'';
     const dig=f.digits?` maxlength="${f.digits}" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')"`:'';
     const ro=f.ro?' readonly':''; const ph=f.ro?' placeholder="auto on save"':(f.ph?` placeholder="${f.ph}"`:(f.type==='tel'?' placeholder="8 digits"':''));
-    inner=`<input type="${t}"${step}${dig}${ro}${ph} class="inp" id="${fid}" data-k="${f.k}" data-type="${f.type}">`;
+    inner=`<input type="${t}"${step}${dig}${ro}${ph} class="inp" id="${fid}" data-k="${f.k}" data-type="${f.type}">`+(f.ro?`<div class="auto-cap"><i class="fas fa-wand-magic-sparkles" style="font-size:10px;"></i> Auto-calculated</div>`:'');
   }
   return `<div class="fld"${full?' style="grid-column:1/-1;"':''}${showAttr(f)}><div class="fld-main"><label class="lbl">${flabel(f)}${star}${hint}</label>${inner}</div><span class="fi-badge" id="${fid}_ind"></span></div>`;
 }
@@ -1506,10 +1592,9 @@ window.newRecord=function(){
   const _lc=document.getElementById('lesionContainer'); if(_lc)_lc.innerHTML='';
   const _slc=document.getElementById('stagedLesionContainer'); if(_slc)_slc.innerHTML='';
   computeAngioCounts(); syncTreated(); computeStagedTotals(); applyDateBounds();
-  document.getElementById('entryTitle').textContent='New CAD Patient Record';
+  document.getElementById('entryTitle').textContent='Add CRF';
   document.getElementById('entrySubtitle').textContent='Patient ID generated on first save';
-  document.getElementById('entryStatusBadge').textContent='Draft';
-  document.getElementById('entryStatusBadge').className='badge badge-amber';
+  setEntryStatusBadge('draft');
   _formLocked=false; applyLockState();
   applyDefaults(); goToStep(0); switchTab("entry"); updateIndicators(); applyConditionals();
 };
@@ -1600,14 +1685,9 @@ function skipFinalField(s,f,data){
     return !h || !w || h==='Unrecordable' || w==='Unrecordable';
   }
   if(key==='Discharge_Medications.DAPT_Not_Prescribed_Reason'){
-    const ca=data['Admission_Reason.CA_Reason'], md=data['PCI_Details.Management_Decision'];
-    const pciDone=ca==='Primary PCI (STEMI)' || md==='PCI' || md==='Hybrid (PCI + CABG)';
-    const survived=data['Discharge_Medications.In_Hospital_Outcome']==='Survived to discharge';
-    const aspirin=data['Discharge_Medications.Aspirin']==='Yes';
-    const p2y12=['Clopidogrel','Prasugrel','Ticagrelor'].some(k=>data['Discharge_Medications.'+k]==='Yes');
-    return !(pciDone && survived && !(aspirin&&p2y12));
+    // Required only when the exceptions group is visible (i.e. survivor without full ASA+P2Y12).
+    return !fieldShown('dc_meds','DAPT_Not_Prescribed_Reason');
   }
-  if(key==='Discharge_Medications.HF_Meds_Not_Prescribed_Reason') return true;
   return false;
 }
 function validateFinalCompletion(data,errors){
@@ -1673,16 +1753,14 @@ function validateLogic(data){
   const aspirin=data['Discharge_Medications.Aspirin']==='Yes';
   const p2y12=['Clopidogrel','Prasugrel','Ticagrelor'].some(k=>data['Discharge_Medications.'+k]==='Yes');
   const daptReason=data['Discharge_Medications.DAPT_Not_Prescribed_Reason'];
-  if(pciDone && survived && !(aspirin&&p2y12)){
-    if(!daptReason) errors.push('DAPT is missing after PCI. Record the reason DAPT was not prescribed.');
-    else warnings.push(`DAPT is missing after PCI; exception reason recorded: ${daptReason}.`);
+  if(survived && !(aspirin&&p2y12)){
+    if(!daptReason) warnings.push('DAPT (ASA + P2Y12) is not complete at discharge — record the reason DAPT was not prescribed.');
+    else warnings.push(`DAPT not prescribed at discharge; reason recorded: ${daptReason}.`);
   }
   const lvef=parseFloat(data['Echocardiography.LVEF']);
   const hfMeds=['Beta_Blockers','ACE_I','ARB','ARNI','MRA','SGLT_Inhibitor'].some(k=>data['Discharge_Medications.'+k]==='Yes');
-  const hfReason=data['Discharge_Medications.HF_Meds_Not_Prescribed_Reason'];
   if(survived && !isNaN(lvef) && lvef<40 && !hfMeds){
-    warnings.push(`LVEF is ${lvef}% with no discharge HF disease-modifying medication recorded. Confirm or record an exception reason.`);
-    if(!hfReason) warnings.push('Low LVEF: consider recording the reason HF medications were not prescribed.');
+    warnings.push(`LVEF is ${lvef}% with no discharge HF disease-modifying medication recorded. Confirm this is intended.`);
   }
   // numeric range sanity (soft)
   const rng=(key,lo,hi,label)=>{ const v=parseFloat(data[key]); if(!isNaN(v)&&(v<lo||v>hi)) warnings.push(`${label} (${v}) is outside the expected range ${lo}–${hi}.`); };
@@ -1690,6 +1768,7 @@ function validateLogic(data){
   rng('Echocardiography.LVEF',5,85,'LVEF %'); rng('Blood_Work.eGFR',1,200,'eGFR');
   rng('Blood_Work.Potassium',2,8,'Potassium'); rng('Blood_Work.Sodium',110,170,'Sodium');
   rng('Blood_Work.Hemoglobin',3,22,'Hemoglobin'); rng('Blood_Work.HbA1c',3,20,'HbA1c %');
+  rng('Blood_Work.Hemoglobin_Nadir',3,22,'Nadir hemoglobin'); rng('Blood_Work.Creatinine_Peak',10,2000,'Peak creatinine');
   return {errors,warnings};
 }
 function findDuplicateAdmission(data,recId){
@@ -1836,10 +1915,10 @@ window.saveRecord=async function(status, closeAfter, finalize){
 };
 function setEntryStatusBadge(state){
   const b=document.getElementById('entryStatusBadge'); if(!b)return;
-  if(state==='locked'){ b.textContent='Locked'; b.className='badge badge-blue'; }
-  else if(state==='submitted'){ b.textContent='Submitted'; b.className='badge badge-green'; }
-  else if(state==='reviewed'){ b.textContent='Reviewed'; b.className='badge badge-purple'; }
-  else { b.textContent='Draft'; b.className='badge badge-amber'; }
+  if(state==='locked'){ b.textContent='Locked'; b.className='badge badge-blue'; b.style.display=''; }
+  else if(state==='submitted'){ b.textContent='Submitted'; b.className='badge badge-green'; b.style.display=''; }
+  else if(state==='reviewed'){ b.textContent='Reviewed'; b.className='badge badge-purple'; b.style.display=''; }
+  else { b.textContent=''; b.style.display='none'; }
 }
 function applyLockState(){
   const form=document.getElementById('cadForm');
@@ -2060,7 +2139,7 @@ window.adminSubTab=function(sub){
   if(sub==='users')renderUsers();
   if(sub==='codes')renderDoctorCodes();
 };
-function fillInvestigatorFilter(){ const sel=document.getElementById('arInv'); if(!sel)return; const cur=sel.value; sel.innerHTML='<option value="">All Investigators</option>'+DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`<option value="${dcode(d)}">${d.name}</option>`).join(''); sel.value=cur; }
+function fillInvestigatorFilter(){ const sel=document.getElementById('arInv'); if(!sel)return; const cur=sel.value; const hasAdmin=RECORDS.some(r=>(r.enteredByCode||r.enteredByPin)===ADMIN_IDENTITY.code); const adminOpt=hasAdmin?`<option value="${ADMIN_IDENTITY.code}">${ADMIN_IDENTITY.name}</option>`:''; sel.innerHTML='<option value="">All Investigators</option>'+adminOpt+DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`<option value="${dcode(d)}">${d.name}</option>`).join(''); sel.value=cur; }
 function fmtTS(ts){ if(!ts)return '—'; let d; if(ts.toDate)d=ts.toDate(); else if(ts.seconds)d=new Date(ts.seconds*1000); else d=new Date(ts); if(isNaN(d.getTime()))return '—'; const p=n=>String(n).padStart(2,'0'); return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
 window.arClear=function(){ ['arCivil','arCode','arCrf'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); const i=document.getElementById('arInv'),s=document.getElementById('arStatus'); if(i)i.value=''; if(s)s.value=''; renderAdminRecords(); };
 window.renderAdminRecords=function(){
@@ -2239,13 +2318,14 @@ window.renderDictionary=function(){
     <td style="min-width:260px;color:#334155;">${esc(r.definition||'—')}</td>
   </tr>`).join('');
 };
-function buildWorkbook(coded){
+function buildWorkbook(coded,recs){
+  recs=recs||RECORDS;
   const wb=XLSX.utils.book_new();
   // Patients sheet (single-occurrence sections)
   const pHeader=['Patient_ID','Entered_By','Doctor_Code','Record_Status'];
   SECTIONS.forEach(s=>secFields(s).forEach(f=>pHeader.push(`${f.sheet||s.sheet}.${f.k}`)));
   const pRows=[pHeader];
-  RECORDS.forEach(r=>{
+  recs.forEach(r=>{
     const row=[r.patientId||'', r.enteredByName||'', r.enteredByCode||r.enteredByPin||'', r.recordStatus||'draft'];
     SECTIONS.forEach(s=>secFields(s).forEach(f=>{
       const raw=r.data?.[`${f.sheet||s.sheet}.${f.k}`];
@@ -2257,7 +2337,7 @@ function buildWorkbook(coded){
   // Follow-up long sheet
   const fHeader=['Patient_ID','Visit_No']; secFields(FOLLOWUP).forEach(f=>fHeader.push(f.k));
   const fRows=[fHeader];
-  RECORDS.forEach(r=>{ (r.followups||[]).forEach((fu,i)=>{
+  recs.forEach(r=>{ (r.followups||[]).forEach((fu,i)=>{
     const row=[r.patientId||'', i+1];
     secFields(FOLLOWUP).forEach(f=>row.push(coded?codeValue(f,fu[f.k]):labelValue(f,fu[f.k])));
     fRows.push(row);
@@ -2266,7 +2346,7 @@ function buildWorkbook(coded){
   // Lesion long sheet (index + staged sessions)
   const lHeader=['Patient_ID','Session','Lesion_No']; secFields(LESIONS).forEach(f=>lHeader.push(f.k));
   const lRows=[lHeader];
-  RECORDS.forEach(r=>{
+  recs.forEach(r=>{
     (r.lesions||[]).forEach((les,i)=>{ const row=[r.patientId||'','Index',i+1]; secFields(LESIONS).forEach(f=>row.push(coded?codeValue(f,les[f.k]):labelValue(f,les[f.k]))); lRows.push(row); });
     (r.stagedLesions||[]).forEach((les,i)=>{ const row=[r.patientId||'','Staged',i+1]; secFields(LESIONS).forEach(f=>row.push(coded?codeValue(f,les[f.k]):labelValue(f,les[f.k]))); lRows.push(row); });
   });
@@ -2280,10 +2360,98 @@ function appendCodebook(wb){
   dictionaryFieldRows().forEach(r=>rows.push([r.section,r.sheet,r.variable,r.label,r.type,r.required,r.values,r.definition]));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Codebook');
 }
-window.exportCoded=function(){ if(!RECORDS.length){toast('No records to export','#e11d48');return;} XLSX.writeFile(buildWorkbook(true),`SACC_CAD_Coded_${stamp()}.xlsx`); toast('Coded workbook exported ✓','#7c3aed'); };
-window.exportLabeled=function(){ if(!RECORDS.length){toast('No records to export','#e11d48');return;} XLSX.writeFile(buildWorkbook(false),`SACC_CAD_Labeled_${stamp()}.xlsx`); toast('Labeled workbook exported ✓','#0d9488'); };
+window.exportCoded=function(){ const recs=filteredRecords(); if(!recs.length){toast('No records match the filter','#e11d48');return;} XLSX.writeFile(buildWorkbook(true,recs),`SACC_CAD_Coded_${stamp()}.xlsx`); toast('Coded workbook exported ✓','#7c3aed'); };
+window.exportLabeled=function(){ const recs=filteredRecords(); if(!recs.length){toast('No records match the filter','#e11d48');return;} XLSX.writeFile(buildWorkbook(false,recs),`SACC_CAD_Labeled_${stamp()}.xlsx`); toast('Labeled workbook exported ✓','#0d9488'); };
 window.exportCodebookOnly=function(){ const wb=XLSX.utils.book_new(); appendCodebook(wb); XLSX.writeFile(wb,`SACC_CAD_Codebook_${stamp()}.xlsx`); toast('Codebook exported ✓','#64748b'); };
 function stamp(){ const d=new Date(); return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
+
+/* ════════════════════════ DOWNLOADS PANEL ════════════════════════ */
+function filteredRecords(){
+  const from=document.getElementById('dlFrom')?.value||'';
+  const to=document.getElementById('dlTo')?.value||'';
+  const inv=document.getElementById('dlInv')?.value||'';
+  const reason=document.getElementById('dlReason')?.value||'';
+  return RECORDS.filter(r=>{
+    const adm=String(r.data?.['Patient_Master.Index_Admission_Date']||'').slice(0,10);
+    if(from && (!adm||adm<from))return false;
+    if(to && (!adm||adm>to))return false;
+    if(inv && String(r.enteredByCode||r.enteredByPin||'')!==inv)return false;
+    if(reason && String(r.data?.['Admission_Reason.CA_Reason']||'')!==reason)return false;
+    return true;
+  });
+}
+window.renderDownloads=function(){
+  // Investigator dropdown (doctors + admin if present)
+  const invSel=document.getElementById('dlInv');
+  if(invSel){ const cur=invSel.value; const hasAdmin=RECORDS.some(r=>(r.enteredByCode||r.enteredByPin)===ADMIN_IDENTITY.code); const adminOpt=hasAdmin?`<option value="${ADMIN_IDENTITY.code}">${ADMIN_IDENTITY.name}</option>`:''; invSel.innerHTML='<option value="">All Investigators</option>'+adminOpt+DOCTORS.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(d=>`<option value="${dcode(d)}">${esc(d.name||'')}</option>`).join(''); invSel.value=cur; }
+  // CA Reason dropdown
+  const rSel=document.getElementById('dlReason');
+  if(rSel){ const cur=rSel.value; rSel.innerHTML='<option value="">All Reasons</option>'+CA_REASONS.map(o=>`<option>${esc(o)}</option>`).join(''); rSel.value=cur; }
+  ['dlFrom','dlTo','dlInv','dlReason'].forEach(id=>{ const e=document.getElementById(id); if(e&&!e._dlBound){ e._dlBound=true; e.addEventListener('change',updateDlCount); } });
+  updateDlCount();
+};
+function updateDlCount(){ const el=document.getElementById('dlCount'); if(!el)return; const n=filteredRecords().length; el.textContent=`${n} record${n===1?'':'s'} match the current filter (of ${RECORDS.length} total).`; }
+window.downloadSummaryPDF=function(){
+  const recs=filteredRecords(); if(!recs.length){toast('No records match the filter','#e11d48');return;}
+  const body=recs.slice().sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||'')).map(r=>`<tr>
+    <td>${esc(r.patientId||'—')}</td><td>${esc(r.data?.['Patient_Master.Civil_ID_Optional']||'—')}</td>
+    <td>${esc(r.data?.['Patient_Master.Index_Admission_Date']||'—')}</td><td>${esc(r.data?.['Admission_Reason.CA_Reason']||'—')}</td>
+    <td>${esc(r.recordStatus||'draft')}</td><td>${esc(r.enteredByName||'—')}</td><td style="text-align:center;">${computeProgress(r)}%</td></tr>`).join('');
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>SACC CAD Registry — Summary</title>
+    <style>body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:26px;}h1{font-size:18px;margin:0 0 4px;}.sub{color:#64748b;font-size:12px;margin-bottom:16px;}
+    table{width:100%;border-collapse:collapse;font-size:11.5px;}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left;}th{background:#1d4ed8;color:#fff;}tr:nth-child(even) td{background:#f1f5f9;}
+    @media print{@page{size:A4 landscape;margin:12mm;}}</style></head><body>
+    <h1>SACC CAD Registry — Patient Summary</h1>
+    <div class="sub">Sabah Al-Ahmad Cardiac Center · generated ${new Date().toLocaleString()} · ${recs.length} record(s)</div>
+    <table><thead><tr><th>CRF</th><th>Civil ID</th><th>Admission</th><th>Reason for CA</th><th>Status</th><th>Entered By</th><th>Completion</th></tr></thead><tbody>${body}</tbody></table>
+    <script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script></body></html>`;
+  const w=window.open('','_blank'); if(!w){toast('Allow pop-ups to generate the PDF','#e11d48');return;} w.document.write(html); w.document.close();
+  toast('Opening printable summary — choose “Save as PDF” ✓','#e11d48');
+};
+window.findPatientReport=function(){
+  const q=(document.getElementById('dlPatientSearch')?.value||'').trim();
+  const out=document.getElementById('dlPatientResult');
+  if(!q){ if(out)out.innerHTML='<span style="color:#e11d48;font-size:12.5px;">Enter a Civil ID or CRF number.</span>'; return; }
+  const ql=q.toLowerCase();
+  const r=RECORDS.find(x=>String(x.data?.['Patient_Master.Civil_ID_Optional']||'')===q)||RECORDS.find(x=>String(x.patientId||'').toLowerCase()===ql)||RECORDS.find(x=>String(x.patientId||'').toLowerCase().includes(ql));
+  if(!r){ if(out)out.innerHTML='<span style="color:#e11d48;font-size:12.5px;">No patient found for that Civil ID / CRF.</span>'; return; }
+  if(out)out.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:10px 12px;">
+    <span style="font-size:12.5px;"><b style="font-family:'DM Mono',monospace;color:#1d4ed8;">${esc(r.patientId||'—')}</b> · CID ${esc(r.data?.['Patient_Master.Civil_ID_Optional']||'—')} · ${esc(r.enteredByName||'—')}</span>
+    <button class="btn btn-red inp-sm" onclick="patientReportPDF('${r.id}')"><i class="fas fa-file-pdf"></i> Download case report</button></div>`;
+};
+window.patientReportPDF=function(id){
+  const r=RECORDS.find(x=>x.id===id); if(!r){toast('Record not found','#e11d48');return;}
+  const secHtml=SECTIONS.map(s=>{
+    const rowsH=secFields(s).map(f=>{ const v=labelValue(f,r.data?.[`${f.sheet||s.sheet}.${f.k}`]); if(v===''||v==null)return ''; return `<tr><td class="lbl">${esc(f.label||pretty(f.k))}</td><td>${esc(v)}</td></tr>`; }).filter(Boolean).join('');
+    if(!rowsH)return '';
+    return `<h2>${esc(s.title)}</h2><table class="kv"><tbody>${rowsH}</tbody></table>`;
+  }).join('');
+  const lesionH=(()=>{
+    const all=[...(r.lesions||[]).map(l=>({s:'Index',l})),...(r.stagedLesions||[]).map(l=>({s:'Staged',l}))];
+    if(!all.length)return '';
+    const body=all.map((x,i)=>{ const cells=secFields(LESIONS).map(f=>esc(labelValue(f,x.l[f.k]))).join('</td><td>'); return `<tr><td>${x.s}</td><td>${i+1}</td><td>${cells}</td></tr>`; }).join('');
+    const head=secFields(LESIONS).map(f=>esc(f.label||pretty(f.k))).join('</th><th>');
+    return `<h2>PCI Lesions</h2><table class="grid"><thead><tr><th>Session</th><th>#</th><th>${head}</th></tr></thead><tbody>${body}</tbody></table>`;
+  })();
+  const fuH=(()=>{
+    const fus=r.followups||[]; if(!fus.length)return '';
+    const body=fus.map((fu,i)=>{ const cells=secFields(FOLLOWUP).map(f=>esc(labelValue(f,fu[f.k]))).join('</td><td>'); return `<tr><td>${i+1}</td><td>${cells}</td></tr>`; }).join('');
+    const head=secFields(FOLLOWUP).map(f=>esc(f.label||pretty(f.k))).join('</th><th>');
+    return `<h2>Follow-Up Visits</h2><table class="grid"><thead><tr><th>Visit</th><th>${head}</th></tr></thead><tbody>${body}</tbody></table>`;
+  })();
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Case Report — ${esc(r.patientId||'')}</title>
+    <style>body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:26px;}h1{font-size:19px;margin:0 0 2px;}h2{font-size:13px;color:#1d4ed8;border-bottom:2px solid #dbeafe;padding-bottom:4px;margin:18px 0 8px;}
+    .sub{color:#64748b;font-size:12px;margin-bottom:6px;}table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:6px;}
+    .kv td{border:1px solid #e2e8f0;padding:5px 8px;vertical-align:top;}.kv td.lbl{width:42%;color:#475569;font-weight:600;background:#f8fafc;}
+    .grid th,.grid td{border:1px solid #cbd5e1;padding:5px 7px;text-align:left;}.grid th{background:#1d4ed8;color:#fff;}
+    @media print{@page{size:A4;margin:12mm;}}</style></head><body>
+    <h1>SACC CAD Registry — Patient Case Report</h1>
+    <div class="sub">CRF <b>${esc(r.patientId||'—')}</b> · Civil ID ${esc(r.data?.['Patient_Master.Civil_ID_Optional']||'—')} · Entered by ${esc(r.enteredByName||'—')} · generated ${new Date().toLocaleString()}</div>
+    ${secHtml}${lesionH}${fuH}
+    <script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script></body></html>`;
+  const w=window.open('','_blank'); if(!w){toast('Allow pop-ups to generate the PDF','#e11d48');return;} w.document.write(html); w.document.close();
+  toast('Opening case report — choose “Save as PDF” ✓','#0d9488');
+};
 
 /* ════════════════════════ ANALYTICS ════════════════════════ */
 function _pctStr(n,d){ return d>0?Math.round(n/d*100)+'%':'—'; }
