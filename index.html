@@ -175,12 +175,14 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
   .radio-pill{min-height:40px;padding:8px 12px;border-radius:10px;font-size:13.5px;}
   .ur-line{font-size:12.5px;margin-top:7px;}
   .fld>.fi-badge{top:10px;right:10px;}
-  .step-footer{position:sticky;bottom:0;display:grid;grid-template-columns:1fr;gap:10px;padding:12px;background:rgba(255,255,255,.98);border-radius:0 0 18px 18px;}
+  .step-footer{position:static;display:grid;grid-template-columns:1fr;gap:10px;padding:14px 12px 18px;background:#fff;border-top:1.5px solid #e2e8f0;border-radius:0 0 18px 18px;}
   .step-footer>div:first-child{display:flex!important;justify-content:flex-start;gap:10px;width:100%;}
-  .step-footer>div:first-child .btn{min-width:114px;}
+  .step-footer>div:first-child .btn{width:auto;min-width:0;}
+  #btnNext{min-width:112px;}
   #btnPrev:disabled{display:none;}
   .step-footer>div:last-child{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;}
-  .step-footer .btn{justify-content:center;min-height:46px;padding:10px 8px;font-size:12.5px;line-height:1.2;white-space:normal;text-align:center;}
+  .step-footer .btn{justify-content:center;min-height:44px;padding:10px 8px;font-size:12px;line-height:1.2;white-space:nowrap;text-align:center;border-radius:12px;}
+  #btnSaveClose{font-size:11.5px;}
 }
 .req-star{color:#e11d48;font-weight:800;margin-left:2px;}
 /* Dashboard / Analytics additions */
@@ -824,14 +826,14 @@ const SECTIONS = [
      {k:'Vessel_Treated',type:'text',ro:true,hidden:true},{k:'Total_Stents',type:'num',ro:true,hidden:true}]}
  ]},
  {id:'complications', sheet:'Reintervention_FollowUp', title:'Complications', icon:'fa-triangle-exclamation', color:'#e11d48', groups:[
-   {gate:'Procedural_Complications_Present', gateSheet:'PCI_Details', title:'Any procedural (cath-lab) complication?', tint:'yellow', c:'#d97706', icon:'fa-kit-medical', cols:3, alwaysShow:true, fields:[
+   {gate:'Procedural_Complications_Present', gateSheet:'PCI_Details', title:'Any procedural (cath-lab) complication?', tint:'yellow', c:'#d97706', icon:'fa-kit-medical', cols:3, alwaysShow:true, hideGateControl:true, fields:[
      {k:'Access_Site_Bleeding',type:'ynbtn',sheet:'PCI_Details'},{k:'Access_Hematoma',type:'ynbtn',sheet:'PCI_Details'},{k:'Pseudoaneurysm',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Retroperitoneal_Bleed',type:'ynbtn',sheet:'PCI_Details'},{k:'Access_Limb_Ischemia',type:'ynbtn',sheet:'PCI_Details'},{k:'Coronary_Dissection',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Coronary_Perforation',type:'ynbtn',sheet:'PCI_Details'},{k:'No_Reflow_Slow_Flow',type:'ynbtn',sheet:'PCI_Details'},{k:'Side_Branch_Occlusion',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Acute_Stent_Thrombosis',type:'ynbtn',sheet:'PCI_Details',label:'Acute Stent Thrombosis (<24h)'},{k:'Acute_ST_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'PCI_Details',showIf:{sec:'complications',k:'Acute_Stent_Thrombosis',eq:'Yes'}},{k:'Abrupt_Vessel_Closure',type:'ynbtn',sheet:'PCI_Details'},{k:'Distal_Embolization',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Periprocedural_MI',type:'ynbtn',sheet:'PCI_Details'},{k:'Contrast_Induced_AKI',type:'ynbtn',sheet:'PCI_Details'},{k:'Contrast_Reaction',type:'ynbtn',sheet:'PCI_Details'},
      {k:'Emergency_CABG',type:'ynbtn',sheet:'PCI_Details'}]},
-   {gate:'InHospital_Complication_Present', gateSheet:'InHospital_Complications', title:'Any in-hospital complication?', tint:'red', c:'#f43f5e', icon:'fa-house-medical', cols:3, alwaysShow:true, fields:[
+   {gate:'InHospital_Complication_Present', gateSheet:'InHospital_Complications', title:'Any in-hospital complication?', tint:'red', c:'#f43f5e', icon:'fa-house-medical', cols:3, alwaysShow:true, hideGateControl:true, fields:[
      {k:'Recurrent_Ischemia_Angina',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Recurrent_Ischemia_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Recurrent_Ischemia_Angina',eq:'Yes'}},
      {k:'Reinfarction',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Reinfarction_Management',type:'select',opts:['Medical only (GP IIb/IIIa / escalation)','Repeat PCI','CABG','Conservative'],label:'↳ Management',sheet:'InHospital_Complications',showIf:{sec:'complications',k:'Reinfarction',eq:'Yes'}},{k:'Acute_Heart_Failure',type:'ynbtn',sheet:'InHospital_Complications'},
      {k:'Cardiogenic_Shock_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Cardiac_Arrest_InHospital',type:'ynbtn',sheet:'InHospital_Complications'},{k:'Mechanical_Ventilation',type:'ynbtn',label:'Mechanical ventilation',sheet:'InHospital_Complications'},{k:'Sustained_VT_VF',type:'ynbtn',sheet:'InHospital_Complications'},
@@ -1210,6 +1212,9 @@ function groupCard(secId,g){
     const gateNo=crfGroupNo(secId,g);
     const revealAttr=g.alwaysShow?'':showAttr({showIf:{sec:secId,k:g.gate,eq:'Yes'}});
     const sub=(g.fields&&g.fields.length)?`<div class="sub-reveal"${revealAttr}><div class="${grid}" style="gap:12px;">${g.fields.map(f=>fieldHtml(secId,f)).join('')}</div></div>`:'';
+    if(g.hideGateControl){
+      return `<div class="grp card-${g.tint}"${showAttr(g)}><div class="gate-head"><span class="gate-title"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span>${gateNo?`<span class="grp-no">${gateNo}.</span>`:''}${gTitle}${gInfo}</span><input type="hidden" id="${fid}" data-k="${g.gate}" data-type="ynbtn"></div>${sub}</div>`;
+    }
     return `<div class="grp card-${g.tint}"${showAttr(g)}><div class="gate-head"><span class="gate-title"><span class="gi" style="background:${g.c};"><i class="fas ${g.icon}"></i></span>${gateNo?`<span class="grp-no">${gateNo}.</span>`:''}${gTitle}${gInfo}<span class="fi-badge" id="${fid}_ind"></span></span>
       <div class="yn-group" id="${fid}_grp"><button type="button" class="yn-btn yn-no" onclick="setYN('${fid}','No')">No</button><button type="button" class="yn-btn yn-yes" onclick="setYN('${fid}','Yes')">Yes</button><input type="hidden" id="${fid}" data-k="${g.gate}" data-type="ynbtn"></div></div>${sub}</div>`;
   }
@@ -1296,8 +1301,13 @@ function normalizeInterlinkedData(data,followups,lesions,stagedLesions){
         (g.fields||[]).forEach(f=>clearDataField(data,s,f));
         return;
       }
-      if(g.gate && data[`${g.gateSheet||s.sheet}.${g.gate}`]!=='Yes'){
+      if(g.gate && !g.alwaysShow && data[`${g.gateSheet||s.sheet}.${g.gate}`]!=='Yes'){
         (g.fields||[]).forEach(f=>clearDataField(data,s,f));
+      }
+      if(g.gate && g.alwaysShow){
+        const key=`${g.gateSheet||s.sheet}.${g.gate}`;
+        const any=(g.fields||[]).some(f=>!!data[fkey(s,f)]);
+        data[key]=any?'Yes':'';
       }
       (g.fields||[]).forEach(f=>{
         if(f.showIf && !(Array.isArray(f.showIf)?f.showIf:[f.showIf]).every(c=>passDataCond(data,c))) clearDataField(data,s,f);
@@ -1488,7 +1498,7 @@ function applyConditionals(){
     if(det){ det.style.display=showReint?'':'none'; if(!showReint) clearInputsWithin(det); }
   });
 }
-function setYNsilent(fid,val){ const inp=document.getElementById(fid); if(!inp||inp.value===val)return; inp.value=val; const grp=document.getElementById(fid+'_grp'); if(grp){grp.querySelector('.yn-yes').classList.toggle('selected',val==='Yes');grp.querySelector('.yn-no').classList.toggle('selected',val==='No');} }
+function setYNsilent(fid,val){ const inp=document.getElementById(fid); if(!inp||inp.value===val)return; inp.value=val; const grp=document.getElementById(fid+'_grp'); if(grp){ const y=grp.querySelector('.yn-yes'), n=grp.querySelector('.yn-no'); if(y)y.classList.toggle('selected',val==='Yes'); if(n)n.classList.toggle('selected',val==='No'); } }
 function reactors(){
   // Year of birth → estimated age (only fills when Age is empty)
   const yob=document.getElementById('f_master__Year_of_Birth'), ageEl=document.getElementById('f_master__Age');
