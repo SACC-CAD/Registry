@@ -138,6 +138,43 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .vsteps{display:flex;flex-direction:column;gap:3px;}
 @media (min-width:900px){.entry-grid{display:grid;grid-template-columns:230px 1fr;}.sidebar-sticky{position:sticky;top:64px;align-self:start;}}
 @media (max-width:899px){.entry-grid{display:block;}.sidebar{border-radius:14px 14px 0 0;border-right:0;border-bottom:1.5px solid #e2e8f0;}.vsteps{flex-direction:row;overflow-x:auto;gap:6px;}.vstep{flex-direction:column;min-width:74px;text-align:center;}.vstep .vlabel{font-size:9px;}}
+@media (max-width:640px){
+  body{background:#edf2f7;}
+  header>div:first-child{padding:8px 14px!important;}
+  header>div:nth-child(2){padding:0 10px!important;justify-content:flex-start!important;gap:2px!important;}
+  .app-icon-sm{width:50px;height:50px;border-radius:14px;}
+  .tabBtn{padding:10px 12px!important;font-size:13px!important;}
+  main{max-width:100%!important;padding:10px 8px 16px!important;}
+  #tab-entry>.card{border-radius:18px;overflow:hidden;}
+  #cadForm{padding:18px 14px!important;}
+  .sidebar{display:none;}
+  .sec-title{font-size:24px;line-height:1.15;margin-bottom:16px;padding-bottom:12px;}
+  .sec-title .icon-wrap{width:46px;height:46px;border-radius:14px;font-size:18px;}
+  .grp{padding:16px 14px;margin-bottom:16px;border-radius:18px;}
+  .grp-head,.gate-title{font-size:17px;line-height:1.25;margin-bottom:14px;}
+  .grp-head .gi,.gate-title .gi{width:40px;height:40px;border-radius:12px;font-size:16px;}
+  .g1,.g2,.g3,.g4{grid-template-columns:1fr!important;gap:12px!important;}
+  .g2 .lbl,.g3 .lbl,.g4 .lbl{min-height:0;}
+  .fld{border-radius:14px;padding:13px 14px 14px;background:rgba(255,255,255,.82);border-color:rgba(148,163,184,.28);}
+  .fld.field-missing{border-color:rgba(244,63,94,.46);background:rgba(255,241,242,.74);}
+  .fld.field-filled{border-color:rgba(16,185,129,.34);background:rgba(240,253,244,.42);}
+  .fld-main{padding-right:28px;}
+  .lbl{font-size:14.5px;line-height:1.25;margin-bottom:10px;letter-spacing:.015em;}
+  .crf-no{font-size:14.5px;margin-right:6px;}
+  .inp{min-height:54px;font-size:18px;padding:13px 14px;border-radius:13px;}
+  select.inp{background-position:right 14px center;padding-right:38px;}
+  .yn-group{gap:8px;flex-wrap:wrap;}
+  .yn-btn{min-height:46px;padding:10px 20px;border-radius:12px;font-size:15px;}
+  .radio-pill{min-height:46px;padding:10px 14px;border-radius:12px;font-size:15px;}
+  .ur-line{font-size:13px;margin-top:9px;}
+  .fld>.fi-badge{top:14px;right:14px;}
+  .step-footer{position:sticky;bottom:0;display:grid;grid-template-columns:1fr;gap:12px;padding:14px;background:rgba(255,255,255,.98);border-radius:0 0 18px 18px;}
+  .step-footer>div:first-child{display:flex!important;justify-content:flex-start;gap:10px;width:100%;}
+  .step-footer>div:first-child .btn{min-width:114px;}
+  #btnPrev:disabled{display:none;}
+  .step-footer>div:last-child{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;}
+  .step-footer .btn{justify-content:center;min-height:54px;padding:12px 8px;font-size:13.5px;line-height:1.2;white-space:normal;text-align:center;}
+}
 .req-star{color:#e11d48;font-weight:800;margin-left:2px;}
 /* Dashboard / Analytics additions */
 .kpi-lbl{font-size:11px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.05em;}
@@ -1309,6 +1346,12 @@ function normalizeInterlinkedData(data,followups,lesions,stagedLesions){
   }
 }
 function badgeCss(color,bg){return `display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:900;margin-left:auto;color:${color};background:${bg};line-height:1;`;}
+function markFieldState(ind,filled){
+  const fld=ind&&ind.closest('.fld');
+  if(!fld)return;
+  fld.classList.toggle('field-filled',!!filled);
+  fld.classList.toggle('field-missing',!filled);
+}
 function updateIndicators(){
   let totalReq=0, doneReq=0;
   SECTIONS.forEach((s,si)=>{
@@ -1321,8 +1364,8 @@ function updateIndicators(){
       if(f.type==='numu'){ const c=document.getElementById(`f_${s.id}__${f.k}__urc`); if(c&&c.checked) v='Unrecordable'; }
       if(f.type==='labnum'){ const c=document.getElementById(`f_${s.id}__${f.k}__ncc`); if(c&&c.checked) v='Not collected'; }
       if(f.req){ totalReq++; if(v) doneReq++; else reqMissing=true; }
-      if(v){ ind.textContent='✓'; ind.style.cssText=badgeCss('#059669','#d1fae5'); anyFilled=true; }
-      else { ind.textContent='✕'; ind.style.cssText=badgeCss('#e11d48','#ffe4e6'); }
+      if(v){ ind.textContent='✓'; ind.style.cssText=badgeCss('#059669','#d1fae5'); markFieldState(ind,true); anyFilled=true; }
+      else { ind.textContent='✕'; ind.style.cssText=badgeCss('#e11d48','#ffe4e6'); markFieldState(ind,false); }
     });
     const vs=document.getElementById('vstep-'+si);
     if(vs && !vs.classList.contains('active')) vs.classList.toggle('done', anyFilled && !reqMissing);
@@ -1334,7 +1377,7 @@ function updateIndicators(){
   const stepDenom=canUseFollowupStep()?ALL_STEPS.length:SECTIONS.length;
   const pf=document.getElementById('progressFill'); if(pf) pf.style.width=Math.round(filledSecs/stepDenom*100)+'%';
   // repeating cards (follow-up, lesions, staged lesions) get the same ✓/✕ badges
-  const badgeCard=(card,sec,fields,prefix)=>{ const idx=card.dataset[prefix]; fields.forEach(f=>{ const ind=document.getElementById(`f_${sec}${idx}__${f.k}_ind`); const el=document.getElementById(`f_${sec}${idx}__${f.k}`); if(!ind||!el)return; let v=(el.value||'').trim(); if(f.type==='labnum'){ const c=document.getElementById(`f_${sec}${idx}__${f.k}__ncc`); if(c&&c.checked) v='Not collected'; } if(v){ind.textContent='✓';ind.style.cssText=badgeCss('#059669','#d1fae5');} else {ind.textContent='✕';ind.style.cssText=badgeCss('#e11d48','#ffe4e6');} }); };
+  const badgeCard=(card,sec,fields,prefix)=>{ const idx=card.dataset[prefix]; fields.forEach(f=>{ const ind=document.getElementById(`f_${sec}${idx}__${f.k}_ind`); const el=document.getElementById(`f_${sec}${idx}__${f.k}`); if(!ind||!el)return; let v=(el.value||'').trim(); if(f.type==='labnum'){ const c=document.getElementById(`f_${sec}${idx}__${f.k}__ncc`); if(c&&c.checked) v='Not collected'; } if(v){ind.textContent='✓';ind.style.cssText=badgeCss('#059669','#d1fae5');markFieldState(ind,true);} else {ind.textContent='✕';ind.style.cssText=badgeCss('#e11d48','#ffe4e6');markFieldState(ind,false);} }); };
   document.querySelectorAll('#fuContainer .fu-card').forEach(c=>badgeCard(c,'fu',secFields(FOLLOWUP),'fu'));
   document.querySelectorAll('#lesionContainer .lesion-card,#stagedLesionContainer .lesion-card').forEach(c=>badgeCard(c,'les',secFields(LESIONS),'les'));
 }
