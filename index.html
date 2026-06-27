@@ -136,7 +136,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 .vstep .vlabel{font-size:12.5px;font-weight:600;color:#64748b;line-height:1.25;}
 .vstep.active .vlabel{color:#1e3a8a;font-weight:800;}
 .vsteps{display:flex;flex-direction:column;gap:3px;}
-@media (min-width:900px){.entry-grid{display:grid;grid-template-columns:230px 1fr;}.sidebar-sticky{position:sticky;top:64px;align-self:start;}}
+@media (min-width:900px){.entry-grid{display:grid;grid-template-columns:230px 1fr;align-items:start;}.sidebar-sticky{position:sticky;top:128px;align-self:start;max-height:calc(100vh - 140px);overflow-y:auto;}}
 @media (max-width:899px){.entry-grid{display:block;}.sidebar{border-radius:14px 14px 0 0;border-right:0;border-bottom:1.5px solid #e2e8f0;}.vsteps{flex-direction:row;overflow-x:auto;gap:6px;}.vstep{flex-direction:column;min-width:74px;text-align:center;}.vstep .vlabel{font-size:9px;}}
 @media (max-width:640px){
   body{background:#edf2f7;}
@@ -145,35 +145,42 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
   .app-icon-sm{width:50px;height:50px;border-radius:14px;}
   .tabBtn{padding:10px 12px!important;font-size:13px!important;}
   main{max-width:100%!important;padding:10px 8px 16px!important;}
-  #tab-entry>.card{border-radius:18px;overflow:hidden;}
-  #cadForm{padding:18px 14px!important;}
-  .sidebar{display:none;}
-  .sec-title{font-size:24px;line-height:1.15;margin-bottom:16px;padding-bottom:12px;}
-  .sec-title .icon-wrap{width:46px;height:46px;border-radius:14px;font-size:18px;}
-  .grp{padding:16px 14px;margin-bottom:16px;border-radius:18px;}
-  .grp-head,.gate-title{font-size:17px;line-height:1.25;margin-bottom:14px;}
-  .grp-head .gi,.gate-title .gi{width:40px;height:40px;border-radius:12px;font-size:16px;}
+  #tab-entry>.card{border-radius:18px;overflow:visible!important;}
+  #cadForm{padding:16px 12px!important;}
+  .sidebar{display:block;position:sticky;top:104px;z-index:25;padding:13px 12px!important;border-radius:0;border-right:0;border-bottom:1.5px solid #e2e8f0;background:linear-gradient(180deg,#ffffff,#f6f9fc);}
+  .sidebar>div:first-child{font-size:10px!important;margin-bottom:8px!important;}
+  .sidebar .progress-bar{margin-bottom:12px!important;}
+  .vsteps{display:flex!important;flex-direction:row!important;overflow-x:auto;gap:8px!important;padding:2px 0 4px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;}
+  .vstep{flex:0 0 78px;min-width:78px!important;display:flex!important;flex-direction:column!important;align-items:center;gap:6px!important;padding:6px 4px!important;text-align:center;scroll-snap-align:center;}
+  .vstep .vdot{width:38px;height:38px;border-radius:50%;font-size:14px;}
+  .vstep.active .vdot{box-shadow:0 0 0 6px rgba(37,99,235,.14);}
+  .vstep .vlabel{font-size:10px!important;line-height:1.12;max-width:76px;}
+  .sec-title{font-size:20px;line-height:1.15;margin-bottom:14px;padding-bottom:11px;}
+  .sec-title .icon-wrap{width:40px;height:40px;border-radius:12px;font-size:16px;}
+  .grp{padding:14px 12px;margin-bottom:14px;border-radius:16px;}
+  .grp-head,.gate-title{font-size:15.5px;line-height:1.25;margin-bottom:12px;}
+  .grp-head .gi,.gate-title .gi{width:34px;height:34px;border-radius:10px;font-size:14px;}
   .g1,.g2,.g3,.g4{grid-template-columns:1fr!important;gap:12px!important;}
   .g2 .lbl,.g3 .lbl,.g4 .lbl{min-height:0;}
-  .fld{border-radius:14px;padding:13px 14px 14px;background:rgba(255,255,255,.82);border-color:rgba(148,163,184,.28);}
+  .fld{border-radius:12px;padding:10px 11px 11px;background:rgba(255,255,255,.82);border-color:rgba(148,163,184,.28);}
   .fld.field-missing{border-color:rgba(244,63,94,.46);background:rgba(255,241,242,.74);}
   .fld.field-filled{border-color:rgba(16,185,129,.34);background:rgba(240,253,244,.42);}
-  .fld-main{padding-right:28px;}
-  .lbl{font-size:14.5px;line-height:1.25;margin-bottom:10px;letter-spacing:.015em;}
-  .crf-no{font-size:14.5px;margin-right:6px;}
-  .inp{min-height:54px;font-size:18px;padding:13px 14px;border-radius:13px;}
-  select.inp{background-position:right 14px center;padding-right:38px;}
-  .yn-group{gap:8px;flex-wrap:wrap;}
-  .yn-btn{min-height:46px;padding:10px 20px;border-radius:12px;font-size:15px;}
-  .radio-pill{min-height:46px;padding:10px 14px;border-radius:12px;font-size:15px;}
-  .ur-line{font-size:13px;margin-top:9px;}
-  .fld>.fi-badge{top:14px;right:14px;}
-  .step-footer{position:sticky;bottom:0;display:grid;grid-template-columns:1fr;gap:12px;padding:14px;background:rgba(255,255,255,.98);border-radius:0 0 18px 18px;}
+  .fld-main{padding-right:24px;}
+  .lbl{font-size:13px;line-height:1.22;margin-bottom:8px;letter-spacing:.01em;}
+  .crf-no{font-size:13px;margin-right:5px;}
+  .inp{min-height:44px;font-size:15.5px;padding:10px 12px;border-radius:11px;}
+  select.inp{background-position:right 12px center;padding-right:34px;}
+  .yn-group{gap:7px;flex-wrap:wrap;}
+  .yn-btn{min-height:40px;padding:8px 16px;border-radius:10px;font-size:13.5px;}
+  .radio-pill{min-height:40px;padding:8px 12px;border-radius:10px;font-size:13.5px;}
+  .ur-line{font-size:12.5px;margin-top:7px;}
+  .fld>.fi-badge{top:10px;right:10px;}
+  .step-footer{position:sticky;bottom:0;display:grid;grid-template-columns:1fr;gap:10px;padding:12px;background:rgba(255,255,255,.98);border-radius:0 0 18px 18px;}
   .step-footer>div:first-child{display:flex!important;justify-content:flex-start;gap:10px;width:100%;}
   .step-footer>div:first-child .btn{min-width:114px;}
   #btnPrev:disabled{display:none;}
   .step-footer>div:last-child{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;}
-  .step-footer .btn{justify-content:center;min-height:54px;padding:12px 8px;font-size:13.5px;line-height:1.2;white-space:normal;text-align:center;}
+  .step-footer .btn{justify-content:center;min-height:46px;padding:10px 8px;font-size:12.5px;line-height:1.2;white-space:normal;text-align:center;}
 }
 .req-star{color:#e11d48;font-weight:800;margin-left:2px;}
 /* Dashboard / Analytics additions */
@@ -297,7 +304,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 
   <!-- ============ DATA ENTRY TAB ============ -->
   <section id="tab-entry">
-    <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card" style="padding:0;overflow:visible;">
       <div style="padding:18px 24px;border-bottom:1.5px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <div>
           <div style="font-size:15px;font-weight:800;" id="entryTitle">Add CRF</div>
@@ -311,7 +318,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
       <div class="entry-grid">
         <!-- sidebar stepper -->
         <aside class="sidebar sidebar-sticky" style="padding:18px 14px;">
-          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:8px;">Completion</div>
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:8px;">Patient Journey</div>
           <div class="progress-bar" style="margin-bottom:16px;"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
           <ul id="stepperList" class="vsteps" style="list-style:none;padding:0;margin:0;"></ul>
         </aside>
@@ -1711,6 +1718,8 @@ window.goToStep=function(i){
   }
   document.querySelectorAll('.form-step').forEach(s=>s.classList.toggle('active',+s.dataset.step===i));
   ALL_STEPS.forEach((s,k)=>{ const vs=document.getElementById('vstep-'+k); if(vs) vs.classList.toggle('active',k===i); });
+  const activeNav=document.getElementById('vstep-'+i);
+  if(activeNav && window.matchMedia('(max-width:899px)').matches) activeNav.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
   currentStep=i;
   applyFollowupStepVisibility();
   updateIndicators(); applyConditionals(); reactors();
