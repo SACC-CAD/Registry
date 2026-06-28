@@ -235,16 +235,20 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
       <h1 style="font-size:20px;font-weight:800;margin:0;">SACC CAD Registry</h1>
       <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Sabah Al-Ahmad Cardiac Center</p>
     </div>
+    <form id="loginForm" autocomplete="on" onsubmit="event.preventDefault();doLogin();">
     <div style="margin-bottom:12px;">
       <label class="lbl">Department Email</label>
-      <input id="loginEmail" type="email" class="inp" placeholder="registry@sacc.org" autocomplete="username">
+      <input id="loginEmail" name="username" type="email" class="inp" placeholder="registry@sacc.org" autocomplete="username">
     </div>
     <div style="margin-bottom:14px;">
       <label class="lbl">Password</label>
-      <input id="loginPassword" type="password" class="inp" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <input id="loginPassword" name="password" type="password" class="inp" placeholder="••••••••" autocomplete="current-password">
     </div>
+    <label class="ur-line" style="margin:0 0 6px;"><input type="checkbox" id="rememberEmail"> Remember login on this device</label>
+    <p style="font-size:11px;color:#94a3b8;margin:0 0 14px;">Keeps the Firebase sign-in session and email on this trusted device. Passwords are handled by the browser password manager.</p>
     <div id="loginError" style="display:none;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:12px;"></div>
-    <button id="loginBtn" class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doLogin()"><i class="fas fa-sign-in-alt mr-2"></i> Sign In</button>
+    <button id="loginBtn" type="submit" class="btn btn-primary" style="width:100%;justify-content:center;"><i class="fas fa-sign-in-alt mr-2"></i> Sign In</button>
+    </form>
     <p style="font-size:11px;color:#94a3b8;text-align:center;margin:14px 0 0;">Shared department login. Your identity is set by your personal PIN inside the app.</p>
   </div>
 </div>
@@ -253,12 +257,11 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
 <div id="doctorPinOverlay" class="overlay hidden">
   <div class="card" style="max-width:380px;width:100%;text-align:center;">
     <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#0d9488,#10b981);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#fff;font-size:22px;"><i class="fas fa-user-doctor"></i></div>
-    <h2 style="font-size:18px;font-weight:800;margin:0 0 4px;">Who is entering data?</h2>
-    <p style="font-size:13px;color:#64748b;margin:0 0 16px;">Enter your personal PIN. Every record you create is stamped with your name.</p>
-    <input id="doctorPinInput" type="password" inputmode="numeric" maxlength="6" class="inp" style="text-align:center;font-size:22px;letter-spacing:8px;font-family:'DM Mono',monospace;" placeholder="••••" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyDoctorPin()">
+    <h2 style="font-size:18px;font-weight:800;margin:0 0 4px;">Who is signing in?</h2>
+    <p style="font-size:13px;color:#64748b;margin:0 0 16px;">Enter an investigator PIN or the admin PIN. The app opens with the matching access.</p>
+    <input id="doctorPinInput" type="password" inputmode="numeric" maxlength="8" class="inp" style="text-align:center;font-size:22px;letter-spacing:8px;font-family:'DM Mono',monospace;" placeholder="••••" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyDoctorPin()">
     <div id="doctorPinError" style="display:none;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:8px;padding:8px 12px;font-size:13px;margin-top:12px;"></div>
     <button class="btn btn-teal" style="width:100%;justify-content:center;margin-top:14px;" onclick="verifyDoctorPin()"><i class="fas fa-unlock"></i> Confirm Identity</button>
-    <button class="btn btn-purple" style="width:100%;justify-content:center;margin-top:8px;" onclick="openAdminGate()"><i class="fas fa-shield-halved"></i> Admin Panel</button>
     <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:8px;" onclick="doSignOut()"><i class="fas fa-right-from-bracket"></i> Sign Out</button>
   </div>
 </div>
@@ -1045,14 +1048,40 @@ let _followupEditAllowed=false;  // locked records can still receive post-submit
 
 /* ════════════════════════ AUTH ════════════════════════ */
 function showLoginError(msg){const el=document.getElementById('loginError');if(el){el.textContent=msg;el.style.display='block';}}
+const REMEMBER_EMAIL_KEY='saccCadRememberEmail';
+function initRememberedEmail(){
+  const saved=localStorage.getItem(REMEMBER_EMAIL_KEY)||'';
+  const email=document.getElementById('loginEmail');
+  const remember=document.getElementById('rememberEmail');
+  if(saved&&email){email.value=saved;if(remember)remember.checked=true;}
+}
+function rememberLoginChecked(){
+  const remember=document.getElementById('rememberEmail');
+  return !!(remember&&remember.checked);
+}
+function syncRememberedEmail(email){
+  if(rememberLoginChecked()) localStorage.setItem(REMEMBER_EMAIL_KEY,email);
+  else localStorage.removeItem(REMEMBER_EMAIL_KEY);
+}
+async function applyAuthPersistence(){
+  if(!window._auth||!window.firebase||!firebase.auth||!firebase.auth.Auth) return;
+  const mode=rememberLoginChecked()?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.SESSION;
+  await window._auth.setPersistence(mode);
+}
+initRememberedEmail();
 window.doLogin=async function(){
   const e=document.getElementById('loginEmail').value.trim();
   const p=document.getElementById('loginPassword').value;
   if(!e||!p){showLoginError('Enter email and password.');return;}
+  document.getElementById('loginError').style.display='none';
   const btn=document.getElementById('loginBtn');btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i> Signing in…';
   let waited=0; while(!window._auth&&waited<8000){await new Promise(r=>setTimeout(r,200));waited+=200;}
   if(!window._auth){showLoginError('Connection timeout. Refresh and retry.');btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt mr-2"></i> Sign In';return;}
-  try{ await window._auth.signInWithEmailAndPassword(e,p); }
+  try{
+    await applyAuthPersistence();
+    syncRememberedEmail(e);
+    await window._auth.signInWithEmailAndPassword(e,p);
+  }
   catch(err){
     const msg=(['auth/invalid-credential','auth/wrong-password','auth/user-not-found','auth/invalid-email'].includes(err.code))?'Invalid email or password.':'Login failed: '+(err.code||err.message);
     showLoginError(msg);btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt mr-2"></i> Sign In';
@@ -1091,12 +1120,18 @@ function showDoctorGate(){
   document.getElementById('doctorPinOverlay').classList.remove('hidden');
   setTimeout(()=>document.getElementById('doctorPinInput').focus(),100);
 }
-window.verifyDoctorPin=function(){
-  const pin=document.getElementById('doctorPinInput').value.trim();
-  const err=document.getElementById('doctorPinError');
-  if(!pin){err.textContent='Enter your PIN.';err.style.display='block';return;}
-  const doc=DOCTORS.find(d=>String(d.pin)===pin && d.active!==false);
-  if(!doc){err.textContent='PIN not recognised. Ask the admin to add you.';err.style.display='block';return;}
+function enterAdminSession(openAdminTab=false){
+  isAdmin=true;
+  currentDoctor=ADMIN_IDENTITY;
+  document.querySelectorAll('.admin-only').forEach(b=>{ b.style.display=''; });
+  document.getElementById('doctorPinOverlay').classList.add('hidden');
+  const badge=document.getElementById('doctorBadge');
+  badge.classList.remove('hidden');
+  document.getElementById('doctorBadgeName').textContent=ADMIN_IDENTITY.name;
+  loadRecords(); newRecord();
+  if(openAdminTab){ switchTab('admin'); renderAdmin(); }
+}
+function enterInvestigatorSession(doc){
   isAdmin=false;
   document.querySelectorAll('.admin-only').forEach(b=>{ b.style.display='none'; });
   currentDoctor=doc;
@@ -1105,9 +1140,20 @@ window.verifyDoctorPin=function(){
   document.getElementById('doctorBadgeName').textContent=doc.name;
   if(['admin','analytics','downloads'].some(t=>!document.getElementById('tab-'+t).classList.contains('hidden'))) switchTab('records');
   loadRecords(); newRecord();
+}
+window.verifyDoctorPin=async function(){
+  const pin=document.getElementById('doctorPinInput').value.trim();
+  const err=document.getElementById('doctorPinError');
+  if(!pin){err.textContent='Enter your PIN.';err.style.display='block';return;}
+  await loadSettings();
+  if(String(SETTINGS.adminPin||DEFAULT_ADMIN_PIN)===pin){ enterAdminSession(true); return; }
+  const doc=DOCTORS.find(d=>String(d.pin)===pin && d.active!==false);
+  if(!doc){err.textContent='PIN not recognised. Ask the admin to add you.';err.style.display='block';return;}
+  enterInvestigatorSession(doc);
 };
 window.switchDoctor=function(){
   isAdmin=false;
+  currentDoctor=null;
   document.querySelectorAll('.admin-only').forEach(b=>{ b.style.display='none'; });
   if(['admin','analytics','downloads'].some(t=>!document.getElementById('tab-'+t).classList.contains('hidden'))) switchTab('records');
   showDoctorGate();
@@ -1125,19 +1171,8 @@ window.verifyAdminPin=async function(){
   const err=document.getElementById('adminPinError');
   await loadSettings();
   if(String(SETTINGS.adminPin)!==pin){err.textContent='Incorrect admin PIN.';err.style.display='block';return;}
-  isAdmin=true;                                  // unlocked for the whole session
-  document.querySelectorAll('.admin-only').forEach(b=>{ b.style.display=''; });
   closeAdminGate();
-  document.getElementById('doctorPinOverlay').classList.add('hidden');
-  // If no clinician identity is set yet, sign the admin in as "Admin" so they can also enter data.
-  if(!currentDoctor){
-    currentDoctor=ADMIN_IDENTITY;
-    const badge=document.getElementById('doctorBadge');
-    badge.classList.remove('hidden');
-    document.getElementById('doctorBadgeName').textContent=ADMIN_IDENTITY.name;
-    loadRecords(); newRecord();
-  }
-  switchTab('admin'); renderAdmin();
+  enterAdminSession(true);
 };
 // Admin tab entry point: free access once unlocked, otherwise prompt for the PIN.
 window.goAdmin=function(){ if(isAdmin){ switchTab('admin'); renderAdmin(); } else { openAdminGate(); } };
