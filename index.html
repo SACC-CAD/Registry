@@ -383,7 +383,11 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
   <section id="tab-analytics" class="hidden">
     <div class="card" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
       <div class="sec-title" style="border:none;margin:0;padding:0;"><div class="icon-wrap" style="background:#2563eb;"><i class="fas fa-chart-line"></i></div>Clinical Analytics</div>
-      <button class="btn btn-primary" onclick="renderAnalytics()"><i class="fas fa-rotate"></i> Refresh</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-gray" onclick="exportAnalyticsExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+        <button class="btn btn-red" onclick="downloadAnalyticsPDF()"><i class="fas fa-file-pdf"></i> Export PDF</button>
+        <button class="btn btn-primary" onclick="renderAnalytics()"><i class="fas fa-rotate"></i> Refresh</button>
+      </div>
     </div>
     <div class="g2" style="margin-bottom:16px;">
       <div class="dash-card" style="border-left:4px solid #2563eb;background:#eff6ff;"><div class="kpi-lbl">Total Patients</div><div id="anTotal" class="kpi-num" style="color:#2563eb;">—</div></div>
@@ -533,7 +537,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
             <div><label class="lbl">Email (optional)</label><input id="newDocEmail" class="inp inp-sm" placeholder="name@example.com"></div>
             <div><label class="lbl">Login PIN (3–6 digits)</label><input id="newDocPin" class="inp inp-sm" maxlength="6" style="font-family:'DM Mono',monospace;" placeholder="secret PIN" oninput="this.value=this.value.replace(/\D/g,'')"></div>
           </div>
-          <div style="font-size:11px;color:#94a3b8;margin-top:8px;"><i class="fas fa-circle-info"></i> The login PIN is private (used to sign in). A public <b>doctor code</b> for CRF numbers is assigned automatically and can be edited under the Doctor Codes tab.</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:8px;"><i class="fas fa-circle-info"></i> The login PIN is private and stored as a salted hash. A public <b>doctor code</b> for CRF numbers is assigned automatically and can be edited under the Doctor Codes tab.</div>
           <button class="btn btn-teal inp-sm" style="margin-top:12px;" onclick="addDoctor()"><i class="fas fa-user-plus"></i> Add User</button>
         </div>
         <div style="overflow-x:auto;">
@@ -547,7 +551,7 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <input id="newAdminPin" class="inp inp-sm" maxlength="8" style="font-family:'DM Mono',monospace;max-width:180px;" placeholder="New admin PIN" oninput="this.value=this.value.replace(/\D/g,'')">
             <button class="btn btn-purple inp-sm" onclick="changeAdminPin()"><i class="fas fa-save"></i> Update PIN</button>
-            <span style="font-size:11px;color:#94a3b8;">Stored in <code>cad_settings/config</code>, never in page source.</span>
+            <span style="font-size:11px;color:#94a3b8;">After first setup/update, stored in <code>cad_settings/config</code> as a salted hash, not as a readable PIN.</span>
           </div>
         </div>
       </div>
@@ -559,11 +563,11 @@ header{border-bottom:2px solid transparent;background-image:linear-gradient(#fff
           <button class="btn btn-primary inp-sm" onclick="saveDoctorCodes()"><i class="fas fa-save"></i> Save Changes</button>
         </div>
         <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px;font-size:12.5px;color:#1e40af;margin-bottom:14px;">
-          <i class="fas fa-circle-info"></i> Doctor codes are embedded in every CRF number (format <b>01-DDD-NNN</b>). The doctor code (PIN) uniquely identifies the operator. Hospital code is fixed at <b>01</b> (SACC).
+          <i class="fas fa-circle-info"></i> Doctor codes are embedded in every CRF number (format <b>01-DDD-NNN</b>). The doctor code is public and separate from the private login PIN. Hospital code is fixed at <b>01</b> (SACC).
         </div>
         <div style="overflow-x:auto;">
           <table class="admin-table" style="width:100%;border-collapse:collapse;">
-            <thead><tr><th>Doctor Name</th><th>Code (PIN)</th><th>CRF Prefix</th><th>Action</th></tr></thead>
+            <thead><tr><th>Doctor Name</th><th>Doctor Code</th><th>CRF Prefix</th><th>Action</th></tr></thead>
             <tbody id="codesBody"><tr><td colspan="4" style="text-align:center;padding:18px;color:#94a3b8;">Loading…</td></tr></tbody>
           </table>
         </div>
@@ -591,7 +595,7 @@ const FIREBASE_CONFIG = {
 };
 
 // 2) First-run master admin PIN. Used ONLY to bootstrap cad_settings/config the
-//    very first time. After that the PIN lives in Firestore and is changed in-app.
+//    very first time. After that a salted hash lives in Firestore and is changed in-app.
 const DEFAULT_ADMIN_PIN = "1986";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -1035,11 +1039,11 @@ const FIELD_DEFINITIONS = {
 })();
 
 let db=null, currentUser=null;
-let currentDoctor=null;          // {id,name,pin}
+let currentDoctor=null;          // {id,name,code}
 let isAdmin=false;               // true for the whole session once the master admin PIN is verified
 const ADMIN_IDENTITY={id:'__admin',name:'Admin',code:'ADM',active:true,isAdmin:true};
-let DOCTORS=[];                  // [{id,name,pin,active}]
-let SETTINGS={adminPin:DEFAULT_ADMIN_PIN};
+let DOCTORS=[];                  // [{id,name,code,pinHash,pinSalt,active}]
+let SETTINGS={};
 let currentRecord=null;          // working record
 let _formLocked=false;           // true when viewing a finalized/locked record
 let RECORDS=[];                  // cached patient records
@@ -1103,6 +1107,60 @@ function startApp(){
 if(window._fbReady) startApp(); else window.addEventListener('firebaseReady', startApp);
 
 /* ════════════════════════ DOCTOR / ADMIN PINS ════════════════════════ */
+function randHex(bytes=16){
+  const arr=new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  return [...arr].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function sha256Hex(text){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function makePinHash(pin){
+  const pinSalt=randHex(16);
+  const pinHash=await sha256Hex(`${pinSalt}:${pin}`);
+  return {pinSalt,pinHash,pinHashVersion:'sha256-salted-v1'};
+}
+async function pinMatches(pin,holder,legacyKey){
+  if(holder?.pinHash&&holder?.pinSalt){
+    return await sha256Hex(`${holder.pinSalt}:${pin}`)===holder.pinHash;
+  }
+  return !!(legacyKey && holder && holder[legacyKey]!=null && String(holder[legacyKey])===String(pin));
+}
+async function migrateDoctorPin(doc,pin){
+  if(!doc?.id||!window.firebase)return;
+  const payload=await makePinHash(pin);
+  await db.collection(COL_DOCTORS).doc(doc.id).update({...payload,pin:firebase.firestore.FieldValue.delete(),pinMigratedAt:new Date()});
+  Object.assign(doc,payload); delete doc.pin;
+}
+async function setAdminPinHash(pin){
+  const payload=await makePinHash(pin);
+  const adminPayload={adminPinSalt:payload.pinSalt,adminPinHash:payload.pinHash,adminPinHashVersion:payload.pinHashVersion,adminPinUpdatedAt:new Date()};
+  await db.collection(COL_SETTINGS).doc('config').set({...adminPayload,adminPin:firebase.firestore.FieldValue.delete()},{merge:true});
+  SETTINGS={...SETTINGS,...adminPayload};
+  delete SETTINGS.adminPin;
+}
+async function adminPinMatches(pin,migrateLegacy=true){
+  if(SETTINGS?.adminPinHash&&SETTINGS?.adminPinSalt){
+    return await sha256Hex(`${SETTINGS.adminPinSalt}:${pin}`)===SETTINGS.adminPinHash;
+  }
+  const legacy=SETTINGS?.adminPin || DEFAULT_ADMIN_PIN;
+  if(String(legacy)===String(pin)){
+    if(migrateLegacy) await setAdminPinHash(pin);
+    return true;
+  }
+  return false;
+}
+async function findDoctorByPin(pin,{activeOnly=false,migrate=false}={}){
+  for(const doc of DOCTORS){
+    if(activeOnly && doc.active===false) continue;
+    if(await pinMatches(pin,doc,'pin')){
+      if(migrate && !doc.pinHash) await migrateDoctorPin(doc,pin);
+      return doc;
+    }
+  }
+  return null;
+}
 async function loadDoctors(){
   try{ const snap=await db.collection(COL_DOCTORS).get(); DOCTORS=[]; snap.forEach(d=>DOCTORS.push({id:d.id,...d.data()})); }
   catch(e){ console.warn('loadDoctors',e); }
@@ -1111,7 +1169,7 @@ async function loadSettings(){
   try{
     const snap=await db.collection(COL_SETTINGS).doc('config').get();
     if(snap.exists){ SETTINGS=snap.data(); }
-    else { await db.collection(COL_SETTINGS).doc('config').set({adminPin:DEFAULT_ADMIN_PIN}); SETTINGS={adminPin:DEFAULT_ADMIN_PIN}; }
+    else { SETTINGS={}; await setAdminPinHash(DEFAULT_ADMIN_PIN); }
   }catch(e){ console.warn('loadSettings',e); }
 }
 function showDoctorGate(){
@@ -1146,8 +1204,8 @@ window.verifyDoctorPin=async function(){
   const err=document.getElementById('doctorPinError');
   if(!pin){err.textContent='Enter your PIN.';err.style.display='block';return;}
   await loadSettings();
-  if(String(SETTINGS.adminPin||DEFAULT_ADMIN_PIN)===pin){ enterAdminSession(true); return; }
-  const doc=DOCTORS.find(d=>String(d.pin)===pin && d.active!==false);
+  if(await adminPinMatches(pin,true)){ enterAdminSession(true); return; }
+  const doc=await findDoctorByPin(pin,{activeOnly:true,migrate:true});
   if(!doc){err.textContent='PIN not recognised. Ask the admin to add you.';err.style.display='block';return;}
   enterInvestigatorSession(doc);
 };
@@ -1170,7 +1228,7 @@ window.verifyAdminPin=async function(){
   const pin=document.getElementById('adminPinInput').value.trim();
   const err=document.getElementById('adminPinError');
   await loadSettings();
-  if(String(SETTINGS.adminPin)!==pin){err.textContent='Incorrect admin PIN.';err.style.display='block';return;}
+  if(!(await adminPinMatches(pin,true))){err.textContent='Incorrect admin PIN.';err.style.display='block';return;}
   closeAdminGate();
   enterAdminSession(true);
 };
@@ -1596,7 +1654,7 @@ const INFO={
   CCS:{t:'CCS Angina Grading',h:`Canadian Cardiovascular Society grading of angina severity.<table><tr><th>Grade</th><th>Description</th></tr><tr><td>I</td><td>Angina only with strenuous/prolonged exertion</td></tr><tr><td>II</td><td>Slight limitation — angina on walking &gt;2 blocks or climbing &gt;1 flight</td></tr><tr><td>III</td><td>Marked limitation — angina on 1–2 blocks / 1 flight</td></tr><tr><td>IV</td><td>Angina at rest or with any activity</td></tr></table>`},
   NYHA:{t:'NYHA Functional Class',h:`New York Heart Association functional limitation due to heart failure symptoms.<table><tr><th>Class</th><th>Description</th></tr><tr><td>I</td><td>No limitation of physical activity</td></tr><tr><td>II</td><td>Slight limitation; comfortable at rest</td></tr><tr><td>III</td><td>Marked limitation; comfortable only at rest</td></tr><tr><td>IV</td><td>Symptoms at rest; any activity worsens</td></tr></table>`},
   SCAI:{t:'SCAI Shock Stages',h:`Society for Cardiovascular Angiography &amp; Interventions cardiogenic-shock classification.<table><tr><th>Stage</th><th>Description</th></tr><tr><td>A — At risk</td><td>No current signs/symptoms of shock</td></tr><tr><td>B — Beginning</td><td>Relative hypotension or tachycardia, no hypoperfusion</td></tr><tr><td>C — Classic</td><td>Hypoperfusion needing inotrope/pressor or mechanical support</td></tr><tr><td>D — Deteriorating</td><td>Not responding; escalating support</td></tr><tr><td>E — Extremis</td><td>Refractory collapse, often with CPR/ECMO</td></tr></table>`},
-  CRF:{t:'CRF Number',h:`Auto-generated when the patient is first saved, in the format <b>01-&lt;doctor PIN&gt;-&lt;serial&gt;</b>. Hospital code <b>01</b> = Sabah Al-Ahmad Cardiac Center. The serial is gap-filled across the registry.`},
+  CRF:{t:'CRF Number',h:`Auto-generated when the patient is first saved, in the format <b>01-&lt;doctor code&gt;-&lt;serial&gt;</b>. Hospital code <b>01</b> = Sabah Al-Ahmad Cardiac Center. The serial is gap-filled across the registry.`},
   NATIONALITY:{t:'Nationality',h:`Select the patient's nationality from the alphabetic list, including Bedoon and Stateless when applicable.`},
   YOB:{t:'Year of Birth',h:`Enter the 4-digit year of birth. Estimated age is filled automatically; you can override it.`},
   BP:{t:'Blood Pressure',h:`Record the first measured value on presentation (mmHg). Tick <b>Unrecordable</b> if it could not be obtained.`},
@@ -1893,6 +1951,43 @@ function skipFinalField(s,f,data){
   }
   return false;
 }
+function validationValueData(s,f,data){
+  return String(data?.[fkey(s,f)]??'').trim();
+}
+function dataCondsPass(data,conds){
+  const arr=Array.isArray(conds)?conds:[conds];
+  return arr.every(c=>passDataCond(data,c));
+}
+function fieldAppliesToRecordData(s,g,f,data){
+  if(g.showIf && !dataCondsPass(data,g.showIf)) return false;
+  if(g.gate && !g.alwaysShow && data[`${g.gateSheet||s.sheet}.${g.gate}`]!=='Yes') return false;
+  if(f.showIf && !dataCondsPass(data,f.showIf)) return false;
+  return true;
+}
+function skipFinalFieldData(s,f,data){
+  const key=fkey(s,f);
+  if(f.ro || FINAL_OPTIONAL_FIELDS.has(key)) return true;
+  if(key==='History_Presentation.BMI'){
+    const h=data['History_Presentation.Height_cm'], w=data['History_Presentation.Weight_kg'];
+    return !h || !w || h==='Unrecordable' || w==='Unrecordable';
+  }
+  if(key==='Discharge_Medications.DAPT_Not_Prescribed_Reason'){
+    const survived=data['Discharge_Medications.In_Hospital_Outcome']==='Survived to discharge';
+    const aspirin=data['Discharge_Medications.Aspirin']==='Yes';
+    const p2y12=['Clopidogrel','Prasugrel','Ticagrelor'].some(k=>data['Discharge_Medications.'+k]==='Yes');
+    return !(survived && !(aspirin&&p2y12));
+  }
+  return false;
+}
+function missingFinalFieldsForRecord(r){
+  const data=r?.data||{}, missing=[];
+  SECTIONS.forEach(s=>s.groups.forEach(g=>(g.fields||[]).forEach(f=>{
+    if(skipFinalFieldData(s,f,data)) return;
+    if(!fieldAppliesToRecordData(s,g,f,data)) return;
+    if(!validationValueData(s,f,data)) missing.push(`${crfNoFor(s.id,f)||''} ${cleanLabelText(f.label||pretty(f.k))}`.trim());
+  })));
+  return missing;
+}
 function validateFinalCompletion(data,errors){
   SECTIONS.forEach(s=>secFields(s).forEach(f=>{
     if(skipFinalField(s,f,data)) return;
@@ -1952,6 +2047,21 @@ function validateLogic(data){
   if(data['Discharge_Medications.In_Hospital_Outcome']==='Survived to discharge' && data['InHospital_Complications.Death_In_Hospital']==='Yes') errors.push('Discharge status is survived to discharge, but in-hospital death is marked Yes.');
   if(data['Patient_Master.Chronic_Kidney_Disease']==='No'){ const e=parseFloat(data['Blood_Work.eGFR']); if(!isNaN(e)&&e<60) warnings.push(`eGFR is ${e} but CKD is marked No.`); }
   if(pciDone){ const n=parseFloat(data['PCI_Details.Total_Stents']); if(!isNaN(n)&&n===0) warnings.push('PCI was performed but the total number of stents is 0.'); }
+  if(pciDone && data['PCI_Details.Procedural_Anticoagulation']==='None') warnings.push('PCI was performed with procedural anticoagulation recorded as None. Confirm this is correct.');
+  if(pciDone && data['PCI_Details.Procedure_Success'] && ['Failed','Aborted'].includes(data['PCI_Details.Procedure_Success']) && data['PCI_Details.Complete_Revascularization']==='Yes') warnings.push('Procedure is failed/aborted but complete revascularization is marked Yes.');
+  if(pciDone && data['PCI_Details.Staged_PCI_Planned']==='Yes' && data['PCI_Details.Complete_Revascularization']==='Yes') warnings.push('Staged PCI is planned while complete revascularization is marked Yes. Confirm the meaning of complete revascularization.');
+  if(['STEMI','NSTEMI','Unstable Angina','Out-of-hospital cardiac arrest'].includes(pres) && data['Presentation_ECG_Timing.ECG_Performed']==='No') warnings.push(`${pres} is recorded but ECG performed is No. Confirm that ECG was truly not done.`);
+  if(pres==='STEMI' && data['Presentation_ECG_Timing.ECG_Performed']==='Yes' && !data['Presentation_ECG_Timing.ECG_Time']) warnings.push('STEMI presentation requires ECG date/time for reperfusion quality metrics.');
+  if(['SCAI C','SCAI D','SCAI E'].includes(shock) && data['Echocardiography.Echo_Performed']==='No') warnings.push(`Cardiogenic shock ${shock} with echo not performed. Confirm echo was unavailable or clinically impossible.`);
+  const cBase=parseFloat(data['Blood_Work.Creatinine']), cPeak=parseFloat(data['Blood_Work.Creatinine_Peak']);
+  if(cBase>0 && cPeak>0){
+    const akiCriteria=(cPeak-cBase)>=26.5 || (cPeak/cBase)>=1.5;
+    if(akiCriteria && data['PCI_Details.Contrast_Induced_AKI']!=='Yes') warnings.push(`Creatinine rise (${Math.round(cBase)} → ${Math.round(cPeak)} µmol/L) meets AKI criteria; contrast-induced AKI is not marked Yes.`);
+  }
+  if(data['PCI_Details.Contrast_Induced_AKI']==='Yes' && !(cBase>0 && cPeak>0)) warnings.push('Contrast-induced AKI is marked Yes but baseline/peak creatinine is incomplete.');
+  const hb=parseFloat(data['Blood_Work.Hemoglobin']), hbNadir=parseFloat(data['Blood_Work.Hemoglobin_Nadir']);
+  if(hb>0 && hbNadir>0 && hb-hbNadir>=3 && data['InHospital_Complications.Major_Bleeding']!=='Yes') warnings.push(`Hemoglobin drop is ${(hb-hbNadir).toFixed(1)} g/dL but major bleeding is not marked Yes.`);
+  if(data['InHospital_Complications.Blood_Transfusion']==='Yes' && data['InHospital_Complications.Major_Bleeding']!=='Yes') warnings.push('Blood transfusion is Yes but major bleeding is not marked Yes. Confirm bleeding classification.');
   const survived=data['Discharge_Medications.In_Hospital_Outcome']==='Survived to discharge';
   const aspirin=data['Discharge_Medications.Aspirin']==='Yes';
   const p2y12=['Clopidogrel','Prasugrel','Ticagrelor'].some(k=>data['Discharge_Medications.'+k]==='Yes');
@@ -2010,8 +2120,11 @@ function validateFollowupLogic(data,followups){
   followups.forEach((fu,i)=>{
     const label=`Follow-up visit ${i+1}`;
     if(fu.Alive==='Yes' && fu.Death==='Yes') errors.push(`${label}: Alive and Death cannot both be Yes.`);
+    if(fu.Alive==='No' && fu.Death!=='Yes') errors.push(`${label}: Alive = No requires Death = Yes.`);
     if(fu.Cardiac_Death==='Yes' && fu.Death!=='Yes') errors.push(`${label}: Cardiac death requires Death = Yes.`);
     if(fu.Still_In_Hospital==='Yes' && fu.Death==='Yes') errors.push(`${label}: Still in hospital and Death cannot both be Yes.`);
+    if(fu.Still_In_Hospital==='Yes' && fu.Alive!=='Yes') warnings.push(`${label}: Still in hospital usually requires Alive = Yes. Confirm vital status.`);
+    if(fu.FollowUp_Source==='Death registry' && fu.Death!=='Yes') warnings.push(`${label}: source is Death registry but Death is not marked Yes.`);
     if(fu.Stent_Thrombosis==='Yes' && !(indexStents>0)) warnings.push(`${label}: stent thrombosis is recorded but no index stent is documented. Confirm prior/outside stent history or correct index PCI data.`);
     const maceEvents=['Death','MI','Stroke','Unplanned_Revascularization','Stent_Thrombosis'].filter(k=>fu[k]==='Yes');
     if(maceEvents.length && fu.MACE!=='Yes') warnings.push(`${label}: MACE should be Yes because ${maceEvents.map(pretty).join(', ')} is Yes.`);
@@ -2165,7 +2278,8 @@ window.unlockRecord=async function(){
   if(!isAdmin){
     const pin=prompt('Enter the master admin PIN to unlock this finalized record:');
     if(pin===null)return;
-    if(String(pin)!==String(SETTINGS.adminPin||DEFAULT_ADMIN_PIN)){ toast('Incorrect admin PIN','#e11d48'); return; }
+    await loadSettings();
+    if(!(await adminPinMatches(pin,true))){ toast('Incorrect admin PIN','#e11d48'); return; }
   }
   try{ await db.collection(COL_PATIENTS).doc(id).update({locked:false}); await loadRecords(); editRecord(id); toast('Record unlocked for editing','#d97706'); }
   catch(e){ toast('Unlock failed: '+e.message,'#e11d48'); }
@@ -2449,10 +2563,11 @@ window.addDoctor=async function(){
   const email=(document.getElementById('newDocEmail')?.value||'').trim();
   if(!name||!pin){ toast('Name and login PIN required','#e11d48'); return; }
   if(!/^\d{3,6}$/.test(pin)){ toast('Login PIN must be 3–6 digits','#e11d48'); return; }
-  if(DOCTORS.some(d=>String(d.pin)===pin)){ toast('That login PIN is already in use','#e11d48'); return; }
+  if(await findDoctorByPin(pin)){ toast('That login PIN is already in use','#e11d48'); return; }
   const code=nextDoctorCode();
   try{
-    await db.collection(COL_DOCTORS).add({name,pin,code,email,active:true,createdAt:new Date()});
+    const pinPayload=await makePinHash(pin);
+    await db.collection(COL_DOCTORS).add({name,code,email,active:true,createdAt:new Date(),...pinPayload});
     document.getElementById('newDocName').value=''; document.getElementById('newDocPin').value=''; if(document.getElementById('newDocEmail'))document.getElementById('newDocEmail').value='';
     await adminRefresh(); toast(`User added · doctor code ${code} ✓`,'#059669');
   }catch(e){ toast('Failed: '+e.message,'#e11d48'); }
@@ -2462,7 +2577,7 @@ window.deleteDoctor=async function(id,name){ if(!confirm(`Remove "${name}"? Exis
 window.changeAdminPin=async function(){
   const p=document.getElementById('newAdminPin').value.trim();
   if(!/^\d{3,8}$/.test(p)){ toast('Admin PIN must be 3–8 digits','#e11d48'); return; }
-  try{ await db.collection(COL_SETTINGS).doc('config').set({adminPin:p},{merge:true}); SETTINGS.adminPin=p; document.getElementById('newAdminPin').value=''; toast('Admin PIN updated ✓','#059669'); }
+  try{ await setAdminPinHash(p); document.getElementById('newAdminPin').value=''; toast('Admin PIN updated ✓','#059669'); }
   catch(e){ toast('Failed: '+e.message,'#e11d48'); }
 };
 
@@ -2711,6 +2826,66 @@ function _acc(title,icon,color,body,open){
     <div class="acc-body${open?'':' hidden'}" style="padding:16px 18px;border-top:1px solid #eef2f7;">${body}</div>
   </div>`;
 }
+function analyticsTable(headers,rows){
+  if(!rows.length)return '<div style="color:#94a3b8;font-size:13px;">No data yet.</div>';
+  return `<div style="overflow-x:auto;"><table class="admin-table" style="width:100%;border-collapse:collapse;white-space:nowrap;"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function analyticsOverviewRows(){
+  const N=RECORDS.length;
+  const pciCases=RECORDS.filter(r=>{const cr=r.data?.['Admission_Reason.CA_Reason'],md=r.data?.['PCI_Details.Management_Decision'];return cr==='Primary PCI (STEMI)'||md==='PCI'||md==='Hybrid (PCI + CABG)';});
+  const success=pciCases.filter(r=>r.data?.['PCI_Details.Procedure_Success']==='Successful').length;
+  const deaths=RECORDS.filter(r=>r.data?.['Discharge_Medications.In_Hospital_Outcome']==='In-hospital death'||r.data?.['InHospital_Complications.Death_In_Hospital']==='Yes').length;
+  const anyComp=RECORDS.filter(r=>r.data?.['PCI_Details.Procedural_Complications_Present']==='Yes'||r.data?.['InHospital_Complications.InHospital_Complication_Present']==='Yes').length;
+  const finalized=RECORDS.filter(r=>r.locked||['submitted','reviewed'].includes(r.recordStatus||'draft')).length;
+  const reviewed=RECORDS.filter(r=>(r.recordStatus||'draft')==='reviewed').length;
+  const avg=N?Math.round(RECORDS.reduce((a,r)=>a+computeProgress(r),0)/N):0;
+  const overdue=followupAlerts(RECORDS,false).filter(a=>a.days>0).length;
+  const missing=RECORDS.reduce((a,r)=>a+missingFinalFieldsForRecord(r).length,0);
+  return [
+    ['Total patients',N],
+    ['PCI performed',`${pciCases.length}/${N} (${_pctStr(pciCases.length,N)})`],
+    ['Procedure success',`${success}/${pciCases.length} (${_pctStr(success,pciCases.length)})`],
+    ['In-hospital mortality',`${deaths}/${N} (${_pctStr(deaths,N)})`],
+    ['Any complication',`${anyComp}/${N} (${_pctStr(anyComp,N)})`],
+    ['Average completion',N?avg+'%':'—'],
+    ['Finalized / submitted',`${finalized}/${N} (${_pctStr(finalized,N)})`],
+    ['Reviewed',`${reviewed}/${N} (${_pctStr(reviewed,N)})`],
+    ['Overdue follow-up visits',overdue],
+    ['Missing final-submit fields',missing]
+  ];
+}
+function investigatorQualityRows(){
+  const map=new Map();
+  RECORDS.forEach(r=>{
+    const code=r.enteredByCode||r.enteredByPin||'—';
+    const name=r.enteredByName||'—';
+    const key=code+'|'+name;
+    if(!map.has(key))map.set(key,{code,name,rows:[]});
+    map.get(key).rows.push(r);
+  });
+  return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>{
+    const rows=x.rows,total=rows.length;
+    const avg=total?Math.round(rows.reduce((s,r)=>s+computeProgress(r),0)/total):0;
+    const finalized=rows.filter(r=>r.locked||['submitted','reviewed'].includes(r.recordStatus||'draft')).length;
+    const reviewed=rows.filter(r=>(r.recordStatus||'draft')==='reviewed').length;
+    const overdue=followupAlerts(rows,false).filter(a=>a.days>0).length;
+    const missingCounts=rows.map(r=>missingFinalFieldsForRecord(r).length);
+    const missingCases=missingCounts.filter(n=>n>0).length;
+    const missingTotal=missingCounts.reduce((a,b)=>a+b,0);
+    return [x.name,x.code,total,avg+'%',`${finalized}/${total} (${_pctStr(finalized,total)})`,`${reviewed}/${total} (${_pctStr(reviewed,total)})`,overdue,`${missingCases} case(s), ${missingTotal} field(s)`];
+  });
+}
+function followupOutcomeRows(){
+  const finalRows=RECORDS.filter(r=>r.locked||['submitted','reviewed'].includes(r.recordStatus||'draft'));
+  return FOLLOWUP_MONTHS.map(m=>{
+    const eligible=finalRows.filter(r=>{ const g=followupGate(r,m); return g.done||g.allowed; });
+    const visits=[];
+    finalRows.forEach(r=>{ const fu=(r.followups||[]).find(f=>String(f.FollowUp_Timepoint_Months||'')===String(m)); if(fu)visits.push(fu); });
+    const d=visits.length;
+    const c=k=>visits.filter(f=>f[k]==='Yes').length;
+    return [`${m}M`,eligible.length,`${d}/${eligible.length} (${_pctStr(d,eligible.length)})`,`${c('Death')} (${_pctStr(c('Death'),d)})`,`${c('MI')} (${_pctStr(c('MI'),d)})`,`${c('Stroke')} (${_pctStr(c('Stroke'),d)})`,`${c('Unplanned_Revascularization')} (${_pctStr(c('Unplanned_Revascularization'),d)})`,`${c('Stent_Thrombosis')} (${_pctStr(c('Stent_Thrombosis'),d)})`,`${c('MACE')} (${_pctStr(c('MACE'),d)})`];
+  });
+}
 function dataQualityBody(){
   const avg=RECORDS.length?Math.round(RECORDS.reduce((a,r)=>a+computeProgress(r),0)/RECORDS.length):0;
   const finalized=RECORDS.filter(r=>r.locked||['submitted','reviewed'].includes(r.recordStatus||'draft')).length;
@@ -2730,10 +2905,14 @@ function dataQualityBody(){
     return {label:`${m}-month follow-up`,total:eligible.length,done:eligible.filter(r=>hasFollowup(r,m)).length};
   });
   const noAdm=RECORDS.filter(r=>!r.data?.['Patient_Master.Index_Admission_Date']).length;
+  const missingCases=RECORDS.filter(r=>missingFinalFieldsForRecord(r).length).length;
+  const missingFields=RECORDS.reduce((a,r)=>a+missingFinalFieldsForRecord(r).length,0);
   return `<div style="margin-bottom:12px;">
     ${_statRow('Average record completion',RECORDS.length?avg+'%':'—')}
     ${_statRow('Finalized / submitted records',finalized+'/'+RECORDS.length)}
     ${_statRow('Records missing admission date',noAdm)}
+    ${_statRow('Records with final-submit missing fields',missingCases+'/'+RECORDS.length)}
+    ${_statRow('Total missing final-submit fields',missingFields)}
   </div>
   <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Section completeness</div>
   ${_qualityRows(sectionRows,'#2563eb')}
@@ -2747,7 +2926,7 @@ function renderAnalytics(){
   const _avg=key=>{const vals=RECORDS.map(r=>parseFloat(r.data?.[key])).filter(v=>!isNaN(v));return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;};
   // ---- KPIs ----
   const pciCases=RECORDS.filter(r=>{const cr=r.data?.['Admission_Reason.CA_Reason'],md=r.data?.['PCI_Details.Management_Decision'];return cr==='Primary PCI (STEMI)'||md==='PCI'||md==='Hybrid (PCI + CABG)';});
-  const success=pciCases.filter(r=>r.data?.['PCI_Details.Procedural_Complications_Present']!=='Yes').length;
+  const success=pciCases.filter(r=>r.data?.['PCI_Details.Procedure_Success']==='Successful').length;
   const deaths=RECORDS.filter(r=>r.data?.['Discharge_Medications.In_Hospital_Outcome']==='In-hospital death'||r.data?.['InHospital_Complications.Death_In_Hospital']==='Yes').length;
   document.getElementById('anTotal').textContent=N;
   document.getElementById('anPci').textContent=pciCases.length;
@@ -2802,9 +2981,44 @@ function renderAnalytics(){
     +_acc('Cardiovascular Risk Factors','fa-triangle-exclamation','#d97706',_rateRows(Object.entries(risk),N,'#d97706'))
     +_acc('Secondary Prevention at Discharge','fa-pills','#16a34a',_rateRows(sp,surv.length,'#16a34a'))
     +_acc('Complications &amp; Outcomes','fa-kit-medical','#e11d48',complBody)
+    +_acc('Investigator Quality Dashboard','fa-user-check','#0d9488',analyticsTable(['Investigator','Code','Total Cases','Completion','Finalized','Reviewed','Overdue FU','Missing Critical Fields'],investigatorQualityRows()),true)
+    +_acc('Follow-Up Outcomes by Timepoint','fa-calendar-check','#7c3aed',analyticsTable(['Visit','Eligible','Completed','Death','MI','Stroke','Revascularization','Stent Thrombosis','MACE'],followupOutcomeRows()),true)
     +_acc('Data Quality &amp; Follow-Up Completion','fa-clipboard-check','#2563eb',dataQualityBody())
     +_acc('Cases by Investigator','fa-user-doctor','#0d9488',_distRows(_countBy(RECORDS.map(r=>r.enteredByName||'—')),'#0d9488'));
 }
+function analyticsSheetRows(){
+  return {
+    Overview:[['Metric','Value'],...analyticsOverviewRows()],
+    Investigator_Quality:[['Investigator','Code','Total_Cases','Completion','Finalized','Reviewed','Overdue_Followups','Missing_Critical_Fields'],...investigatorQualityRows()],
+    FollowUp_Outcomes:[['Visit','Eligible','Completed','Death','MI','Stroke','Revascularization','Stent_Thrombosis','MACE'],...followupOutcomeRows()]
+  };
+}
+window.exportAnalyticsExcel=function(){
+  if(!RECORDS.length){toast('No records to analyze','#e11d48');return;}
+  const wb=XLSX.utils.book_new();
+  const sheets=analyticsSheetRows();
+  Object.entries(sheets).forEach(([name,rows])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),name.slice(0,31)));
+  XLSX.writeFile(wb,`SACC_CAD_Analytics_${stamp()}.xlsx`);
+  toast('Analytics Excel exported ✓','#059669');
+};
+function htmlTableFromRows(title,headers,rows){
+  return `<h2>${esc(title)}</h2><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+window.downloadAnalyticsPDF=function(){
+  if(!RECORDS.length){toast('No records to analyze','#e11d48');return;}
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>SACC CAD Analytics</title>
+    <style>body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:26px;}h1{font-size:20px;margin:0 0 4px;}h2{font-size:14px;color:#1d4ed8;border-bottom:2px solid #dbeafe;padding-bottom:4px;margin:18px 0 8px;}.sub{color:#64748b;font-size:12px;margin-bottom:16px;}
+    table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:14px;}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left;}th{background:#1d4ed8;color:#fff;}tr:nth-child(even) td{background:#f8fafc;}
+    @media print{@page{size:A4 landscape;margin:12mm;}}</style></head><body>
+    <h1>SACC CAD Registry — Analytics Report</h1>
+    <div class="sub">Sabah Al-Ahmad Cardiac Center · generated ${new Date().toLocaleString()} · ${RECORDS.length} patient record(s)</div>
+    ${htmlTableFromRows('Overview',['Metric','Value'],analyticsOverviewRows())}
+    ${htmlTableFromRows('Investigator Quality Dashboard',['Investigator','Code','Total Cases','Completion','Finalized','Reviewed','Overdue FU','Missing Critical Fields'],investigatorQualityRows())}
+    ${htmlTableFromRows('Follow-Up Outcomes by Timepoint',['Visit','Eligible','Completed','Death','MI','Stroke','Revascularization','Stent Thrombosis','MACE'],followupOutcomeRows())}
+    <script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script></body></html>`;
+  const w=window.open('','_blank'); if(!w){toast('Allow pop-ups to generate the PDF','#e11d48');return;} w.document.write(html); w.document.close();
+  toast('Opening analytics report — choose “Save as PDF” ✓','#e11d48');
+};
 
 /* ════════════════════════ TOAST ════════════════════════ */
 function toast(msg,color='#059669'){ const t=document.getElementById('toast'); t.style.background=color; t.textContent=msg; t.style.opacity='1'; clearTimeout(t._to); t._to=setTimeout(()=>t.style.opacity='0',2800); }
