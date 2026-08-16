@@ -821,6 +821,7 @@ const SECTIONS = [
    {title:'PCI Details', tint:'cyan', c:'#0891b2', icon:'fa-syringe', cols:3,
      showIf:{any:[{sec:'careason',k:'CA_Reason',eq:'Primary PCI (STEMI)'},{sec:'pci',k:'Management_Decision',eq:'PCI'},{sec:'pci',k:'Management_Decision',eq:'Hybrid (PCI + CABG)'}]}, fields:[
      {k:'PCI_Date',type:'date'},
+     {k:'P2Y12_Loading_Location',type:'select',opts:['Not given','Emergency Room','Cath Lab','Both ER and Cath Lab','Before arrival / referring hospital','Unknown'],label:'P2Y12 loading dose location'},
      {k:'GP_IIbIIIa_Used',type:'ynbtn',label:'GP IIb/IIIa inhibitor used'},
      {k:'Procedural_Anticoagulation',type:'select',opts:['None','UFH','LMWH','Bivalirudin','Other'],label:'Procedural anticoagulation'},
      {k:'Culprit_Vessel',type:'select',opts:['Left main','LAD','LCx','RCA','Ramus','Graft','None'],label:'Culprit vessel',sheet:'Coronary_Anatomy'},
@@ -992,6 +993,7 @@ const FIELD_DEFINITIONS = {
   'InHospital_Complications.Death_In_Hospital':'Death before discharge during the index admission.',
   'InHospital_Complications.Major_Bleeding':'Clinically important bleeding during admission; use BARC grade to classify severity.',
   'InHospital_Complications.Mechanical_Ventilation':'Use of invasive mechanical ventilation during the index admission after presentation.',
+  'PCI_Details.P2Y12_Loading_Location':'Location where the P2Y12 inhibitor loading dose was administered for the index PCI pathway: emergency room, cath lab, both, before arrival/referring hospital, not given, or unknown.',
   'PCI_Details.Procedure_Success':'Overall operator-assessed success of the PCI procedure at the end of the session.',
   'PCI_Details.Complete_Revascularization':'All clinically significant target lesions were treated during index or planned staged PCI.',
   'PCI_Details.Acute_Stent_Thrombosis':'Stent thrombosis occurring within 24 hours after stent implantation.',
@@ -1420,6 +1422,11 @@ function normalizeInterlinkedData(data,followups,lesions,stagedLesions){
     data['InHospital_Complications.InHospital_Complication_Present']='Yes';
     data['InHospital_Complications.Death_In_Hospital']='Yes';
   }
+  [lesions,stagedLesions].forEach(arr=>{
+    (arr||[]).forEach(les=>{
+      if(les.Primary_Device && les.Primary_Device!=='DES' && les.Primary_Device!=='BMS') les.Stent_Count='0';
+    });
+  });
   const indexStents=parseFloat(data['PCI_Details.Total_Stents']);
   if(!(indexStents>0)){
     ['Acute_Stent_Thrombosis','Acute_ST_Management'].forEach(k=>data[`PCI_Details.${k}`]='');
@@ -1509,7 +1516,7 @@ function recalcEGFR(){
 }
 function wireCalc(){
   const form=document.getElementById('cadForm');
-  const onChange=()=>{ updateIndicators(); reactors(); applyConditionals(); };
+  const onChange=()=>{ reactors(); applyConditionals(); updateIndicators(); };
   form.addEventListener('input',onChange);
   form.addEventListener('change',onChange);
   ['f_history__Height_cm','f_history__Weight_kg'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',recalcBMI);});
@@ -1623,6 +1630,7 @@ function reactors(){
     if(['MI','Stroke','Unplanned_Revascularization','Stent_Thrombosis'].some(k=>fu(k)==='Yes')) setYNsilent(`f_fu${idx}__MACE`,'Yes');
   });
   // Procedure: auto-count diseased vessels / ≥70% vessels, prune+sync treated-vessel lesion blocks, total stents
+  syncAllLesionStentCounts();
   computeAngioCounts();
   syncTreated();
   computeStagedTotals();
@@ -1746,6 +1754,7 @@ window.addLesionCard=function(data,fixedVessel,staged){
   document.getElementById(staged?'stagedLesionContainer':'lesionContainer').appendChild(card);
   if(data){ secFields(LESIONS).forEach(f=>setFieldVal(`f_les${idx}__${f.k}`,f,data[f.k])); }
   if(!staged){ const tv=document.getElementById(`f_les${idx}__Target_Vessel`); if(tv&&vessel) tv.value=vessel; }
+  syncLesionStentCount(card);
   applyConditionals(); updateIndicators();
   return idx;
 };
@@ -1755,6 +1764,26 @@ function computeStagedTotals(){
   [...c.querySelectorAll('.lesion-card')].forEach(card=>{ const e=document.getElementById(`f_les${card.dataset.les}__Stent_Count`); const n=parseInt(e&&e.value,10); if(!isNaN(n))tot+=n; });
   const d=document.getElementById('stagedTotalDisp'); if(d)d.textContent=tot;
   const h=document.getElementById('f_pci__Staged_Total_Stents'); if(h)h.value=tot;
+}
+function syncLesionStentCount(card){
+  if(!card)return;
+  const idx=card.dataset.les;
+  const device=document.getElementById(`f_les${idx}__Primary_Device`);
+  const count=document.getElementById(`f_les${idx}__Stent_Count`);
+  if(!device||!count)return;
+  const stentImplanted=device.value==='DES'||device.value==='BMS';
+  if(device.value&&!stentImplanted){
+    count.value='0';
+    count.readOnly=true;
+    count.title='Auto-set to 0 because DES/BMS were not used.';
+  }else{
+    if(count.readOnly&&count.value==='0')count.value='';
+    count.readOnly=false;
+    count.title='';
+  }
+}
+function syncAllLesionStentCounts(){
+  document.querySelectorAll('#lesionContainer .lesion-card,#stagedLesionContainer .lesion-card').forEach(syncLesionStentCount);
 }
 // ---- Vessel-driven treated-lesion machinery ----
 const TREATED_VESSELS=[['Left_Main_Disease','Left main','LM_Stenosis_Pct'],['LAD_Disease','LAD','LAD_Stenosis_Pct'],['LCX_Disease','LCx','LCX_Stenosis_Pct'],['RCA_Disease','RCA','RCA_Stenosis_Pct']];
